@@ -1,47 +1,37 @@
 import React from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, SafeAreaView, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Menu, Bell, TrendingUp, Trophy, Search, Users, User, ArrowUpRight } from 'lucide-react-native';
+import { Bell, TrendingUp, ArrowUpRight } from 'lucide-react-native';
+import { LayoutHeader } from '@/components/LayoutHeader';
+import { BottomTabBar } from '@/components/BottomTabBar';
+import { BackgroundGradient } from '@/components/BackgroundGradient';
+import { GlobalStyles } from '@/constants/GlobalStyles';
 import { TrofiTheme } from '@/constants/theme';
 
 const { width } = Dimensions.get('window');
 
 export default function DashboardScreen() {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[TrofiTheme.background, '#0D1B2A']}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={GlobalStyles.container}>
+      <BackgroundGradient />
       
-      <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.menuButton}>
-            <Menu size={24} color={TrofiTheme.text} />
-          </TouchableOpacity>
-          <Text style={styles.logoHeader}>TROFI</Text>
-          <TouchableOpacity style={styles.profileButton}>
-            <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop' }} 
-              style={styles.profileImage} 
-            />
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView style={GlobalStyles.safeArea}>
+        <LayoutHeader />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {/* Section: My Teams */}
           <View style={styles.sectionHeader}>
             <View>
               <Text style={styles.sectionOverline}>RESUMEN SEMANAL</Text>
-              <Text style={styles.sectionTitle}>MIS EQUIPOS</Text>
+              <Text style={GlobalStyles.sectionTitle}>MIS EQUIPOS</Text>
             </View>
             <TouchableOpacity style={styles.bellButton}>
               <Bell size={20} color={TrofiTheme.primary} />
             </TouchableOpacity>
           </View>
 
-          {/* Featured Match Card */}
           <View style={styles.featuredCard}>
             <LinearGradient
               colors={['#112240', '#0A192F']}
@@ -80,7 +70,6 @@ export default function DashboardScreen() {
             </LinearGradient>
           </View>
 
-          {/* Performance Summary */}
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
               <Text style={styles.statLabel}>WIN RATE</Text>
@@ -105,7 +94,6 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* Road to Glory Section */}
           <TouchableOpacity style={styles.bannerCard}>
             <LinearGradient
               colors={['#004E92', '#000428']}
@@ -124,9 +112,8 @@ export default function DashboardScreen() {
             </LinearGradient>
           </TouchableOpacity>
 
-          {/* Recent Players */}
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>PLAYERS</Text>
+            <Text style={GlobalStyles.sectionTitle}>PLAYERS</Text>
             <TouchableOpacity>
               <Text style={styles.seeAllText}>VIEW ALL</Text>
             </TouchableOpacity>
@@ -141,18 +128,7 @@ export default function DashboardScreen() {
 
         </ScrollView>
 
-        {/* Custom Bottom Tab Bar */}
-        <View style={styles.tabBar}>
-          <TabItem icon={<Trophy size={24} color={TrofiTheme.primary} />} label="Leagues" active />
-          <TabItem icon={<ArrowUpRight size={24} color={TrofiTheme.textSecondary} />} label="Explore" />
-          <View style={styles.centerTabContainer}>
-            <TouchableOpacity style={styles.centerTab}>
-              <Search size={28} color="#001A2C" />
-            </TouchableOpacity>
-          </View>
-          <TabItem icon={<Users size={24} color={TrofiTheme.textSecondary} />} label="Teams" />
-          <TabItem icon={<User size={24} color={TrofiTheme.textSecondary} />} label="Profile" />
-        </View>
+        <BottomTabBar />
       </SafeAreaView>
     </View>
   );
@@ -172,52 +148,7 @@ function PlayerAvatar({ name }: { name: string }) {
   );
 }
 
-function TabItem({ icon, label, active = false }: { icon: React.ReactNode, label: string, active?: boolean }) {
-  return (
-    <TouchableOpacity style={styles.tabItem}>
-      {icon}
-      <Text style={[styles.tabLabel, active && styles.activeTabLabel]}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    height: 70,
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-  },
-  logoHeader: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: TrofiTheme.text,
-    letterSpacing: 2,
-  },
-  profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: TrofiTheme.primary,
-    overflow: 'hidden',
-  },
-  profileImage: {
-    width: '100%',
-    height: '100%',
-  },
   scrollContent: {
     paddingHorizontal: 20,
     paddingBottom: 100,
@@ -234,12 +165,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: TrofiTheme.textSecondary,
     letterSpacing: 1,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: TrofiTheme.text,
-    letterSpacing: 0.5,
   },
   bellButton: {
     width: 40,
@@ -455,47 +380,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: TrofiTheme.text,
     fontWeight: '500',
-  },
-  tabBar: {
-    flexDirection: 'row',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 80,
-    backgroundColor: '#050A15',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    justifyContent: 'space-around',
-  },
-  tabItem: {
-    alignItems: 'center',
-    width: 60,
-  },
-  tabLabel: {
-    fontSize: 9,
-    color: TrofiTheme.textSecondary,
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  activeTabLabel: {
-    color: TrofiTheme.primary,
-  },
-  centerTabContainer: {
-    marginTop: -35,
-    width: 70,
-    alignItems: 'center',
-  },
-  centerTab: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: TrofiTheme.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 5,
-    borderColor: '#050A15',
   },
 });

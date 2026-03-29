@@ -1,33 +1,34 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Trophy, Calendar, Trophy as ResultsIcon, Image as GalleryIcon, BarChart3 } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { BackgroundGradient } from '@/components/BackgroundGradient';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { GlobalStyles } from '@/constants/GlobalStyles';
 import { TrofiTheme } from '@/constants/theme';
 
 const { width } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[TrofiTheme.background, '#0D1B2A', '#1B263B']}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={GlobalStyles.container}>
+      <BackgroundGradient />
       
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={GlobalStyles.safeArea}>
         <View style={styles.content}>
-          {/* Logo Section */}
           <View style={styles.logoContainer}>
             <View style={styles.iconCircle}>
-              <Trophy size={60} color={TrofiTheme.primary} strokeWidth={1.5} />
+              <Image 
+                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3112/3112946.png' }}
+                style={{ width: 65, height: 65, resizeMode: 'contain', tintColor: TrofiTheme.primary }}
+              />
             </View>
             <Text style={styles.title}>TROFI</Text>
             <Text style={styles.subtitle}>TUS TORNEOS LOCALES</Text>
             <Text style={styles.tagline}>EN LA PALMA DE TU MANO</Text>
           </View>
 
-          {/* Features Grid */}
           <View style={styles.grid}>
             <FeatureIcon icon={<Calendar size={24} color={TrofiTheme.text} />} label="Programación" />
             <FeatureIcon icon={<ResultsIcon size={24} color={TrofiTheme.text} />} label="Resultados" />
@@ -35,21 +36,11 @@ export default function WelcomeScreen() {
             <FeatureIcon icon={<BarChart3 size={24} color={TrofiTheme.text} />} label="Estadísticas" />
           </View>
 
-          {/* Action Button */}
-          <TouchableOpacity 
-            style={styles.button}
-            activeOpacity={0.8}
-            onPress={() => router.push('/login')}
-          >
-            <LinearGradient
-              colors={[TrofiTheme.primary, '#00D1FF']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.buttonGradient}
-            >
-              <Text style={styles.buttonText}>EMPEZAR</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+          <PrimaryButton 
+            title="EMPEZAR" 
+            onPress={() => router.push('/login')} 
+            style={{ width: '80%', borderRadius: 28 }} 
+          />
 
           <Text style={styles.footerText}>PROXIMO EVENTO: LIGA ZAPOPAN NORTE</Text>
         </View>
@@ -70,12 +61,6 @@ function FeatureIcon({ icon, label }: { icon: React.ReactNode, label: string }) 
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     alignItems: 'center',
@@ -142,28 +127,6 @@ const styles = StyleSheet.create({
     color: TrofiTheme.text,
     fontWeight: '600',
     letterSpacing: 0.5,
-  },
-  button: {
-    width: '80%',
-    height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
-    shadowColor: TrofiTheme.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
-  },
-  buttonGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#001A2C',
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: 1,
   },
   footerText: {
     fontSize: 10,

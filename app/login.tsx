@@ -1,41 +1,39 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Info } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { BackgroundGradient } from '@/components/BackgroundGradient';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { GlobalStyles } from '@/constants/GlobalStyles';
 import { TrofiTheme } from '@/constants/theme';
 
 export default function LoginScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={[TrofiTheme.background, '#0D1B2A']}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={GlobalStyles.container}>
+      <BackgroundGradient />
       
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={GlobalStyles.safeArea}>
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ChevronLeft size={28} color={TrofiTheme.text} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Trofi</Text>
-            <View style={{ width: 28 }} /> {/* Balancer */}
+            <View style={{ width: 28 }} />
           </View>
 
           <View style={styles.content}>
             <View style={styles.textSection}>
-              <Text style={styles.title}>Bienvenidos</Text>
-              <Text style={styles.subtitle}>Ingresa tus datos para continuar al campo.</Text>
+              <Text style={GlobalStyles.title}>Bienvenidos</Text>
+              <Text style={GlobalStyles.subtitle}>Ingresa tus datos para continuar al campo.</Text>
             </View>
 
-            {/* Input Section */}
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>NÚMERO DE TELÉFONO</Text>
               <View style={styles.inputWrapper}>
@@ -51,21 +49,12 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            {/* Action Button */}
-            <TouchableOpacity 
-              style={styles.button}
-              activeOpacity={0.8}
-              onPress={() => router.push('/dashboard')}
-            >
-              <LinearGradient
-                colors={[TrofiTheme.primary, '#00D1FF']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.buttonGradient}
-              >
-                <Text style={styles.buttonText}>Continuar</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+            <PrimaryButton 
+              title="Continuar" 
+              onPress={() => router.push('/dashboard')} 
+              fullWidth
+              style={{ marginTop: 10 }}
+            />
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
@@ -89,12 +78,6 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
   keyboardView: {
     flex: 1,
   },
@@ -127,17 +110,6 @@ const styles = StyleSheet.create({
   textSection: {
     marginBottom: 40,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: TrofiTheme.text,
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: TrofiTheme.textSecondary,
-    lineHeight: 24,
-  },
   inputContainer: {
     marginBottom: 30,
   },
@@ -169,23 +141,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: TrofiTheme.text,
     height: '100%',
-  },
-  button: {
-    width: '100%',
-    height: 56,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginTop: 10,
-  },
-  buttonGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#001A2C',
-    fontSize: 18,
-    fontWeight: '800',
   },
   divider: {
     flexDirection: 'row',
