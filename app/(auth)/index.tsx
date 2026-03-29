@@ -1,8 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Trophy, Calendar, Trophy as ResultsIcon, Image as GalleryIcon, BarChart3 } from 'lucide-react-native';
 import { router } from 'expo-router';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withRepeat, 
+  withTiming, 
+  Easing,
+  FadeInDown,
+  FadeIn
+} from 'react-native-reanimated';
+import * as SplashScreen from 'expo-splash-screen';
+
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { GlobalStyles } from '@/constants/GlobalStyles';
@@ -11,38 +22,70 @@ import { TrofiTheme } from '@/constants/theme';
 const { width } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
+  const logoScale = useSharedValue(1);
+
+  useEffect(() => {
+    // 1. Ocultar el Splash Nativo una vez que JS toma el control (100ms es un excelente buffer)
+    setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {
+        // Ignorar si ya estaba oculto
+      });
+    }, 100);
+
+    // 2. Iniciar el efecto de latido (Breathing)
+    logoScale.value = withRepeat(
+      withTiming(1.08, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+      -1, // Infinito
+      true // Reversa (crece y encoge)
+    );
+  }, []);
+
+  const animatedLogoStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: logoScale.value }],
+    };
+  });
+
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
       
       <SafeAreaView style={GlobalStyles.safeArea}>
         <View style={styles.content}>
-          <View style={styles.logoContainer}>
+          {/* LOGO PRINCIPAL (Respira infinitamente y aparece suavecito) */}
+          <Animated.View entering={FadeIn.duration(1500)} style={[styles.logoContainer, animatedLogoStyle]}>
             <View style={styles.iconCircle}>
               <Image 
                 source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3112/3112946.png' }}
                 style={{ width: 65, height: 65, resizeMode: 'contain', tintColor: TrofiTheme.primary }}
               />
             </View>
+          </Animated.View>
+
+          {/* TEXTO (Aparece después del logo) */}
+          <Animated.View entering={FadeInDown.delay(800).duration(800)} style={{ alignItems: 'center' }}>
             <Text style={styles.title}>TROFI</Text>
             <Text style={styles.subtitle}>TUS TORNEOS LOCALES</Text>
             <Text style={styles.tagline}>EN LA PALMA DE TU MANO</Text>
-          </View>
+          </Animated.View>
 
-          <View style={styles.grid}>
+          {/* CUADRICULA (Aparece en cascada) */}
+          <Animated.View entering={FadeInDown.delay(1200).duration(800)} style={styles.grid}>
             <FeatureIcon icon={<Calendar size={24} color={TrofiTheme.text} />} label="Programación" />
             <FeatureIcon icon={<ResultsIcon size={24} color={TrofiTheme.text} />} label="Resultados" />
             <FeatureIcon icon={<GalleryIcon size={24} color={TrofiTheme.text} />} label="Galería" />
             <FeatureIcon icon={<BarChart3 size={24} color={TrofiTheme.text} />} label="Estadísticas" />
-          </View>
+          </Animated.View>
 
-          <PrimaryButton 
-            title="EMPEZAR" 
-            onPress={() => router.push('/(auth)/login' as any)} 
-            style={{ width: '80%', borderRadius: 28 }} 
-          />
-
-          <Text style={styles.footerText}>PROXIMO EVENTO: LIGA ZAPOPAN NORTE</Text>
+          {/* BOTON ESTELAR (Llega al final e invita al tap) */}
+          <Animated.View entering={FadeInDown.delay(1600).duration(800)} style={{ width: '100%', alignItems: 'center' }}>
+            <PrimaryButton 
+              title="EMPEZAR" 
+              onPress={() => router.push('/(auth)/login' as any)} 
+              style={{ width: '80%', borderRadius: 28 }} 
+            />
+            <Text style={styles.footerText}>PROXIMO EVENTO: LIGA ZAPOPAN NORTE</Text>
+          </Animated.View>
         </View>
       </SafeAreaView>
     </View>
