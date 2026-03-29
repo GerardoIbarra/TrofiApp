@@ -1,16 +1,16 @@
 import { Platform } from 'react-native';
 
 export const LightTheme = {
-  primary: '#00F5FF',
-  background: '#F8F9FB', // Blanco/Gris muy claro
+  primary: '#00A3AC', // Cian Oceánico (más legible en claro)
+  background: '#F1F5F9', // Gris suave para contraste con tarjetas
   surface: '#FFFFFF',    // Blanco puro para tarjetas
-  text: '#001A2C',       // Navy profundo para texto claro
-  textSecondary: '#64748B',
-  accent: '#00D1FF',
+  text: '#001A2C',       // Navy profundo
+  textSecondary: '#475569', // Gris más oscuro para secundaria
+  accent: '#00B4D8',
   success: '#10B981',
   error: '#EF4444',
-  border: '#E2E8F0',
-  tint: '#001A2C',
+  border: '#CBD5E1', // Borde más visible
+  tint: '#00A3AC',
 };
 
 export const DarkTheme = {

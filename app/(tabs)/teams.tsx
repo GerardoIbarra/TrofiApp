@@ -270,7 +270,7 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 100,
     right: 20,
     width: 60,
     height: 60,
@@ -278,10 +278,10 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
+    elevation: 10,
     shadowColor: theme.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: isDark ? 0.3 : 0.6,
+    shadowRadius: 12,
   },
 });
