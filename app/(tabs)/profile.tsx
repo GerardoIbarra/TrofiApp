@@ -4,7 +4,7 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { LayoutHeader } from '@/components/LayoutHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Settings, LogOut, ChevronRight, Award, Shield, User, Star, Activity, Mail, Moon } from 'lucide-react-native';
+import { Settings, LogOut, ChevronRight, Award, Shield, User, Star, Activity, Moon } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -41,10 +41,10 @@ export default function ProfileScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.webContainer}>
             
-            {/* Player Hero Section */}
+            {/* Player Hero Section with Ultimate Card */}
             <View style={styles.heroSection}>
               <Image 
-                source={{ uri: 'https://images.pexels.com/photos/1192043/pexels-photo-1192043.jpeg?auto=compress&cs=tinysrgb&w=1200' }} 
+                source={{ uri: 'https://images.pexels.com/photos/1884574/pexels-photo-1884574.jpeg?auto=compress&cs=tinysrgb&w=1200' }} 
                 style={styles.heroImage} 
               />
               <LinearGradient
@@ -52,18 +52,7 @@ export default function ProfileScreen() {
                 style={styles.heroGradient}
               />
               <View style={styles.heroContent}>
-                <View style={[styles.profileAvatarWrapper, { borderColor: isDark ? theme.surface : '#FFF' }]}>
-                  <Image 
-                    source={{ uri: 'https://i.pravatar.cc/150?u=richard' }} 
-                    style={styles.heroAvatar} 
-                  />
-                </View>
-                <View style={styles.liveBadge}>
-                  <View style={styles.liveDot} />
-                  <Text style={styles.liveText}>LIVE SEASON</Text>
-                </View>
-                <Text style={styles.playerName}>RICARDO</Text>
-                <Text style={styles.playerLastName}>MENDEZ</Text>
+                <UltimateCard theme={theme} isDark={isDark} />
                 
                 <View style={styles.infoRow}>
                   <View style={styles.infoItem}>
@@ -204,6 +193,57 @@ function KPIBox({ label, value, theme, isDark }: { label: string, value: string,
   );
 }
 
+function UltimateCard({ theme, isDark }: { theme: any, isDark: boolean }) {
+  const styles = createStyles(theme, isDark);
+  return (
+    <View style={styles.cardShield}>
+      <LinearGradient
+        colors={isDark ? ['#1A2B48', '#0A1525'] : ['#F8FAFC', '#E2E8F0']}
+        style={StyleSheet.absoluteFill}
+      />
+      
+      {/* Decorative Brush Stroke Effect */}
+      <LinearGradient
+        colors={['transparent', theme.primary + '22', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <View style={styles.cardHeader}>
+        <View style={styles.ratingInfo}>
+          <Text style={styles.ratingNumber}>88</Text>
+          <Text style={styles.posLabel}>ST</Text>
+          <View style={styles.flagPlaceholder} />
+        </View>
+        <Image 
+          source={{ uri: 'https://i.pravatar.cc/150?u=avatar2' }} 
+          style={styles.cardPlayerImage} 
+        />
+      </View>
+
+      <View style={styles.cardNameSection}>
+        <Text style={styles.cardNameText}>R. MENDEZ</Text>
+        <View style={styles.nameDivider} />
+      </View>
+
+      <View style={styles.statsGrid}>
+        <View style={styles.statsColumn}>
+          <View style={styles.statLine}><Text style={styles.statValue}>90</Text><Text style={styles.statKey}>PAC</Text></View>
+          <View style={styles.statLine}><Text style={styles.statValue}>92</Text><Text style={styles.statKey}>SHO</Text></View>
+          <View style={styles.statLine}><Text style={styles.statValue}>85</Text><Text style={styles.statKey}>PAS</Text></View>
+        </View>
+        <View style={styles.statsDivider} />
+        <View style={styles.statsColumn}>
+          <View style={styles.statLine}><Text style={styles.statValue}>88</Text><Text style={styles.statKey}>DRI</Text></View>
+          <View style={styles.statLine}><Text style={styles.statValue}>45</Text><Text style={styles.statKey}>DEF</Text></View>
+          <View style={styles.statLine}><Text style={styles.statValue}>82</Text><Text style={styles.statKey}>PHY</Text></View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function MenuItem({ icon, label, theme, isDark }: { icon: React.ReactNode, label: string, theme: any, isDark: boolean }) {
   const styles = createStyles(theme, isDark);
   return (
@@ -228,7 +268,7 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     paddingHorizontal: 20,
   },
   heroSection: {
-    height: 400,
+    height: 480,
     width: '100%',
     borderRadius: 24,
     overflow: 'hidden',
@@ -244,83 +284,124 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   },
   heroContent: {
     position: 'absolute',
-    bottom: 25,
-    left: 20,
-    right: 20,
+    bottom: 20,
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 10,
   },
-  profileAvatarWrapper: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 4,
-    overflow: 'hidden',
-    marginBottom: 15,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-  },
-  heroAvatar: {
-    width: '100%',
-    height: '100%',
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.primary + '33',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  cardShield: {
+    width: 200,
+    height: 300,
     borderRadius: 20,
-    alignSelf: 'flex-start',
-    marginBottom: 15,
+    borderWidth: 3,
+    borderColor: theme.primary,
+    overflow: 'hidden',
+    backgroundColor: theme.surface,
+    elevation: 20,
+    shadowColor: theme.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
   },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: theme.primary,
-    marginRight: 6,
+  cardHeader: {
+    flexDirection: 'row',
+    height: 140,
+    paddingTop: 20,
+    paddingLeft: 15,
   },
-  liveText: {
-    fontSize: 10,
+  ratingInfo: {
+    alignItems: 'center',
+    width: 40,
+  },
+  ratingNumber: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: theme.text,
+    lineHeight: 34,
+  },
+  posLabel: {
+    fontSize: 14,
     fontWeight: '800',
-    color: theme.primary,
+    color: theme.textSecondary,
+    marginTop: -2,
   },
-  playerName: {
-    fontSize: 48,
-    fontWeight: '900',
-    color: isDark ? '#FFF' : theme.text,
-    fontStyle: 'italic',
-    lineHeight: 52,
-    letterSpacing: -1,
+  flagPlaceholder: {
+    width: 20,
+    height: 12,
+    backgroundColor: '#006847', // Mexico Green
+    marginTop: 10,
+    borderRadius: 2,
   },
-  playerLastName: {
-    fontSize: 48,
+  cardPlayerImage: {
+    flex: 1,
+    height: '110%',
+    width: '100%',
+    resizeMode: 'contain',
+    marginTop: -10,
+  },
+  cardNameSection: {
+    alignItems: 'center',
+    paddingVertical: 5,
+  },
+  cardNameText: {
+    fontSize: 18,
     fontWeight: '900',
-    color: theme.primary,
-    fontStyle: 'italic',
-    lineHeight: 52,
-    marginTop: -5,
-    letterSpacing: -1,
+    color: theme.text,
+    letterSpacing: 1,
+  },
+  nameDivider: {
+    width: '80%',
+    height: 1,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+    marginTop: 4,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingTop: 10,
+    paddingHorizontal: 15,
+  },
+  statsColumn: {
+    width: 60,
+  },
+  statsDivider: {
+    width: 1,
+    height: 45,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+    marginHorizontal: 10,
+  },
+  statLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  statValue: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: theme.text,
+  },
+  statKey: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: theme.textSecondary,
   },
   infoRow: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: 30,
     gap: 30,
   },
   infoItem: {
     alignItems: 'flex-start',
   },
   infoLabel: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
     color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     marginBottom: 4,
   },
   infoValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     color: isDark ? '#FFF' : theme.text,
   },

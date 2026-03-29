@@ -18,7 +18,7 @@ export function LayoutHeader({ title = 'TROFI' }: LayoutHeaderProps) {
       <Text style={[styles.logoHeader, { color: isDark ? '#F8FAFC' : theme.text }]}>{title}</Text>
       <TouchableOpacity style={[styles.profileButton, { borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)' }]}>
         <Image 
-          source={{ uri: 'https://i.pravatar.cc/150?u=richard' }} 
+          source={{ uri: 'https://i.pravatar.cc/150?u=avatar2' }} 
           style={styles.profileImage} 
         />
       </TouchableOpacity>
