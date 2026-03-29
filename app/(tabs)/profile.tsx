@@ -44,7 +44,7 @@ export default function ProfileScreen() {
             {/* Player Hero Section */}
             <View style={styles.heroSection}>
               <Image 
-                source={{ uri: 'https://images.pexels.com/photos/209637/pexels-photo-209637.jpeg?auto=compress&cs=tinysrgb&w=800' }} 
+                source={{ uri: 'https://images.pexels.com/photos/1192043/pexels-photo-1192043.jpeg?auto=compress&cs=tinysrgb&w=1200' }} 
                 style={styles.heroImage} 
               />
               <LinearGradient
@@ -52,6 +52,12 @@ export default function ProfileScreen() {
                 style={styles.heroGradient}
               />
               <View style={styles.heroContent}>
+                <View style={[styles.profileAvatarWrapper, { borderColor: isDark ? theme.surface : '#FFF' }]}>
+                  <Image 
+                    source={{ uri: 'https://i.pravatar.cc/150?u=richard' }} 
+                    style={styles.heroAvatar} 
+                  />
+                </View>
                 <View style={styles.liveBadge}>
                   <View style={styles.liveDot} />
                   <Text style={styles.liveText}>LIVE SEASON</Text>
@@ -171,10 +177,10 @@ export default function ProfileScreen() {
               />
             </View>
 
-            <MenuItem icon={<User size={20} color={theme.primary} />} label="Mi Cuenta" theme={theme} />
-            <MenuItem icon={<Award size={20} color={theme.primary} />} label="Logros y Trofeos" theme={theme} />
-            <MenuItem icon={<Shield size={20} color={theme.primary} />} label="Privacidad y Seguridad" theme={theme} />
-            <MenuItem icon={<Settings size={20} color={theme.primary} />} label="Ajustes de la App" theme={theme} />
+            <MenuItem icon={<User size={20} color={theme.primary} />} label="Mi Cuenta" theme={theme} isDark={isDark} />
+            <MenuItem icon={<Award size={20} color={theme.primary} />} label="Logros y Trofeos" theme={theme} isDark={isDark} />
+            <MenuItem icon={<Shield size={20} color={theme.primary} />} label="Privacidad y Seguridad" theme={theme} isDark={isDark} />
+            <MenuItem icon={<Settings size={20} color={theme.primary} />} label="Ajustes de la App" theme={theme} isDark={isDark} />
 
             <TouchableOpacity style={styles.logoutButton}>
               <LogOut size={20} color={theme.error} />
@@ -198,8 +204,8 @@ function KPIBox({ label, value, theme, isDark }: { label: string, value: string,
   );
 }
 
-function MenuItem({ icon, label, theme }: { icon: React.ReactNode, label: string, theme: any }) {
-  const styles = createStyles(theme, false);
+function MenuItem({ icon, label, theme, isDark }: { icon: React.ReactNode, label: string, theme: any, isDark: boolean }) {
+  const styles = createStyles(theme, isDark);
   return (
     <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
       <View style={styles.menuIconText}>
@@ -241,6 +247,24 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     bottom: 25,
     left: 20,
     right: 20,
+    alignItems: 'center',
+  },
+  profileAvatarWrapper: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 4,
+    overflow: 'hidden',
+    marginBottom: 15,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  heroAvatar: {
+    width: '100%',
+    height: '100%',
   },
   liveBadge: {
     flexDirection: 'row',

@@ -142,7 +142,7 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.playersScrollContent}
-              renderItem={({ item }) => <PlayerAvatar name={item.name} theme={theme} />}
+              renderItem={({ item }) => <PlayerAvatar name={item.name} theme={theme} isDark={isDark} />}
             />
           </View>
         </ScrollView>
@@ -151,8 +151,8 @@ export default function HomeScreen() {
   );
 }
 
-function PlayerAvatar({ name, theme }: { name: string, theme: any }) {
-  const styles = createStyles(theme, false); // simplistic for subcomponent
+function PlayerAvatar({ name, theme, isDark }: { name: string, theme: any, isDark: boolean }) {
+  const styles = createStyles(theme, isDark);
   return (
     <View style={styles.playerContainer}>
       <View style={styles.avatarBorder}>

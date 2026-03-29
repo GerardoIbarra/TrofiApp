@@ -93,7 +93,7 @@ export default function LeaguesExplorerScreen() {
                 >
                   <Image source={{ uri: league.image }} style={styles.featuredImage} />
                   <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.6)', 'rgba(0,0,0,0.9)']}
+                    colors={['transparent', isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.9)']}
                     style={styles.featuredGradient}
                   />
                   <View style={styles.featuredContent}>

@@ -17,26 +17,26 @@ import * as SplashScreen from 'expo-splash-screen';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { GlobalStyles } from '@/constants/GlobalStyles';
-import { TrofiTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
   const logoScale = useSharedValue(1);
 
   useEffect(() => {
-    // 1. Ocultar el Splash Nativo una vez que JS toma el control (100ms es un excelente buffer)
+    // 1. Ocultar el Splash Nativo una vez que JS toma el control
     setTimeout(() => {
-      SplashScreen.hideAsync().catch(() => {
-        // Ignorar si ya estaba oculto
-      });
+      SplashScreen.hideAsync().catch(() => {});
     }, 100);
 
     // 2. Iniciar el efecto de latido (Breathing)
     logoScale.value = withRepeat(
       withTiming(1.08, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
-      -1, // Infinito
-      true // Reversa (crece y encoge)
+      -1,
+      true
     );
   }, []);
 
@@ -52,32 +52,28 @@ export default function WelcomeScreen() {
       
       <SafeAreaView style={GlobalStyles.safeArea}>
         <View style={styles.content}>
-          {/* LOGO PRINCIPAL (Respira infinitamente y aparece suavecito) */}
           <Animated.View entering={FadeIn.duration(1500)} style={[styles.logoContainer, animatedLogoStyle]}>
             <View style={styles.iconCircle}>
               <Image 
                 source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3112/3112946.png' }}
-                style={{ width: 65, height: 65, resizeMode: 'contain', tintColor: TrofiTheme.primary }}
+                style={{ width: 65, height: 65, resizeMode: 'contain', tintColor: theme.primary }}
               />
             </View>
           </Animated.View>
 
-          {/* TEXTO (Aparece después del logo) */}
           <Animated.View entering={FadeInDown.delay(800).duration(800)} style={{ alignItems: 'center' }}>
             <Text style={styles.title}>TROFI</Text>
             <Text style={styles.subtitle}>TUS TORNEOS LOCALES</Text>
             <Text style={styles.tagline}>EN LA PALMA DE TU MANO</Text>
           </Animated.View>
 
-          {/* CUADRICULA (Aparece en cascada) */}
           <Animated.View entering={FadeInDown.delay(1200).duration(800)} style={styles.grid}>
-            <FeatureIcon icon={<Calendar size={24} color={TrofiTheme.text} />} label="Programación" />
-            <FeatureIcon icon={<ResultsIcon size={24} color={TrofiTheme.text} />} label="Resultados" />
-            <FeatureIcon icon={<GalleryIcon size={24} color={TrofiTheme.text} />} label="Galería" />
-            <FeatureIcon icon={<BarChart3 size={24} color={TrofiTheme.text} />} label="Estadísticas" />
+            <FeatureIcon icon={<Calendar size={24} color={theme.text} />} label="Programación" theme={theme} isDark={isDark} />
+            <FeatureIcon icon={<ResultsIcon size={24} color={theme.text} />} label="Resultados" theme={theme} isDark={isDark} />
+            <FeatureIcon icon={<GalleryIcon size={24} color={theme.text} />} label="Galería" theme={theme} isDark={isDark} />
+            <FeatureIcon icon={<BarChart3 size={24} color={theme.text} />} label="Estadísticas" theme={theme} isDark={isDark} />
           </Animated.View>
 
-          {/* BOTON ESTELAR (Llega al final e invita al tap) */}
           <Animated.View entering={FadeInDown.delay(1600).duration(800)} style={{ width: '100%', alignItems: 'center' }}>
             <PrimaryButton 
               title="EMPEZAR" 
@@ -92,7 +88,8 @@ export default function WelcomeScreen() {
   );
 }
 
-function FeatureIcon({ icon, label }: { icon: React.ReactNode, label: string }) {
+function FeatureIcon({ icon, label, theme, isDark }: { icon: React.ReactNode, label: string, theme: any, isDark: boolean }) {
+  const styles = createStyles(theme, isDark);
   return (
     <View style={styles.gridItem}>
       <View style={styles.gridIconContainer}>
@@ -103,7 +100,7 @@ function FeatureIcon({ icon, label }: { icon: React.ReactNode, label: string }) 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   content: {
     flex: 1,
     alignItems: 'center',
@@ -119,29 +116,29 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(0, 245, 255, 0.1)',
+    backgroundColor: isDark ? 'rgba(0, 245, 255, 0.1)' : 'rgba(0, 245, 255, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0, 245, 255, 0.3)',
+    borderColor: isDark ? 'rgba(0, 245, 255, 0.3)' : 'rgba(0, 245, 255, 0.1)',
     marginBottom: 20,
   },
   title: {
     fontSize: 48,
     fontWeight: '900',
-    color: TrofiTheme.text,
+    color: theme.text,
     letterSpacing: 4,
   },
   subtitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: TrofiTheme.text,
+    color: theme.text,
     letterSpacing: 2,
     marginTop: -5,
   },
   tagline: {
     fontSize: 12,
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     letterSpacing: 1,
     marginTop: 8,
   },
@@ -155,25 +152,25 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     width: (width - 70) / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
   },
   gridIconContainer: {
     marginBottom: 10,
   },
   gridLabel: {
     fontSize: 10,
-    color: TrofiTheme.text,
+    color: theme.text,
     fontWeight: '600',
     letterSpacing: 0.5,
   },
   footerText: {
     fontSize: 10,
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     letterSpacing: 1,
     marginTop: 20,
   },
