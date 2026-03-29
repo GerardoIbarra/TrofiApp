@@ -55,12 +55,12 @@ export function BottomTabBar({ state, navigation }: any) {
         onPress={() => handlePress('profile', 5)}
       />
 
-      {/* Absolutely positioned center tab */}
       <View style={styles.centerTabContainer}>
         <TouchableOpacity 
           style={styles.centerTab}
           onPress={() => {
             if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            handlePress('explore', 3);
           }}
           activeOpacity={0.8}
         >
