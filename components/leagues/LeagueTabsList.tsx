@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { TrofiTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface LeagueTabsListProps {
   activeTab: string;
@@ -10,6 +10,9 @@ interface LeagueTabsListProps {
 const TABS = ['STANDINGS', 'MATCHES', 'PLAYERS', 'NEWS'];
 
 export function LeagueTabsList({ activeTab, onTabChange }: LeagueTabsListProps) {
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
+
   return (
     <View style={styles.container}>
       <ScrollView 
@@ -36,16 +39,16 @@ export function LeagueTabsList({ activeTab, onTabChange }: LeagueTabsListProps) 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   container: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
+    borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
     marginBottom: 20,
   },
   scrollContent: {
     paddingHorizontal: 20,
     gap: 15,
-    paddingBottom: 15, // Espacio para el borde inferior si es que se necesita margin visual
+    paddingBottom: 15,
   },
   tabButton: {
     paddingVertical: 8,
@@ -54,15 +57,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   activeTabButton: {
-    backgroundColor: TrofiTheme.primary,
+    backgroundColor: theme.primary,
   },
   tabText: {
     fontSize: 12,
     fontWeight: '800',
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: theme.textSecondary,
     letterSpacing: 1,
   },
   activeTabText: {
-    color: TrofiTheme.background, // Letra oscura sobre barra cyan
+    color: isDark ? '#000' : '#FFF', // Letra que contraste con el fondo cyan
   },
 });

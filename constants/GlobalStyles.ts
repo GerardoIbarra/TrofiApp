@@ -1,5 +1,4 @@
 import { StyleSheet } from 'react-native';
-import { TrofiTheme } from './theme';
 
 export const GlobalStyles = StyleSheet.create({
   // Basic layout wrappers
@@ -10,22 +9,19 @@ export const GlobalStyles = StyleSheet.create({
     flex: 1,
   },
   
-  // Basic Typography
+  // Basic Typography - Layout only (Colors handled by theme)
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: TrofiTheme.text,
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
-    color: TrofiTheme.textSecondary,
     lineHeight: 24,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: TrofiTheme.text,
     letterSpacing: 0.5,
   },
 });

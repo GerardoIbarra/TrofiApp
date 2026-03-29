@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Switch } from 'react-native';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { LayoutHeader } from '@/components/LayoutHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TrofiTheme } from '@/constants/theme';
-import { Settings, LogOut, ChevronRight, Award, Shield, User, Star, Activity, Mail } from 'lucide-react-native';
+import { Settings, LogOut, ChevronRight, Award, Shield, User, Star, Activity, Mail, Moon } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -29,6 +29,9 @@ const MATCHES = [
 ];
 
 export default function ProfileScreen() {
+  const { theme, isDark, toggleTheme } = useTheme();
+  const styles = createStyles(theme, isDark);
+
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
@@ -45,7 +48,7 @@ export default function ProfileScreen() {
                 style={styles.heroImage} 
               />
               <LinearGradient
-                colors={['transparent', 'rgba(10, 25, 47, 0.95)']}
+                colors={['transparent', isDark ? 'rgba(10, 25, 47, 0.95)' : 'rgba(255, 255, 255, 0.95)']}
                 style={styles.heroGradient}
               />
               <View style={styles.heroContent}>
@@ -75,9 +78,9 @@ export default function ProfileScreen() {
 
             {/* Core Stats */}
             <View style={styles.kpiRow}>
-              <KPIBox label="GOALS" value="14" />
-              <KPIBox label="ASSISTS" value="08" />
-              <KPIBox label="MATCHES" value="22" />
+              <KPIBox label="GOALS" value="14" theme={theme} isDark={isDark} />
+              <KPIBox label="ASSISTS" value="08" theme={theme} isDark={isDark} />
+              <KPIBox label="MATCHES" value="22" theme={theme} isDark={isDark} />
             </View>
 
             {/* Current Team Section */}
@@ -86,7 +89,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.teamCard}>
                <View style={styles.teamBrandBox}>
-                  <Activity size={24} color={TrofiTheme.primary} />
+                  <Activity size={24} color={theme.primary} />
                </View>
                <View style={styles.teamCoreInfo}>
                   <Text style={styles.teamNameTitle}>Real Metros FC</Text>
@@ -102,7 +105,7 @@ export default function ProfileScreen() {
               <View style={styles.trendHeader}>
                 <View>
                   <Text style={styles.trendTitle}>PERFORMANCE TREND</Text>
-                  <Text style={styles.trendSubtitle}>Avg. Match Rating: <Text style={{ color: TrofiTheme.primary }}>8.4</Text></Text>
+                  <Text style={styles.trendSubtitle}>Avg. Match Rating: <Text style={{ color: theme.primary }}>8.4</Text></Text>
                 </View>
                 <Text style={styles.lastGamesText}>LAST 10 GAMES</Text>
               </View>
@@ -111,8 +114,8 @@ export default function ProfileScreen() {
                 {PERFORMANCE_DATA.map((bar, i) => (
                   <View key={i} style={[
                     styles.chartBar, 
-                    { height: bar.height },
-                    bar.active && styles.activeBar
+                    { height: bar.height, backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' },
+                    bar.active && { backgroundColor: theme.primary }
                   ]} />
                 ))}
               </View>
@@ -138,7 +141,7 @@ export default function ProfileScreen() {
                     </View>
                   </View>
                   <View style={styles.matchSmallStats}>
-                    <Star size={12} color={TrofiTheme.primary} style={{ marginRight: 4 }} />
+                    <Star size={12} color={theme.primary} style={{ marginRight: 4 }} />
                     <Text style={styles.smallStatsText}>{match.stats}</Text>
                   </View>
                 </View>
@@ -149,18 +152,32 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             ))}
 
-            {/* PREVIOUS CONFIGURATION (Preserving what existed) */}
+            {/* CONFIGURATION */}
             <View style={[styles.sectionHeader, { marginTop: 40 }]}>
               <Text style={styles.mainSectionTitle}>CONFIGURACIÓN</Text>
             </View>
 
-            <MenuItem icon={<User size={20} color={TrofiTheme.primary} />} label="Mi Cuenta" />
-            <MenuItem icon={<Award size={20} color={TrofiTheme.primary} />} label="Logros y Trofeos" />
-            <MenuItem icon={<Shield size={20} color={TrofiTheme.primary} />} label="Privacidad y Seguridad" />
-            <MenuItem icon={<Settings size={20} color={TrofiTheme.primary} />} label="Ajustes de la App" />
+            {/* Theme Toggle Switch */}
+            <View style={styles.menuItem}>
+              <View style={styles.menuIconText}>
+                <Moon size={20} color={theme.primary} />
+                <Text style={styles.menuLabel}>Modo Oscuro</Text>
+              </View>
+              <Switch 
+                value={isDark} 
+                onValueChange={toggleTheme}
+                trackColor={{ false: '#767577', true: theme.primary }}
+                thumbColor={isDark ? '#FFF' : '#f4f3f4'}
+              />
+            </View>
+
+            <MenuItem icon={<User size={20} color={theme.primary} />} label="Mi Cuenta" theme={theme} />
+            <MenuItem icon={<Award size={20} color={theme.primary} />} label="Logros y Trofeos" theme={theme} />
+            <MenuItem icon={<Shield size={20} color={theme.primary} />} label="Privacidad y Seguridad" theme={theme} />
+            <MenuItem icon={<Settings size={20} color={theme.primary} />} label="Ajustes de la App" theme={theme} />
 
             <TouchableOpacity style={styles.logoutButton}>
-              <LogOut size={20} color={TrofiTheme.error} />
+              <LogOut size={20} color={theme.error} />
               <Text style={styles.logoutText}>CERRAR SESIÓN</Text>
             </TouchableOpacity>
 
@@ -171,7 +188,8 @@ export default function ProfileScreen() {
   );
 }
 
-function KPIBox({ label, value }: { label: string, value: string }) {
+function KPIBox({ label, value, theme, isDark }: { label: string, value: string, theme: any, isDark: boolean }) {
+  const styles = createStyles(theme, isDark);
   return (
     <View style={styles.kpiBox}>
       <Text style={styles.kpiValue}>{value}</Text>
@@ -180,19 +198,20 @@ function KPIBox({ label, value }: { label: string, value: string }) {
   );
 }
 
-function MenuItem({ icon, label }: { icon: React.ReactNode, label: string }) {
+function MenuItem({ icon, label, theme }: { icon: React.ReactNode, label: string, theme: any }) {
+  const styles = createStyles(theme, false);
   return (
     <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
       <View style={styles.menuIconText}>
         {icon}
         <Text style={styles.menuLabel}>{label}</Text>
       </View>
-      <ChevronRight size={18} color={TrofiTheme.textSecondary} />
+      <ChevronRight size={18} color={theme.textSecondary} />
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   scrollContent: {
     paddingBottom: 110,
   },
@@ -226,7 +245,7 @@ const styles = StyleSheet.create({
   liveBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 245, 255, 0.2)',
+    backgroundColor: theme.primary + '33',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
@@ -237,18 +256,18 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: TrofiTheme.primary,
+    backgroundColor: theme.primary,
     marginRight: 6,
   },
   liveText: {
     fontSize: 10,
     fontWeight: '800',
-    color: TrofiTheme.primary,
+    color: theme.primary,
   },
   playerName: {
     fontSize: 48,
     fontWeight: '900',
-    color: '#FFF',
+    color: isDark ? '#FFF' : theme.text,
     fontStyle: 'italic',
     lineHeight: 52,
     letterSpacing: -1,
@@ -256,7 +275,7 @@ const styles = StyleSheet.create({
   playerLastName: {
     fontSize: 48,
     fontWeight: '900',
-    color: TrofiTheme.primary,
+    color: theme.primary,
     fontStyle: 'italic',
     lineHeight: 52,
     marginTop: -5,
@@ -273,13 +292,13 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.5)',
+    color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     marginBottom: 4,
   },
   infoValue: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FFF',
+    color: isDark ? '#FFF' : theme.text,
   },
   kpiRow: {
     flexDirection: 'row',
@@ -289,22 +308,23 @@ const styles = StyleSheet.create({
   },
   kpiBox: {
     flex: 1,
-    backgroundColor: '#112240',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    elevation: isDark ? 0 : 2,
   },
   kpiValue: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#FFF',
+    color: theme.text,
   },
   kpiLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     marginTop: 4,
     letterSpacing: 0.5,
   },
@@ -314,23 +334,28 @@ const styles = StyleSheet.create({
   sectionOverline: {
     fontSize: 11,
     fontWeight: '800',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     letterSpacing: 1,
     marginBottom: 12,
   },
   teamCard: {
-    backgroundColor: '#112240',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 30,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    elevation: isDark ? 0 : 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0 : 0.05,
+    shadowRadius: 10,
   },
   teamBrandBox: {
     width: 50,
     height: 50,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
@@ -341,35 +366,36 @@ const styles = StyleSheet.create({
   teamNameTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#FFF',
+    color: theme.text,
   },
   teamSubtitle: {
     fontSize: 14,
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
   },
   viewTeamBtn: {
     marginTop: 20,
     width: '100%',
     height: 50,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.07)',
+    borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   viewTeamBtnText: {
     fontSize: 12,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   trendSection: {
-    backgroundColor: '#112240',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 30,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    elevation: isDark ? 0 : 3,
   },
   trendHeader: {
     flexDirection: 'row',
@@ -380,17 +406,17 @@ const styles = StyleSheet.create({
   trendTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#FFF',
+    color: theme.text,
   },
   trendSubtitle: {
     fontSize: 12,
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     marginTop: 4,
   },
   lastGamesText: {
     fontSize: 10,
     fontWeight: '800',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
   },
   chartContainer: {
     flexDirection: 'row',
@@ -401,49 +427,41 @@ const styles = StyleSheet.create({
   },
   chartBar: {
     width: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 4,
-  },
-  activeBar: {
-    backgroundColor: TrofiTheme.primary,
-    shadowColor: TrofiTheme.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 10,
-    elevation: 5,
   },
   mainSectionTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#FFF',
+    color: theme.text,
     marginBottom: 20,
   },
   matchCard: {
     flexDirection: 'row',
-    backgroundColor: '#112240',
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: 15,
     marginBottom: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    elevation: isDark ? 0 : 2,
   },
   matchDateColumn: {
     alignItems: 'center',
     paddingRight: 15,
     borderRightWidth: 1,
-    borderRightColor: 'rgba(255, 255, 255, 0.05)',
+    borderRightColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
     width: 60,
   },
   matchDateMonth: {
     fontSize: 10,
     fontWeight: '800',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
   },
   matchDateDay: {
     fontSize: 24,
     fontWeight: '900',
-    color: '#FFF',
+    color: theme.text,
   },
   matchMainInfo: {
     flex: 1,
@@ -460,7 +478,7 @@ const styles = StyleSheet.create({
   matchTeamName: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#FFF',
+    color: theme.text,
   },
   scoreBox: {
     paddingHorizontal: 10,
@@ -468,7 +486,7 @@ const styles = StyleSheet.create({
   matchScore: {
     fontSize: 22,
     fontWeight: '900',
-    color: TrofiTheme.primary,
+    color: theme.primary,
     fontStyle: 'italic',
   },
   matchSmallStats: {
@@ -479,33 +497,34 @@ const styles = StyleSheet.create({
   smallStatsText: {
     fontSize: 11,
     fontWeight: '800',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
   },
   ratingCircle: {
     width: 48,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(0, 245, 255, 0.1)',
+    backgroundColor: theme.primary + '1A',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(0, 245, 255, 0.3)',
+    borderColor: theme.primary + '4D',
   },
   ratingText: {
     fontSize: 13,
     fontWeight: '900',
-    color: TrofiTheme.primary,
+    color: theme.primary,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#112240',
+    backgroundColor: theme.surface,
     padding: 18,
     borderRadius: 12,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    elevation: isDark ? 0 : 2,
   },
   menuIconText: {
     flexDirection: 'row',
@@ -515,7 +534,7 @@ const styles = StyleSheet.create({
   menuLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   logoutButton: {
     flexDirection: 'row',
@@ -528,7 +547,7 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 14,
     fontWeight: '800',
-    color: TrofiTheme.error,
+    color: theme.error,
     letterSpacing: 1,
   },
 });

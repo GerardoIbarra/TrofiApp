@@ -4,7 +4,7 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { LayoutHeader } from '@/components/LayoutHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TrofiTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { Calendar, AlertCircle, Plus } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -40,6 +40,9 @@ const MOCK_TEAMS = [
 ];
 
 export default function TeamsScreen() {
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
+
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
@@ -84,7 +87,7 @@ export default function TeamsScreen() {
                       {team.status === 'alert' ? (
                         <AlertCircle size={14} color="#FF6B6B" style={{ marginRight: 6 }} />
                       ) : (
-                        <Calendar size={14} color={TrofiTheme.primary} style={{ marginRight: 6 }} />
+                        <Calendar size={14} color={theme.primary} style={{ marginRight: 6 }} />
                       )}
                       <Text style={[
                         styles.nextMatchValue,
@@ -118,7 +121,7 @@ export default function TeamsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   scrollContent: {
     paddingBottom: 110,
   },
@@ -135,34 +138,39 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 34,
     fontWeight: '900',
-    color: TrofiTheme.text,
+    color: theme.text,
     letterSpacing: -1,
     marginBottom: 8,
   },
   activeBadge: {
-    backgroundColor: 'rgba(0, 245, 255, 0.15)',
+    backgroundColor: theme.primary + '26', // opacity 0.15
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 20,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: 'rgba(0, 245, 255, 0.3)',
+    borderColor: theme.primary + '4D', // opacity 0.3
   },
   activeBadgeText: {
     fontSize: 10,
     fontWeight: '800',
-    color: TrofiTheme.primary,
+    color: theme.primary,
     letterSpacing: 1,
   },
   teamCard: {
-    backgroundColor: '#112240',
+    backgroundColor: theme.surface,
     borderRadius: 24,
     padding: 24,
     marginBottom: 25,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
     position: 'relative',
     overflow: 'hidden',
+    elevation: isDark ? 0 : 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0 : 0.1,
+    shadowRadius: 10,
   },
   teamHeader: {
     flexDirection: 'row',
@@ -173,7 +181,7 @@ const styles = StyleSheet.create({
     width: 65,
     height: 65,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
   },
   teamInfo: {
     marginLeft: 18,
@@ -181,11 +189,11 @@ const styles = StyleSheet.create({
   teamNameText: {
     fontSize: 22,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   leagueNameText: {
     fontSize: 14,
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     marginTop: 2,
   },
   exclusiveHighlight: {
@@ -194,7 +202,7 @@ const styles = StyleSheet.create({
     top: 75,
     bottom: 25,
     width: 3,
-    backgroundColor: TrofiTheme.primary,
+    backgroundColor: theme.primary,
     borderTopRightRadius: 4,
     borderBottomRightRadius: 4,
   },
@@ -209,14 +217,14 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     letterSpacing: 1,
     marginBottom: 8,
   },
   standingValue: {
     fontSize: 20,
     fontWeight: '900',
-    color: TrofiTheme.primary,
+    color: theme.primary,
     fontStyle: 'italic',
   },
   nextMatchContainer: {
@@ -226,7 +234,7 @@ const styles = StyleSheet.create({
   nextMatchValue: {
     fontSize: 13,
     fontWeight: '700',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   buttonRow: {
     flexDirection: 'row',
@@ -236,7 +244,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 54,
     borderRadius: 12,
-    backgroundColor: TrofiTheme.primary,
+    backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -249,16 +257,16 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 54,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   manageButtonText: {
     fontSize: 14,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   fab: {
     position: 'absolute',
@@ -267,11 +275,11 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 16,
-    backgroundColor: TrofiTheme.primary,
+    backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
-    shadowColor: TrofiTheme.primary,
+    shadowColor: theme.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 10,

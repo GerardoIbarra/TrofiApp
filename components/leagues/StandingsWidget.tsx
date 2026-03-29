@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Filter } from 'lucide-react-native';
-import { TrofiTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 const MOCK_STANDINGS = [
   { pos: '01', team: 'ATLÉTICO ZAPOPAN', p: 12, w: 10, isUser: false },
@@ -12,13 +12,16 @@ const MOCK_STANDINGS = [
 ];
 
 export function StandingsWidget() {
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
+
   return (
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>OFFICIAL STANDINGS</Text>
         <TouchableOpacity>
-          <Filter size={20} color={TrofiTheme.textSecondary} />
+          <Filter size={20} color={theme.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -33,19 +36,19 @@ export function StandingsWidget() {
       {/* Table Rows */}
       {MOCK_STANDINGS.map((row) => (
         <View key={row.pos} style={[styles.row, row.isUser && styles.userRow]}>
-          <Text style={[styles.posText, row.isUser && { color: TrofiTheme.primary }]}>
+          <Text style={[styles.posText, row.isUser && { color: theme.primary }]}>
             {row.pos}
           </Text>
           <View style={styles.teamContainer}>
             <View style={styles.shieldPlaceholder} />
             <View>
-              <Text style={[styles.teamText, row.isUser && { color: TrofiTheme.primary }]}>
+              <Text style={[styles.teamText, row.isUser && { color: theme.primary }]}>
                 {row.team}
               </Text>
               {row.isUser && <Text style={styles.yourTeamLabel}>YOUR TEAM</Text>}
             </View>
           </View>
-          <Text style={[styles.statText, row.isUser && { color: TrofiTheme.primary }]}>{row.p}</Text>
+          <Text style={[styles.statText, row.isUser && { color: theme.primary }]}>{row.p}</Text>
           <Text style={styles.statText}>{row.w}</Text>
         </View>
       ))}
@@ -58,14 +61,19 @@ export function StandingsWidget() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   card: {
-    backgroundColor: TrofiTheme.surface, 
+    backgroundColor: theme.surface, 
     borderRadius: 20,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    elevation: isDark ? 0 : 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0 : 0.05,
+    shadowRadius: 5,
   },
   header: {
     flexDirection: 'row',
@@ -76,7 +84,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: '900',
-    color: TrofiTheme.text,
+    color: theme.text,
     letterSpacing: 1,
   },
   columnsRow: {
@@ -86,7 +94,7 @@ const styles = StyleSheet.create({
   columnLabel: {
     fontSize: 9,
     fontWeight: '800',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     letterSpacing: 1.5,
   },
   row: {
@@ -94,12 +102,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.03)',
+    borderBottomColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
   },
   userRow: {
-    backgroundColor: 'rgba(0, 245, 255, 0.05)', // Faint cyan background
+    backgroundColor: theme.primary + '1A', // 10% opacity
     borderLeftWidth: 3,
-    borderLeftColor: TrofiTheme.primary,
+    borderLeftColor: theme.primary,
     marginLeft: -20,
     paddingLeft: 17,
     marginRight: -20,
@@ -109,7 +117,7 @@ const styles = StyleSheet.create({
     width: 40,
     fontSize: 14,
     fontWeight: '900',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     fontStyle: 'italic',
   },
   teamContainer: {
@@ -121,18 +129,18 @@ const styles = StyleSheet.create({
   shieldPlaceholder: {
     width: 24,
     height: 30,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
     borderRadius: 4,
   },
   teamText: {
     fontSize: 12,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   yourTeamLabel: {
     fontSize: 8,
     fontWeight: '800',
-    color: TrofiTheme.primary,
+    color: theme.primary,
     marginTop: 2,
     letterSpacing: 1,
   },
@@ -141,19 +149,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '700',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   footerButton: {
     marginTop: 20,
-    backgroundColor: '#1E293B',
+    backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
   },
   footerButtonText: {
     fontSize: 10,
     fontWeight: '900',
-    color: TrofiTheme.primary,
+    color: theme.primary,
     letterSpacing: 1.5,
   },
 });

@@ -7,7 +7,7 @@ import { Bell, TrendingUp, ArrowUpRight } from 'lucide-react-native';
 import { LayoutHeader } from '@/components/LayoutHeader';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
-import { TrofiTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +21,8 @@ const MOCK_PLAYERS = [
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
 
   return (
     <View style={GlobalStyles.container}>
@@ -34,20 +36,19 @@ export default function HomeScreen() {
             <View style={styles.sectionHeader}>
               <View>
                 <Text style={styles.sectionOverline}>RESUMEN SEMANAL</Text>
-                <Text style={GlobalStyles.sectionTitle}>MIS EQUIPOS</Text>
+                <Text style={[GlobalStyles.sectionTitle, { color: theme.text }]}>MIS EQUIPOS</Text>
               </View>
               <TouchableOpacity style={styles.bellButton}>
-                <Bell size={20} color={TrofiTheme.primary} />
+                <Bell size={20} color={theme.primary} />
               </TouchableOpacity>
             </View>
 
-            {/* Featured Match Card (Consistente con Ligas) */}
+            {/* Featured Match Card */}
             <View style={styles.featuredCard}>
               <LinearGradient
-                colors={[TrofiTheme.surface, '#0A1525']}
+                colors={isDark ? [theme.surface, '#0A1525'] : ['#FFFFFF', '#F3F4F6']}
                 style={styles.cardGradient}
               >
-                {/* Borde Izquierdo Cyan (Highlight) */}
                 <View style={styles.userHighlight} />
                 
                 <View style={styles.cardHeader}>
@@ -89,7 +90,7 @@ export default function HomeScreen() {
                 <Text style={styles.statLabel}>WIN RATE</Text>
                 <View style={styles.statValueContainer}>
                   <Text style={styles.statValue}>94%</Text>
-                  <TrendingUp size={16} color={TrofiTheme.primary} />
+                  <TrendingUp size={16} color={theme.primary} />
                 </View>
                 <View style={styles.statBarContainer}>
                   <View style={[styles.statBar, { width: '94%' }]} />
@@ -100,7 +101,7 @@ export default function HomeScreen() {
                 <Text style={styles.statLabel}>GOALS / GAME</Text>
                 <View style={styles.statValueContainer}>
                   <Text style={styles.statValue}>2.2</Text>
-                  <TrendingUp size={16} color={TrofiTheme.primary} />
+                  <TrendingUp size={16} color={theme.primary} />
                 </View>
                 <View style={styles.statBarContainer}>
                   <View style={[styles.statBar, { width: '70%' }]} />
@@ -122,14 +123,14 @@ export default function HomeScreen() {
                   <Text style={styles.bannerSubtitle}>Registrations are now open.</Text>
                 </View>
                 <View style={styles.bannerArrow}>
-                  <ArrowUpRight size={20} color={TrofiTheme.text} />
+                  <ArrowUpRight size={20} color="#FFF" />
                 </View>
               </LinearGradient>
             </TouchableOpacity>
 
             {/* Players List Section */}
             <View style={styles.sectionHeader}>
-              <Text style={GlobalStyles.sectionTitle}>PLAYERS</Text>
+              <Text style={[GlobalStyles.sectionTitle, { color: theme.text }]}>PLAYERS</Text>
               <TouchableOpacity>
                 <Text style={styles.seeAllText}>VIEW ALL</Text>
               </TouchableOpacity>
@@ -141,7 +142,7 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.playersScrollContent}
-              renderItem={({ item }) => <PlayerAvatar name={item.name} />}
+              renderItem={({ item }) => <PlayerAvatar name={item.name} theme={theme} />}
             />
           </View>
         </ScrollView>
@@ -150,7 +151,8 @@ export default function HomeScreen() {
   );
 }
 
-function PlayerAvatar({ name }: { name: string }) {
+function PlayerAvatar({ name, theme }: { name: string, theme: any }) {
+  const styles = createStyles(theme, false); // simplistic for subcomponent
   return (
     <View style={styles.playerContainer}>
       <View style={styles.avatarBorder}>
@@ -159,14 +161,14 @@ function PlayerAvatar({ name }: { name: string }) {
           style={styles.avatarImage} 
         />
       </View>
-      <Text style={styles.playerName}>{name}</Text>
+      <Text style={[styles.playerName, { color: theme.text }]}>{name}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   scrollContent: {
-    paddingBottom: 110, // Margin to avoid nav bar
+    paddingBottom: 110,
   },
   webContainer: {
     maxWidth: 800,
@@ -180,7 +182,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 4,
-    backgroundColor: TrofiTheme.primary,
+    backgroundColor: theme.primary,
     zIndex: 10,
   },
   sectionHeader: {
@@ -193,14 +195,14 @@ const styles = StyleSheet.create({
   sectionOverline: {
     fontSize: 10,
     fontWeight: '700',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     letterSpacing: 1,
   },
   bellButton: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: 'rgba(0, 245, 255, 0.1)',
+    backgroundColor: isDark ? 'rgba(0, 245, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -210,7 +212,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 25,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    elevation: isDark ? 0 : 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0 : 0.1,
+    shadowRadius: 8,
   },
   cardGradient: {
     padding: 20,
@@ -222,7 +229,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   leagueTag: {
-    backgroundColor: 'rgba(0, 245, 255, 0.2)',
+    backgroundColor: isDark ? 'rgba(0, 245, 255, 0.2)' : 'rgba(0, 245, 255, 0.1)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
@@ -230,23 +237,23 @@ const styles = StyleSheet.create({
   leagueTagText: {
     fontSize: 9,
     fontWeight: '800',
-    color: TrofiTheme.primary,
+    color: theme.primary,
     letterSpacing: 0.5,
   },
   matchTime: {
     fontSize: 10,
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     fontWeight: '600',
   },
   matchdayText: {
     fontSize: 28,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   matchPhase: {
     fontSize: 18,
     fontWeight: '600',
-    color: TrofiTheme.text,
+    color: theme.text,
     marginBottom: 20,
   },
   matchTeams: {
@@ -263,26 +270,26 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
     marginBottom: 8,
   },
   teamName: {
     fontSize: 14,
     fontWeight: '700',
-    color: TrofiTheme.text,
+    color: theme.text,
     textAlign: 'center',
   },
   vsText: {
     fontSize: 16,
     fontWeight: '900',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
   },
   matchFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
     paddingTop: 15,
   },
   locationContainer: {
@@ -291,18 +298,18 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 11,
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
   },
   viewDetailsButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
   },
   viewDetailsText: {
     fontSize: 10,
     fontWeight: '700',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -311,16 +318,17 @@ const styles = StyleSheet.create({
   },
   statBox: {
     width: (width - 55) / 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(255, 255, 255, 0.8)',
     borderRadius: 16,
     padding: 15,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+    elevation: isDark ? 0 : 2,
   },
   statLabel: {
     fontSize: 9,
     fontWeight: '700',
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     marginBottom: 5,
   },
   statValueContainer: {
@@ -332,17 +340,17 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
   statBarContainer: {
     height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
     borderRadius: 2,
     overflow: 'hidden',
   },
   statBar: {
     height: '100%',
-    backgroundColor: TrofiTheme.primary,
+    backgroundColor: theme.primary,
   },
   bannerCard: {
     width: '100%',
@@ -365,7 +373,7 @@ const styles = StyleSheet.create({
   bannerTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: '#FFF',
   },
   bannerSubtitle: {
     fontSize: 12,
@@ -382,7 +390,7 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: 12,
     fontWeight: '700',
-    color: TrofiTheme.primary,
+    color: theme.primary,
   },
   playersScrollContent: {
     paddingRight: 20,
@@ -397,7 +405,7 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: 'rgba(0, 245, 255, 0.3)',
+    borderColor: isDark ? 'rgba(0, 245, 255, 0.3)' : 'rgba(0, 245, 255, 0.2)',
     padding: 3,
     marginBottom: 8,
   },
@@ -408,7 +416,6 @@ const styles = StyleSheet.create({
   },
   playerName: {
     fontSize: 11,
-    color: TrofiTheme.text,
     fontWeight: '500',
   },
 });

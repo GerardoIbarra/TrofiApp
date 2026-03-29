@@ -1,20 +1,22 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { Menu } from 'lucide-react-native';
-import { TrofiTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 interface LayoutHeaderProps {
   title?: string;
 }
 
 export function LayoutHeader({ title = 'TROFI' }: LayoutHeaderProps) {
+  const { theme, isDark } = useTheme();
+
   return (
     <View style={styles.header}>
       <TouchableOpacity style={styles.menuButton}>
-        <Menu size={24} color={TrofiTheme.primary} />
+        <Menu size={24} color={theme.primary} />
       </TouchableOpacity>
-      <Text style={styles.logoHeader}>{title}</Text>
-      <TouchableOpacity style={styles.profileButton}>
+      <Text style={[styles.logoHeader, { color: isDark ? '#F8FAFC' : theme.text }]}>{title}</Text>
+      <TouchableOpacity style={[styles.profileButton, { borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)' }]}>
         <Image 
           source={{ uri: 'https://i.pravatar.cc/150?u=luis' }} 
           style={styles.profileImage} 
@@ -44,7 +46,6 @@ const styles = StyleSheet.create({
   logoHeader: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#F8FAFC',
     letterSpacing: 2,
     fontStyle: 'italic',
   },
@@ -53,7 +54,6 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.2)',
     overflow: 'hidden',
   },
   profileImage: {

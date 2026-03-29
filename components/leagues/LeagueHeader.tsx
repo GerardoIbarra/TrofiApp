@@ -4,13 +4,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { Menu } from 'lucide-react-native';
-import { TrofiTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 
 export function LeagueHeader() {
   const insets = useSafeAreaInsets();
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
 
   return (
-    <View style={[styles.container, { backgroundColor: '#16213E' }]}>
+    <View style={styles.container}>
       {/* Imagen del Estadio Pexels (Directo) con expo-image */}
       <Image 
         source="https://images.pexels.com/photos/47730/the-ball-stadion-football-the-pitch-47730.jpeg?auto=compress&cs=tinysrgb&w=1600" 
@@ -22,13 +24,17 @@ export function LeagueHeader() {
       
       {/* Capa de Gradiente para fusionar con el fondo */}
       <LinearGradient
-        colors={['rgba(10, 25, 47, 0.2)', 'rgba(10, 25, 47, 0.6)', TrofiTheme.background]}
+        colors={[
+          isDark ? 'rgba(10, 25, 47, 0.2)' : 'rgba(255, 255, 255, 0.2)', 
+          isDark ? 'rgba(10, 25, 47, 0.6)' : 'rgba(255, 255, 255, 0.6)', 
+          theme.background
+        ]}
         style={styles.gradientOverlay}
       >
         {/* Navegación Superior */}
         <View style={[styles.topNav, { marginTop: insets.top }]}>
           <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Menu size={24} color={TrofiTheme.primary} />
+            <Menu size={24} color={theme.primary} />
           </TouchableOpacity>
           <Text style={styles.logoText}>TROFI</Text>
           <TouchableOpacity>
@@ -50,7 +56,7 @@ export function LeagueHeader() {
         {/* Título Monumental */}
         <View style={styles.titleContainer}>
           <Text style={styles.titleGiant}>ZAPOPAN</Text>
-          <Text style={[styles.titleGiant, { color: TrofiTheme.primary }]}>NORTE</Text>
+          <Text style={[styles.titleGiant, { color: theme.primary }]}>NORTE</Text>
         </View>
 
         {/* Puntuación General / Stats */}
@@ -69,17 +75,17 @@ export function LeagueHeader() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   container: {
     width: '100%',
     height: 380,
-    backgroundColor: '#020610', // Fondo de seguridad mientras carga la imagen
+    backgroundColor: isDark ? '#020610' : '#F8FAFC', // Fondo de seguridad
   },
   gradientOverlay: {
     flex: 1,
     paddingHorizontal: 20,
     justifyContent: 'flex-end',
-    paddingBottom: 25,
+    paddingBottom: 45, // Ajustado para que no choque con los widgets
   },
   topNav: {
     flexDirection: 'row',
@@ -93,7 +99,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#F8FAFC',
+    color: isDark ? '#F8FAFC' : theme.text,
     letterSpacing: 2,
     fontStyle: 'italic',
   },
@@ -102,7 +108,7 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
   },
   seasonTagContainer: {
     flexDirection: 'row',
@@ -110,20 +116,20 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   liveTag: {
-    backgroundColor: TrofiTheme.primary,
+    backgroundColor: theme.primary,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
     marginRight: 10,
   },
   liveText: {
-    color: TrofiTheme.background,
+    color: isDark ? '#000' : '#FFF',
     fontSize: 9,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
   leagueRegion: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: theme.textSecondary,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
@@ -134,7 +140,7 @@ const styles = StyleSheet.create({
   titleGiant: {
     fontSize: 42,
     fontWeight: '900',
-    color: TrofiTheme.text,
+    color: theme.text,
     lineHeight: 45,
     letterSpacing: -1,
   },
@@ -148,13 +154,14 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 9,
     fontWeight: '800',
-    color: 'rgba(255, 255, 255, 0.5)',
+    color: theme.textSecondary,
     letterSpacing: 1,
     marginBottom: 2,
+    opacity: 0.7,
   },
   statKpi: {
     fontSize: 22,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
   },
 });

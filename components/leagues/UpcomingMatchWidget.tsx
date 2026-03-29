@@ -1,9 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { TrofiTheme } from '@/constants/theme';
+import { useTheme } from '@/context/ThemeContext';
 import { PrimaryButton } from '@/components/PrimaryButton';
 
 export function UpcomingMatchWidget() {
+  const { theme, isDark } = useTheme();
+  const styles = createStyles(theme, isDark);
+
   return (
     <View style={styles.card}>
       <Text style={styles.overline}>UPCOMING MATCH</Text>
@@ -36,19 +39,24 @@ export function UpcomingMatchWidget() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   card: {
-    backgroundColor: TrofiTheme.surface,
+    backgroundColor: theme.surface,
     borderRadius: 20,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    elevation: isDark ? 0 : 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0 : 0.05,
+    shadowRadius: 5,
   },
   overline: {
     fontSize: 9,
     fontWeight: '800',
-    color: TrofiTheme.primary,
+    color: theme.primary,
     letterSpacing: 2,
     marginBottom: 20,
   },
@@ -73,14 +81,14 @@ const styles = StyleSheet.create({
   teamName: {
     fontSize: 10,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
     textAlign: 'center',
     letterSpacing: 0.5,
   },
   vsText: {
     fontSize: 22,
     fontWeight: '900',
-    color: 'rgba(255,255,255,0.8)',
+    color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.6)',
     fontStyle: 'italic',
   },
   matchDetails: {
@@ -90,19 +98,19 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 11,
     fontWeight: '800',
-    color: TrofiTheme.text,
+    color: theme.text,
     letterSpacing: 1,
     marginBottom: 4,
   },
   stadiumText: {
     fontSize: 8,
-    color: TrofiTheme.textSecondary,
+    color: theme.textSecondary,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   actionButton: {
     width: '100%',
-    borderRadius: 8,
+    borderRadius: 12, // Consistente con otros diseños
     paddingVertical: 14,
   },
 });
