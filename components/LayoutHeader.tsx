@@ -11,12 +11,12 @@ export function LayoutHeader({ title = 'TROFI' }: LayoutHeaderProps) {
   return (
     <View style={styles.header}>
       <TouchableOpacity style={styles.menuButton}>
-        <Menu size={24} color={TrofiTheme.text} />
+        <Menu size={24} color={TrofiTheme.primary} />
       </TouchableOpacity>
       <Text style={styles.logoHeader}>{title}</Text>
       <TouchableOpacity style={styles.profileButton}>
         <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop' }} 
+          source={{ uri: 'https://i.pravatar.cc/150?u=luis' }} 
           style={styles.profileImage} 
         />
       </TouchableOpacity>
@@ -32,6 +32,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 15,
     minHeight: 70,
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
   },
   menuButton: {
     width: 40,
@@ -39,17 +42,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoHeader: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '900',
-    color: TrofiTheme.text,
+    color: '#F8FAFC',
     letterSpacing: 2,
+    fontStyle: 'italic',
   },
   profileButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: TrofiTheme.primary,
+    borderColor: 'rgba(255,255,255,0.2)',
     overflow: 'hidden',
   },
   profileImage: {

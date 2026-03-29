@@ -8,6 +8,8 @@ export default function TabsLayout() {
       tabBar={(props) => <BottomTabBar {...props} />}
     >
       <Tabs.Screen name="index" />
+      <Tabs.Screen name="leagues" />
+      <Tabs.Screen name="league-detail" />
       <Tabs.Screen name="explore" />
       <Tabs.Screen name="teams" />
       <Tabs.Screen name="profile" />

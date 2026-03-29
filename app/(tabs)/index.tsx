@@ -19,7 +19,7 @@ const MOCK_PLAYERS = [
   { id: '5', name: 'T. Silva' },
 ];
 
-export default function DashboardScreen() {
+export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
   return (
@@ -30,112 +30,120 @@ export default function DashboardScreen() {
         <LayoutHeader />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionOverline}>RESUMEN SEMANAL</Text>
-              <Text style={GlobalStyles.sectionTitle}>MIS EQUIPOS</Text>
-            </View>
-            <TouchableOpacity style={styles.bellButton}>
-              <Bell size={20} color={TrofiTheme.primary} />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.featuredCard}>
-            <LinearGradient
-              colors={['#112240', '#0A192F']}
-              style={styles.cardGradient}
-            >
-              <View style={styles.cardHeader}>
-                <View style={styles.leagueTag}>
-                  <Text style={styles.leagueTagText}>LIGA ZAPOPAN NORTE</Text>
-                </View>
-                <Text style={styles.matchTime}>TODAY, OCT 26</Text>
-              </View>
-
-              <Text style={styles.matchdayText}>Matchday 12</Text>
-              <Text style={styles.matchPhase}>Final Stage</Text>
-
-              <View style={styles.matchTeams}>
-                <View style={styles.team}>
-                  <View style={styles.teamBadgePlaceholder} />
-                  <Text style={styles.teamName}>Real Goliza</Text>
-                </View>
-                <Text style={styles.vsText}>VS</Text>
-                <View style={styles.team}>
-                  <View style={styles.teamBadgePlaceholder} />
-                  <Text style={styles.teamName}>Atlc. San Pancho</Text>
-                </View>
-              </View>
-
-              <View style={styles.matchFooter}>
-                <View style={styles.locationContainer}>
-                  <Text style={styles.locationText}>📍 Today, Oct 26 • Field 4</Text>
-                </View>
-                <TouchableOpacity style={styles.viewDetailsButton}>
-                  <Text style={styles.viewDetailsText}>VIEW FIXTURE</Text>
-                </TouchableOpacity>
-              </View>
-            </LinearGradient>
-          </View>
-
-          <View style={styles.statsContainer}>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>WIN RATE</Text>
-              <View style={styles.statValueContainer}>
-                <Text style={styles.statValue}>94%</Text>
-                <TrendingUp size={16} color={TrofiTheme.primary} />
-              </View>
-              <View style={styles.statBarContainer}>
-                <View style={[styles.statBar, { width: '94%' }]} />
-              </View>
-            </View>
-
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>GOALS / GAME</Text>
-              <View style={styles.statValueContainer}>
-                <Text style={styles.statValue}>2.2</Text>
-                <TrendingUp size={16} color={TrofiTheme.primary} />
-              </View>
-              <View style={styles.statBarContainer}>
-                <View style={[styles.statBar, { width: '70%' }]} />
-              </View>
-            </View>
-          </View>
-
-          <TouchableOpacity style={styles.bannerCard}>
-            <LinearGradient
-              colors={['#004E92', '#000428']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.bannerGradient}
-            >
+          <View style={styles.webContainer}>
+            <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.bannerOverline}>LIGA DE INVIERNO 2024</Text>
-                <Text style={styles.bannerTitle}>The Road to Glory</Text>
-                <Text style={styles.bannerSubtitle}>Registrations are now open.</Text>
+                <Text style={styles.sectionOverline}>RESUMEN SEMANAL</Text>
+                <Text style={GlobalStyles.sectionTitle}>MIS EQUIPOS</Text>
               </View>
-              <View style={styles.bannerArrow}>
-                <ArrowUpRight size={20} color={TrofiTheme.text} />
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
+              <TouchableOpacity style={styles.bellButton}>
+                <Bell size={20} color={TrofiTheme.primary} />
+              </TouchableOpacity>
+            </View>
 
-          <View style={styles.sectionHeader}>
-            <Text style={GlobalStyles.sectionTitle}>PLAYERS</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>VIEW ALL</Text>
+            {/* Featured Match Card (Consistente con Ligas) */}
+            <View style={styles.featuredCard}>
+              <LinearGradient
+                colors={[TrofiTheme.surface, '#0A1525']}
+                style={styles.cardGradient}
+              >
+                {/* Borde Izquierdo Cyan (Highlight) */}
+                <View style={styles.userHighlight} />
+                
+                <View style={styles.cardHeader}>
+                  <View style={styles.leagueTag}>
+                    <Text style={styles.leagueTagText}>LIGA ZAPOPAN NORTE</Text>
+                  </View>
+                  <Text style={styles.matchTime}>TODAY, OCT 26</Text>
+                </View>
+
+                <Text style={styles.matchdayText}>Matchday 12</Text>
+                <Text style={styles.matchPhase}>Final Stage</Text>
+
+                <View style={styles.matchTeams}>
+                  <View style={styles.team}>
+                    <View style={styles.teamBadgePlaceholder} />
+                    <Text style={styles.teamName}>Real Goliza</Text>
+                  </View>
+                  <Text style={styles.vsText}>VS</Text>
+                  <View style={styles.team}>
+                    <View style={styles.teamBadgePlaceholder} />
+                    <Text style={styles.teamName}>Atlc. San Pancho</Text>
+                  </View>
+                </View>
+
+                <View style={styles.matchFooter}>
+                  <View style={styles.locationContainer}>
+                    <Text style={styles.locationText}>📍 Today, Oct 26 • Field 4</Text>
+                  </View>
+                  <TouchableOpacity style={styles.viewDetailsButton}>
+                    <Text style={styles.viewDetailsText}>VIEW FIXTURE</Text>
+                  </TouchableOpacity>
+                </View>
+              </LinearGradient>
+            </View>
+
+            {/* Stats Summary Area */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statBox}>
+                <Text style={styles.statLabel}>WIN RATE</Text>
+                <View style={styles.statValueContainer}>
+                  <Text style={styles.statValue}>94%</Text>
+                  <TrendingUp size={16} color={TrofiTheme.primary} />
+                </View>
+                <View style={styles.statBarContainer}>
+                  <View style={[styles.statBar, { width: '94%' }]} />
+                </View>
+              </View>
+
+              <View style={styles.statBox}>
+                <Text style={styles.statLabel}>GOALS / GAME</Text>
+                <View style={styles.statValueContainer}>
+                  <Text style={styles.statValue}>2.2</Text>
+                  <TrendingUp size={16} color={TrofiTheme.primary} />
+                </View>
+                <View style={styles.statBarContainer}>
+                  <View style={[styles.statBar, { width: '70%' }]} />
+                </View>
+              </View>
+            </View>
+
+            {/* Promotional Banner */}
+            <TouchableOpacity style={styles.bannerCard}>
+              <LinearGradient
+                colors={['#004E92', '#000428']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.bannerGradient}
+              >
+                <View>
+                  <Text style={styles.bannerOverline}>LIGA DE INVIERNO 2024</Text>
+                  <Text style={styles.bannerTitle}>The Road to Glory</Text>
+                  <Text style={styles.bannerSubtitle}>Registrations are now open.</Text>
+                </View>
+                <View style={styles.bannerArrow}>
+                  <ArrowUpRight size={20} color={TrofiTheme.text} />
+                </View>
+              </LinearGradient>
             </TouchableOpacity>
+
+            {/* Players List Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={GlobalStyles.sectionTitle}>PLAYERS</Text>
+              <TouchableOpacity>
+                <Text style={styles.seeAllText}>VIEW ALL</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList 
+              data={MOCK_PLAYERS}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.playersScrollContent}
+              renderItem={({ item }) => <PlayerAvatar name={item.name} />}
+            />
           </View>
-
-          <FlatList 
-            data={MOCK_PLAYERS}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.playersScrollContent}
-            renderItem={({ item }) => <PlayerAvatar name={item.name} />}
-          />
-
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -158,8 +166,22 @@ function PlayerAvatar({ name }: { name: string }) {
 
 const styles = StyleSheet.create({
   scrollContent: {
+    paddingBottom: 110, // Margin to avoid nav bar
+  },
+  webContainer: {
+    maxWidth: 800,
+    width: '100%',
+    alignSelf: 'center',
     paddingHorizontal: 20,
-    paddingBottom: 100,
+  },
+  userHighlight: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    backgroundColor: TrofiTheme.primary,
+    zIndex: 10,
   },
   sectionHeader: {
     flexDirection: 'row',
