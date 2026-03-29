@@ -51,7 +51,7 @@ export default function LoginScreen() {
 
             <PrimaryButton 
               title="Continuar" 
-              onPress={() => router.push('/dashboard')} 
+              onPress={() => router.push('/(tabs)' as any)} 
               fullWidth
               style={{ marginTop: 10 }}
             />

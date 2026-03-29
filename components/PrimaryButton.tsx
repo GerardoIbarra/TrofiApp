@@ -1,6 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import { TrofiTheme } from '@/constants/theme';
 
 interface PrimaryButtonProps {
@@ -11,11 +12,18 @@ interface PrimaryButtonProps {
 }
 
 export function PrimaryButton({ title, onPress, style, fullWidth }: PrimaryButtonProps) {
+  const handlePress = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    onPress();
+  };
+
   return (
     <TouchableOpacity 
       style={[styles.button, fullWidth && { width: '100%' }, style]}
       activeOpacity={0.8}
-      onPress={onPress}
+      onPress={handlePress}
     >
       <LinearGradient
         colors={[TrofiTheme.primary, '#00D1FF']}

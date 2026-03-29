@@ -1,15 +1,23 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { FlatList } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, TrendingUp, ArrowUpRight } from 'lucide-react-native';
 import { LayoutHeader } from '@/components/LayoutHeader';
-import { BottomTabBar } from '@/components/BottomTabBar';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { TrofiTheme } from '@/constants/theme';
 
 const { width } = Dimensions.get('window');
+
+const MOCK_PLAYERS = [
+  { id: '1', name: 'R. Mendez' },
+  { id: '2', name: 'J. Smith' },
+  { id: '3', name: 'L. Garcia' },
+  { id: '4', name: 'M. Brown' },
+  { id: '5', name: 'T. Silva' },
+];
 
 export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -119,16 +127,16 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.playersScroll}>
-            <PlayerAvatar name="R. Mendez" />
-            <PlayerAvatar name="J. Smith" />
-            <PlayerAvatar name="L. Garcia" />
-            <PlayerAvatar name="M. Brown" />
-          </ScrollView>
+          <FlatList 
+            data={MOCK_PLAYERS}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.playersScrollContent}
+            renderItem={({ item }) => <PlayerAvatar name={item.name} />}
+          />
 
         </ScrollView>
-
-        <BottomTabBar />
       </SafeAreaView>
     </View>
   );
@@ -354,8 +362,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: TrofiTheme.primary,
   },
-  playersScroll: {
-    flexDirection: 'row',
+  playersScrollContent: {
+    paddingRight: 20,
     marginBottom: 20,
   },
   playerContainer: {
