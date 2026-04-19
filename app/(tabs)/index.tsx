@@ -1,9 +1,11 @@
 import { BackgroundGradient } from "@/components/BackgroundGradient";
 import { LayoutHeader } from "@/components/LayoutHeader";
+import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
 import { PaginatedPlayers, Player } from "@/types/player";
+import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { ArrowUpRight, Bell, TrendingUp } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -29,6 +31,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const router = useRouter();
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [isPlayersLoading, setIsPlayersLoading] = useState(true);
@@ -184,7 +187,9 @@ export default function HomeScreen() {
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.playersScrollContent}
               renderItem={({ item }) => (
-                <PlayerAvatar player={item} theme={theme} isDark={isDark} />
+                <TouchableOpacity onPress={() => router.push({ pathname: '/profile', params: { id: item.id } })}>
+                  <PlayerAvatar player={item} theme={theme} isDark={isDark} />
+                </TouchableOpacity>
               )}
               ListEmptyComponent={
                 !isPlayersLoading ? (

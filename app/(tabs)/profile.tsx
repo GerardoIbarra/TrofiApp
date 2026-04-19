@@ -31,6 +31,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -80,29 +81,46 @@ export default function ProfileScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
   const signOut = useAuthStore((state) => state.signOut);
   const styles = createStyles(theme, isDark);
+  const { id } = useLocalSearchParams<{ id: string }>();
 
-  const [profile, setProfile] = useState<UserType | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [id]);
 
   const fetchData = async () => {
+    setIsLoading(true);
     try {
-      // 1. Fetch Profile
-      const userRes = await api.get<UserType>("/v1/me/");
-      setProfile(userRes);
+      let userId = id;
+      
+      if (id) {
+        // Fetch specific player
+        const playerRes = await api.get<any>(`/v1/players/${id}/`);
+        setProfile(playerRes);
+        // Note: In player-stats, the ID usually corresponds to the user or player.
+        // If the ID passed is already the player ID, we use it directly.
+        userId = playerRes.user || id;
+      } else {
+        // Fetch current user
+        const userRes = await api.get<UserType>("/v1/me/");
+        setProfile(userRes);
+        userId = userRes.id;
+      }
 
-      // 2. Fetch Stats using the user ID (assuming User ID == Player ID per user's info)
-      try {
-        const statsRes = await api.get<PlayerStats>(
-          `/v1/player-stats/${userRes.id}/`,
-        );
-        setStats(statsRes);
-      } catch (err) {
-        console.warn("Player stats not found for this user", err);
+      // Fetch Stats
+      if (userId) {
+        try {
+          const statsRes = await api.get<PlayerStats>(
+            `/v1/player-stats/${userId}/`,
+          );
+          setStats(statsRes);
+        } catch (err) {
+          console.warn("Player stats not found for this user/player", err);
+          setStats(null);
+        }
       }
     } catch (err) {
       console.error("Error fetching profile data:", err);
@@ -113,13 +131,17 @@ export default function ProfileScreen() {
 
   const getInitials = () => {
     if (!profile) return "??";
+    if (profile.full_name) {
+      const parts = profile.full_name.split(' ');
+      return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+    }
     const first = profile.first_name?.[0] || "";
     const last = profile.last_name?.[0] || "";
     return (first + last).toUpperCase();
   };
 
-  const fullName = profile
-    ? `${profile.first_name} ${profile.last_name}`
+  const fullName = profile 
+    ? (profile.full_name || `${profile.first_name} ${profile.last_name}`)
     : "Cargando...";
   const initials = getInitials();
 
