@@ -20,21 +20,27 @@ import { FormInput } from "@/components/FormInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useAuthStore } from "@/store/authStore";
 import api from "@/services/api";
+import { League } from "@/types/league";
+import { useEffect } from "react";
 
 interface CreateLeagueModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: League | null;
 }
 
 export function CreateLeagueModal({
   visible,
   onClose,
   onSuccess,
+  initialData = null,
 }: CreateLeagueModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+
+  const isEditing = !!initialData;
 
   const {
     control,
@@ -44,11 +50,22 @@ export function CreateLeagueModal({
   } = useForm<LeagueSchema>({
     resolver: zodResolver(leagueSchema),
     defaultValues: {
-      name: "",
-      city: "",
-      country: "México",
+      name: initialData?.name || "",
+      city: initialData?.city || "",
+      country: initialData?.country || "México",
     },
   });
+
+  // Reset form when initialData changes or modal opens
+  useEffect(() => {
+    if (visible) {
+      reset({
+        name: initialData?.name || "",
+        city: initialData?.city || "",
+        country: initialData?.country || "México",
+      });
+    }
+  }, [initialData, visible, reset]);
 
   const slugify = (text: string) => {
     return text
@@ -66,23 +83,30 @@ export function CreateLeagueModal({
     }
 
     try {
-      await api.post("/v1/leagues/", {
+      const payload = {
         name: data.name,
-        slug: slugify(data.name) + "-" + Math.floor(Math.random() * 1000), // Append random to ensure uniqueness if needed
+        slug: isEditing ? initialData.slug : slugify(data.name) + "-" + Math.floor(Math.random() * 1000),
         city: data.city,
         country: data.country,
         created_by: user.id,
-      });
+      };
 
-      Alert.alert("¡Éxito!", "La liga ha sido registrada correctamente.");
+      if (isEditing) {
+        await api.patch(`/v1/leagues/${initialData.id}/`, payload);
+        Alert.alert("¡Éxito!", "La liga ha sido actualizada correctamente.");
+      } else {
+        await api.post("/v1/leagues/", payload);
+        Alert.alert("¡Éxito!", "La liga ha sido registrada correctamente.");
+      }
+
       reset();
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error("Error creating league:", error);
+      console.error("Error saving league:", error);
       Alert.alert(
-        "Error de registro",
-        error.message || "Ocurrió un problema al registrar la liga."
+        "Error",
+        error.message || "Ocurrió un problema al guardar la liga."
       );
     }
   };
@@ -105,7 +129,9 @@ export function CreateLeagueModal({
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>NUEVA LIGA</Text>
+            <Text style={styles.headerTitle}>
+              {isEditing ? "EDITAR LIGA" : "NUEVA LIGA"}
+            </Text>
             <View style={{ width: 40 }} />
           </View>
 
@@ -118,9 +144,14 @@ export function CreateLeagueModal({
                 <Trophy size={40} color={theme.primary} />
               </View>
               
-              <Text style={styles.sectionTitle}>Organiza tu Liga</Text>
+              <Text style={styles.sectionTitle}>
+                {isEditing ? "Actualizar Liga" : "Organiza tu Liga"}
+              </Text>
               <Text style={styles.sectionSubtitle}>
-                Crea una nueva competición y gestiona equipos, calendarios y estadísticas.
+                {isEditing 
+                  ? "Modifica los detalles básicos de tu competición para mantenerla actualizada."
+                  : "Crea una nueva competición y gestiona equipos, calendarios y estadísticas."
+                }
               </Text>
 
               <FormInput
@@ -159,7 +190,7 @@ export function CreateLeagueModal({
               </View>
 
               <PrimaryButton
-                title={isSubmitting ? "Registrando..." : "Crear Liga Ahora"}
+                title={isSubmitting ? "Guardando..." : (isEditing ? "Guardar Cambios" : "Crear Liga Ahora")}
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 style={{ marginTop: 10 }}

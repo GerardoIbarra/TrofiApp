@@ -8,6 +8,7 @@ import { LeagueHeader } from '@/components/leagues/LeagueHeader';
 import { LeagueTabsList } from '@/components/leagues/LeagueTabsList';
 import { LeagueMembersWidget } from '@/components/leagues/LeagueMembersWidget';
 import { BulletinWidget } from '@/components/leagues/BulletinWidget';
+import { CreateLeagueModal } from '@/components/leagues/CreateLeagueModal';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import api from '@/services/api';
@@ -28,6 +29,7 @@ export default function LeagueDetailScreen() {
   const [activeTab, setActiveTab] = useState('POSICIONES');
   const [league, setLeague] = useState<League | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
@@ -120,7 +122,10 @@ export default function LeagueDetailScreen() {
       >
         <View style={styles.webContainer}>
           {/* ENCABEZADO MONUMENTAL */}
-          <LeagueHeader league={league} />
+          <LeagueHeader 
+            league={league} 
+            onEditPress={() => setIsEditModalVisible(true)} 
+          />
 
           {/* FEATURES CHIPS */}
           {activeFeatures.length > 0 && (
@@ -153,6 +158,14 @@ export default function LeagueDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* MODAL DE EDICIÓN (REUTILIZADO) */}
+      <CreateLeagueModal
+        visible={isEditModalVisible}
+        onClose={() => setIsEditModalVisible(false)}
+        onSuccess={fetchLeagueDetails}
+        initialData={league}
+      />
     </View>
   );
 }

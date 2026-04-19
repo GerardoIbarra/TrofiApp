@@ -4,17 +4,23 @@ import { useTheme } from "@/context/ThemeContext";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Settings } from "lucide-react-native";
+import { useAuthStore } from "@/store/authStore";
 
 interface LeagueHeaderProps {
   league: League;
+  onEditPress?: () => void;
 }
 
-export function LeagueHeader({ league }: LeagueHeaderProps) {
+export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const user = useAuthStore((state) => state.user);
+
+  const isOwner = user?.id === league.created_by;
 
   // Split name for visual impact if it has more than one word
   const nameParts = league.name.split(" ");
@@ -57,6 +63,15 @@ export function LeagueHeader({ league }: LeagueHeaderProps) {
           <Text style={styles.leagueRegion}>
             {league.city.toUpperCase()}, {league.country.toUpperCase()}
           </Text>
+          {isOwner && (
+            <TouchableOpacity 
+              style={styles.editButton} 
+              onPress={onEditPress}
+              activeOpacity={0.7}
+            >
+              <Settings size={16} color={theme.primary} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Monumental Title */}
@@ -129,6 +144,18 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 10,
       fontWeight: "700",
       letterSpacing: 1,
+      flex: 1,
+    },
+    editButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      justifyContent: "center",
+      alignItems: "center",
+      marginLeft: 10,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.03)",
     },
     titleContainer: {
       marginBottom: 20,
