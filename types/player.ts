@@ -41,3 +41,19 @@ export interface TournamentRegistration {
   created_at: string;
   updated_at: string;
 }
+
+export interface PlayerStats {
+  id: string;
+  matches_played: number;
+  minutes_played: number;
+  goals: number;
+  assists: number;
+  yellow_cards: number;
+  red_cards: number;
+  clean_sheets: number;
+  mvp_count: number;
+  tournament: string;
+  player: string;
+  created_at: string;
+  updated_at: string;
+}
