@@ -1,5 +1,6 @@
 import { BackgroundGradient } from "@/components/BackgroundGradient";
 import { LayoutHeader } from "@/components/LayoutHeader";
+import { CreateTeamModal } from "@/components/teams/CreateTeamModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
@@ -36,6 +37,7 @@ export default function TeamsScreen() {
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     fetchTeams();
@@ -118,8 +120,8 @@ export default function TeamsScreen() {
               <View style={styles.emptyContainer}>
                 <AlertCircle
                   size={48}
-                  color={theme.textSecondary}
-                  style={{ opacity: 0.3, marginBottom: 15 }}
+                  color={theme.primary}
+                  style={{ marginBottom: 15 }}
                 />
                 <Text style={styles.emptyTitle}>Sin equipos aún</Text>
                 <Text style={styles.emptySubtitle}>
@@ -132,9 +134,20 @@ export default function TeamsScreen() {
         </ScrollView>
 
         {/* Floating Action Button */}
-        <TouchableOpacity style={styles.fab} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.fab}
+          activeOpacity={0.8}
+          onPress={() => setIsModalVisible(true)}
+        >
           <Plus size={28} color="#001A2C" />
         </TouchableOpacity>
+
+        {/* Create Team Modal */}
+        <CreateTeamModal
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onSuccess={fetchTeams}
+        />
       </SafeAreaView>
     </View>
   );
@@ -143,7 +156,7 @@ export default function TeamsScreen() {
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     scrollContent: {
-      paddingBottom: 110,
+      paddingBottom: 150,
     },
     webContainer: {
       maxWidth: 800,
@@ -294,7 +307,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     fab: {
       position: "absolute",
-      bottom: 100,
+      bottom: 115,
       right: 20,
       width: 60,
       height: 60,

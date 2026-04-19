@@ -9,11 +9,13 @@ interface PrimaryButtonProps {
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
   fullWidth?: boolean;
+  disabled?: boolean;
 }
 
-export function PrimaryButton({ title, onPress, style, fullWidth }: PrimaryButtonProps) {
+export function PrimaryButton({ title, onPress, style, fullWidth, disabled }: PrimaryButtonProps) {
   const { theme } = useTheme();
   const handlePress = () => {
+    if (disabled) return;
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
@@ -26,10 +28,12 @@ export function PrimaryButton({ title, onPress, style, fullWidth }: PrimaryButto
         styles.button, 
         { shadowColor: theme.primary },
         fullWidth && { width: '100%' }, 
+        disabled && { opacity: 0.5 },
         style
       ]}
       activeOpacity={0.8}
       onPress={handlePress}
+      disabled={disabled}
     >
       <LinearGradient
         colors={[theme.primary, theme.accent || '#00D1FF']}
