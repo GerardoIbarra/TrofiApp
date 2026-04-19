@@ -18,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -75,7 +76,12 @@ export default function TeamsScreen() {
               </View>
             ) : teams.length > 0 ? (
               teams.map((team, index) => (
-                <View key={team.id} style={styles.teamCard}>
+                <TouchableOpacity 
+                  key={team.id} 
+                  style={styles.teamCard}
+                  activeOpacity={0.9}
+                  onPress={() => router.push({ pathname: '/team-detail', params: { id: team.id } })}
+                >
                   <View style={styles.teamHeader}>
                     <Image
                       source={{ uri: getTeamLogo(team.logo, index) }}
@@ -105,7 +111,10 @@ export default function TeamsScreen() {
                   </View>
 
                   <View style={styles.buttonRow}>
-                    <TouchableOpacity style={styles.viewButton}>
+                    <TouchableOpacity 
+                      style={styles.viewButton}
+                      onPress={() => router.push({ pathname: '/team-detail', params: { id: team.id } })}
+                    >
                       <Text style={styles.viewButtonText}>Ver Equipo</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.manageButton}>
@@ -114,7 +123,7 @@ export default function TeamsScreen() {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))
             ) : (
               <View style={styles.emptyContainer}>

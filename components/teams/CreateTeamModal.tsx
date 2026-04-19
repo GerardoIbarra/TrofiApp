@@ -6,8 +6,9 @@ import { TeamSchema, teamSchema } from "@/schemas/teamSchema";
 import api from "@/services/api";
 import { useAuthStore } from "@/store/authStore";
 import { League, LeaguesResponse } from "@/types/league";
+import { Team } from "@/types/team";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Trophy, X } from "lucide-react-native";
+import { CheckCircle2, Trophy, X, Trash2 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -22,21 +23,26 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { router } from "expo-router";
 
 interface CreateTeamModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: Team | null;
 }
 
 export function CreateTeamModal({
   visible,
   onClose,
   onSuccess,
+  initialData = null,
 }: CreateTeamModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+
+  const isEditing = !!initialData;
 
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoadingLeagues, setIsLoadingLeagues] = useState(false);
@@ -51,9 +57,9 @@ export function CreateTeamModal({
   } = useForm<TeamSchema>({
     resolver: zodResolver(teamSchema),
     defaultValues: {
-      name: "",
-      city: "",
-      league: "",
+      name: initialData?.name || "",
+      city: initialData?.city || "",
+      league: initialData?.league || "",
     },
   });
 
@@ -62,8 +68,13 @@ export function CreateTeamModal({
   useEffect(() => {
     if (visible) {
       fetchLeagues();
+      reset({
+        name: initialData?.name || "",
+        city: initialData?.city || "",
+        league: initialData?.league || "",
+      });
     }
-  }, [visible]);
+  }, [visible, initialData, reset]);
 
   const fetchLeagues = async () => {
     setIsLoadingLeagues(true);
@@ -84,24 +95,58 @@ export function CreateTeamModal({
     }
 
     try {
-      await api.post("/v1/teams/", {
+      const payload = {
         name: data.name,
         city: data.city,
         league: data.league,
         owner: user.id,
-      });
+      };
 
-      Alert.alert("¡Éxito!", "El equipo ha sido creado correctamente.");
+      if (isEditing && initialData) {
+        await api.patch(`/v1/teams/${initialData.id}/`, payload);
+        Alert.alert("¡Éxito!", "El equipo ha sido actualizado correctamente.");
+      } else {
+        await api.post("/v1/teams/", payload);
+        Alert.alert("¡Éxito!", "El equipo ha sido creado correctamente.");
+      }
+
       reset();
       onSuccess();
       onClose();
     } catch (error: any) {
-      console.error("Error creating team:", error);
+      console.error("Error saving team:", error);
       Alert.alert(
         "Error",
-        error.message || "Ocurrió un problema al crear el equipo.",
+        error.message || "Ocurrió un problema al guardar el equipo.",
       );
     }
+  };
+
+  const handleDelete = () => {
+    if (!initialData?.id) return;
+
+    Alert.alert(
+      "Eliminar Equipo",
+      "¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar definitivamente",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(`/v1/teams/${initialData.id}/`);
+              onClose();
+              router.push("/(tabs)/teams" as any);
+              onSuccess();
+            } catch (error: any) {
+              console.error("Error deleting team:", error);
+              Alert.alert("Error", "No se pudo eliminar el equipo.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -122,7 +167,9 @@ export function CreateTeamModal({
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>NUEVO EQUIPO</Text>
+            <Text style={styles.headerTitle}>
+              {isEditing ? "EDITAR EQUIPO" : "NUEVO EQUIPO"}
+            </Text>
             <View style={{ width: 40 }} />
           </View>
 
@@ -131,9 +178,14 @@ export function CreateTeamModal({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.formSection}>
-              <Text style={styles.sectionTitle}>Detalles del Equipo</Text>
+              <Text style={styles.sectionTitle}>
+                {isEditing ? "Ajustes del Equipo" : "Detalles del Equipo"}
+              </Text>
               <Text style={styles.sectionSubtitle}>
-                Define la identidad de tu equipo en la plataforma.
+                {isEditing 
+                  ? "Modifica la identidad y la liga de tu equipo."
+                  : "Define la identidad de tu equipo en la plataforma."
+                }
               </Text>
 
               <FormInput
@@ -211,12 +263,23 @@ export function CreateTeamModal({
               </View>
 
               <PrimaryButton
-                title={isSubmitting ? "Creando..." : "Crear Equipo"}
+                title={isSubmitting ? "Guardando..." : (isEditing ? "Guardar Cambios" : "Crear Equipo")}
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 style={{ marginTop: 20 }}
                 fullWidth
               />
+
+              {isEditing && (
+                <TouchableOpacity 
+                  style={styles.deleteButton} 
+                  onPress={handleDelete}
+                  disabled={isSubmitting}
+                >
+                  <Trash2 size={18} color="#FF4B4B" />
+                  <Text style={styles.deleteButtonText}>Eliminar Equipo</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -326,6 +389,22 @@ const createStyles = (theme: any, isDark: boolean) =>
     retryText: {
       color: theme.primary,
       fontSize: 13,
-      fontWeight: "700",
+      fontWeight: '700',
+    },
+    deleteButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 30,
+      padding: 15,
+      gap: 10,
+      borderTopWidth: 1,
+      borderTopColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    },
+    deleteButtonText: {
+      color: '#FF4B4B',
+      fontSize: 14,
+      fontWeight: '700',
+      letterSpacing: 0.5,
     },
   });
