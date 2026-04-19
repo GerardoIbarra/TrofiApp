@@ -8,6 +8,10 @@ import { Settings, LogOut, ChevronRight, Award, Shield, User, Star, Activity, Mo
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuthStore } from '@/store/authStore';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator } from 'react-native';
+import api from '@/services/api';
+import { User as UserType } from '@/types/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -34,6 +38,25 @@ export default function ProfileScreen() {
   const signOut = useAuthStore((state) => state.signOut);
   const styles = createStyles(theme, isDark);
 
+  const [profile, setProfile] = useState<UserType | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get<UserType>('/v1/me/');
+        setProfile(res);
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const fullName = profile ? `${profile.first_name} ${profile.last_name}` : 'Cargando...';
+
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
@@ -45,32 +68,40 @@ export default function ProfileScreen() {
             
             {/* Player Hero Section with Ultimate Card */}
             <View style={styles.heroSection}>
-              <Image 
-                source={{ uri: 'https://images.pexels.com/photos/1884574/pexels-photo-1884574.jpeg?auto=compress&cs=tinysrgb&w=1200' }} 
-                style={styles.heroImage} 
-              />
-              <LinearGradient
-                colors={['transparent', isDark ? 'rgba(10, 25, 47, 0.95)' : 'rgba(255, 255, 255, 0.95)']}
-                style={styles.heroGradient}
-              />
-              <View style={styles.heroContent}>
-                <UltimateCard theme={theme} isDark={isDark} />
-                
-                <View style={styles.infoRow}>
-                  <View style={styles.infoItem}>
-                    <Text style={styles.infoLabel}>POSITION</Text>
-                    <Text style={styles.infoValue}>Striker</Text>
-                  </View>
-                  <View style={styles.infoItem}>
-                    <Text style={styles.infoLabel}>JERSEY</Text>
-                    <Text style={styles.infoValue}>#9</Text>
-                  </View>
-                  <View style={styles.infoItem}>
-                    <Text style={styles.infoLabel}>HEIGHT</Text>
-                    <Text style={styles.infoValue}>188cm</Text>
-                  </View>
+              {isLoading ? (
+                <View style={[styles.heroImage, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface }]}>
+                  <ActivityIndicator size="large" color={theme.primary} />
                 </View>
-              </View>
+              ) : (
+                <>
+                  <Image 
+                    source={{ uri: 'https://images.pexels.com/photos/1884574/pexels-photo-1884574.jpeg?auto=compress&cs=tinysrgb&w=1200' }} 
+                    style={styles.heroImage} 
+                  />
+                  <LinearGradient
+                    colors={['transparent', isDark ? 'rgba(10, 25, 47, 0.95)' : 'rgba(255, 255, 255, 0.95)']}
+                    style={styles.heroGradient}
+                  />
+                  <View style={styles.heroContent}>
+                    <UltimateCard theme={theme} isDark={isDark} name={fullName} />
+                    
+                    <View style={styles.infoRow}>
+                      <View style={styles.infoItem}>
+                        <Text style={styles.infoLabel}>POSITION</Text>
+                        <Text style={styles.infoValue}>Striker</Text>
+                      </View>
+                      <View style={styles.infoItem}>
+                        <Text style={styles.infoLabel}>JERSEY</Text>
+                        <Text style={styles.infoValue}>#9</Text>
+                      </View>
+                      <View style={styles.infoItem}>
+                        <Text style={styles.infoLabel}>HEIGHT</Text>
+                        <Text style={styles.infoValue}>188cm</Text>
+                      </View>
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
 
             {/* Core Stats */}
@@ -195,7 +226,7 @@ function KPIBox({ label, value, theme, isDark }: { label: string, value: string,
   );
 }
 
-function UltimateCard({ theme, isDark }: { theme: any, isDark: boolean }) {
+function UltimateCard({ theme, isDark, name }: { theme: any, isDark: boolean, name: string }) {
   const styles = createStyles(theme, isDark);
   return (
     <View style={styles.cardShield}>
@@ -225,7 +256,7 @@ function UltimateCard({ theme, isDark }: { theme: any, isDark: boolean }) {
       </View>
 
       <View style={styles.cardNameSection}>
-        <Text style={styles.cardNameText}>R. MENDEZ</Text>
+        <Text style={styles.cardNameText}>{name.toUpperCase()}</Text>
         <View style={styles.nameDivider} />
       </View>
 

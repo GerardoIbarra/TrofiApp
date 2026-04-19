@@ -4,6 +4,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  memberships?: any[];
 }
 
 export interface AuthResponse {
