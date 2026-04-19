@@ -57,3 +57,19 @@ export interface PlayerStats {
   created_at: string;
   updated_at: string;
 }
+
+export interface CardHistory {
+  id: string;
+  overall: number;
+  pace: number;
+  shooting: number;
+  passing: number;
+  dribbling: number;
+  defense: number;
+  physical: number;
+  rarity: string;
+  captured_at: string;
+  card: string;
+  created_at: string;
+  updated_at: string;
+}

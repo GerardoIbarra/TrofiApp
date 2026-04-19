@@ -5,10 +5,10 @@ import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
 import { useAuthStore } from "@/store/authStore";
 import { User as UserType } from "@/types/auth";
-import { PlayerStats } from "@/types/player";
+import { CardHistory, PlayerStats } from "@/types/player";
 import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams } from "expo-router";
 import {
-  Activity,
   Award,
   ChevronRight,
   LogOut,
@@ -31,51 +31,22 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
 const PERFORMANCE_DATA = [
-  { height: 40, active: false },
-  { height: 60, active: false },
-  { height: 75, active: false },
-  { height: 50, active: false },
-  { height: 80, active: true },
-  { height: 45, active: false },
-  { height: 70, active: false },
-  { height: 78, active: false },
-  { height: 85, active: true },
+  { height: 5, active: false },
+  { height: 5, active: false },
+  { height: 5, active: false },
+  { height: 5, active: false },
+  { height: 5, active: false },
+  { height: 5, active: false },
+  { height: 5, active: false },
+  { height: 5, active: false },
+  { height: 5, active: false },
 ];
 
-const MATCHES = [
-  {
-    id: "1",
-    date: "OCT 24",
-    opp: "Blue Hawks",
-    score: "3 - 1",
-    rating: "9.2",
-    stats: "2 GOALS • 90'",
-    winner: true,
-  },
-  {
-    id: "2",
-    date: "OCT 18",
-    opp: "Strikers United",
-    score: "0 - 0",
-    rating: "7.1",
-    stats: "0 ASSIST • 78'",
-    winner: false,
-  },
-  {
-    id: "3",
-    date: "OCT 12",
-    opp: "City Stars",
-    score: "2 - 0",
-    rating: "8.4",
-    stats: "1 ASSIST • 90'",
-    winner: true,
-  },
-];
+const MATCHES: any[] = [];
 
 export default function ProfileScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
@@ -85,6 +56,7 @@ export default function ProfileScreen() {
 
   const [profile, setProfile] = useState<any | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
+  const [card, setCard] = useState<CardHistory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -95,7 +67,7 @@ export default function ProfileScreen() {
     setIsLoading(true);
     try {
       let userId = id;
-      
+
       if (id) {
         // Fetch specific player
         const playerRes = await api.get<any>(`/v1/players/${id}/`);
@@ -121,6 +93,17 @@ export default function ProfileScreen() {
           console.warn("Player stats not found for this user/player", err);
           setStats(null);
         }
+
+        // 3. Fetch Card History
+        try {
+          const cardRes = await api.get<CardHistory>(
+            `/v1/card-history/${userId}/`,
+          );
+          setCard(cardRes);
+        } catch (err) {
+          console.warn("Card history not found for this user/player", err);
+          setCard(null);
+        }
       }
     } catch (err) {
       console.error("Error fetching profile data:", err);
@@ -132,16 +115,16 @@ export default function ProfileScreen() {
   const getInitials = () => {
     if (!profile) return "??";
     if (profile.full_name) {
-      const parts = profile.full_name.split(' ');
-      return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+      const parts = profile.full_name.split(" ");
+      return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
     }
     const first = profile.first_name?.[0] || "";
     const last = profile.last_name?.[0] || "";
     return (first + last).toUpperCase();
   };
 
-  const fullName = profile 
-    ? (profile.full_name || `${profile.first_name} ${profile.last_name}`)
+  const fullName = profile
+    ? profile.full_name || `${profile.first_name} ${profile.last_name}`
     : "Cargando...";
   const initials = getInitials();
 
@@ -190,20 +173,23 @@ export default function ProfileScreen() {
                       theme={theme}
                       isDark={isDark}
                       name={fullName}
+                      card={card}
                     />
 
                     <View style={styles.infoRow}>
                       <View style={styles.infoItem}>
                         <Text style={styles.infoLabel}>POSITION</Text>
-                        <Text style={styles.infoValue}>Striker</Text>
+                        <Text style={styles.infoValue}>
+                          {profile?.position || "--"}
+                        </Text>
                       </View>
                       <View style={styles.infoItem}>
                         <Text style={styles.infoLabel}>JERSEY</Text>
-                        <Text style={styles.infoValue}>#9</Text>
+                        <Text style={styles.infoValue}>--</Text>
                       </View>
                       <View style={styles.infoItem}>
                         <Text style={styles.infoLabel}>HEIGHT</Text>
-                        <Text style={styles.infoValue}>188cm</Text>
+                        <Text style={styles.infoValue}>--</Text>
                       </View>
                     </View>
                   </View>
@@ -239,15 +225,23 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.teamCard}>
               <View style={styles.teamBrandBox}>
-                <Activity size={24} color={theme.primary} />
+                <Shield size={24} color={theme.primary} />
               </View>
               <View style={styles.teamCoreInfo}>
-                <Text style={styles.teamNameTitle}>Real Metros FC</Text>
-                <Text style={styles.teamSubtitle}>Elite Division • Tier A</Text>
+                <Text style={styles.teamNameTitle}>
+                  {profile?.memberships?.[0]?.team_name || "Sin Equipo"}
+                </Text>
+                <Text style={styles.teamSubtitle}>
+                  {profile?.memberships?.[0]
+                    ? "Miembro Activo"
+                    : "No registrado en un equipo"}
+                </Text>
               </View>
-              <TouchableOpacity style={styles.viewTeamBtn}>
-                <Text style={styles.viewTeamBtnText}>VIEW TEAM PAGE</Text>
-              </TouchableOpacity>
+              {profile?.memberships?.[0] && (
+                <TouchableOpacity style={styles.viewTeamBtn}>
+                  <Text style={styles.viewTeamBtnText}>VIEW TEAM PAGE</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
             {/* Performance Trend Chart */}
@@ -257,10 +251,10 @@ export default function ProfileScreen() {
                   <Text style={styles.trendTitle}>PERFORMANCE TREND</Text>
                   <Text style={styles.trendSubtitle}>
                     Avg. Match Rating:{" "}
-                    <Text style={{ color: theme.primary }}>8.4</Text>
+                    <Text style={{ color: theme.primary }}>0.0</Text>
                   </Text>
                 </View>
-                <Text style={styles.lastGamesText}>LAST 10 GAMES</Text>
+                <Text style={styles.lastGamesText}>NO MATCH DATA</Text>
               </View>
 
               <View style={styles.chartContainer}>
@@ -284,47 +278,60 @@ export default function ProfileScreen() {
 
             {/* Recent Matches */}
             <Text style={styles.mainSectionTitle}>RECENT MATCHES</Text>
-            {MATCHES.map((match) => (
-              <TouchableOpacity key={match.id} style={styles.matchCard}>
-                <View style={styles.matchDateColumn}>
-                  <Text style={styles.matchDateMonth}>OCT</Text>
-                  <Text style={styles.matchDateDay}>
-                    {match.date.split(" ")[1]}
-                  </Text>
-                </View>
+            {MATCHES.length > 0 ? (
+              MATCHES.map((match) => (
+                <TouchableOpacity key={match.id} style={styles.matchCard}>
+                  <View style={styles.matchDateColumn}>
+                    <Text style={styles.matchDateMonth}>OCT</Text>
+                    <Text style={styles.matchDateDay}>
+                      {match.date.split(" ")[1]}
+                    </Text>
+                  </View>
 
-                <View style={styles.matchMainInfo}>
-                  <View style={styles.matchTeamsRow}>
-                    <View style={styles.teamsNameBox}>
-                      <Text style={styles.matchTeamName}>
-                        {match.winner ? "Real Metros FC" : match.opp}
-                      </Text>
-                      <Text style={styles.matchTeamName}>
-                        {match.winner ? match.opp : "Real Metros FC"}
-                      </Text>
+                  <View style={styles.matchMainInfo}>
+                    <View style={styles.matchTeamsRow}>
+                      <View style={styles.teamsNameBox}>
+                        <Text style={styles.matchTeamName}>
+                          {match.winner ? "Real Metros FC" : match.opp}
+                        </Text>
+                        <Text style={styles.matchTeamName}>
+                          {match.winner ? match.opp : "Real Metros FC"}
+                        </Text>
+                      </View>
+                      <View style={styles.scoreBox}>
+                        <Text style={styles.matchScore}>{match.score}</Text>
+                      </View>
                     </View>
-                    <View style={styles.scoreBox}>
-                      <Text style={styles.matchScore}>{match.score}</Text>
+                    <View style={styles.matchSmallStats}>
+                      <Star
+                        size={12}
+                        color={theme.primary}
+                        style={{ marginRight: 4 }}
+                      />
+                      <Text style={styles.smallStatsText}>{match.stats}</Text>
                     </View>
                   </View>
-                  <View style={styles.matchSmallStats}>
-                    <Star
-                      size={12}
-                      color={theme.primary}
-                      style={{ marginRight: 4 }}
-                    />
-                    <Text style={styles.smallStatsText}>{match.stats}</Text>
-                  </View>
-                </View>
 
-                <View style={styles.ratingCircle}>
-                  <Text style={styles.ratingText}>{match.rating}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+                  <View style={styles.ratingCircle}>
+                    <Text style={styles.ratingText}>{match.rating}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyMatchesBox}>
+                <Award
+                  size={48}
+                  color={theme.primary}
+                  style={{ marginBottom: 12 }}
+                />
+                <Text style={styles.emptyMatchesText}>
+                  No hay partidos registrados recientemente
+                </Text>
+              </View>
+            )}
 
             {/* CONFIGURATION */}
-            <View style={[styles.sectionHeader, { marginTop: 40 }]}>
+            <View style={[styles.sectionHeader, { marginTop: 25 }]}>
               <Text style={styles.mainSectionTitle}>CONFIGURACIÓN</Text>
             </View>
 
@@ -402,10 +409,12 @@ function UltimateCard({
   theme,
   isDark,
   name,
+  card,
 }: {
   theme: any;
   isDark: boolean;
   name: string;
+  card: CardHistory | null;
 }) {
   const styles = createStyles(theme, isDark);
   return (
@@ -425,7 +434,7 @@ function UltimateCard({
 
       <View style={styles.cardHeader}>
         <View style={styles.ratingInfo}>
-          <Text style={styles.ratingNumber}>88</Text>
+          <Text style={styles.ratingNumber}>{card?.overall || "--"}</Text>
           <Text style={styles.posLabel}>ST</Text>
           <View style={styles.flagPlaceholder} />
         </View>
@@ -443,30 +452,30 @@ function UltimateCard({
       <View style={styles.statsGrid}>
         <View style={styles.statsColumn}>
           <View style={styles.statLine}>
-            <Text style={styles.statValue}>90</Text>
+            <Text style={styles.statValue}>{card?.pace || "--"}</Text>
             <Text style={styles.statKey}>PAC</Text>
           </View>
           <View style={styles.statLine}>
-            <Text style={styles.statValue}>92</Text>
+            <Text style={styles.statValue}>{card?.shooting || "--"}</Text>
             <Text style={styles.statKey}>SHO</Text>
           </View>
           <View style={styles.statLine}>
-            <Text style={styles.statValue}>85</Text>
+            <Text style={styles.statValue}>{card?.passing || "--"}</Text>
             <Text style={styles.statKey}>PAS</Text>
           </View>
         </View>
         <View style={styles.statsDivider} />
         <View style={styles.statsColumn}>
           <View style={styles.statLine}>
-            <Text style={styles.statValue}>88</Text>
+            <Text style={styles.statValue}>{card?.dribbling || "--"}</Text>
             <Text style={styles.statKey}>DRI</Text>
           </View>
           <View style={styles.statLine}>
-            <Text style={styles.statValue}>45</Text>
+            <Text style={styles.statValue}>{card?.defense || "--"}</Text>
             <Text style={styles.statKey}>DEF</Text>
           </View>
           <View style={styles.statLine}>
-            <Text style={styles.statValue}>82</Text>
+            <Text style={styles.statValue}>{card?.physical || "--"}</Text>
             <Text style={styles.statKey}>PHY</Text>
           </View>
         </View>
@@ -501,7 +510,7 @@ function MenuItem({
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     scrollContent: {
-      paddingBottom: 110,
+      paddingBottom: 150,
     },
     webContainer: {
       maxWidth: 800,
@@ -776,6 +785,21 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "800",
       color: theme.textSecondary,
     },
+    emptyMatchesBox: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 30,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+      borderStyle: "dashed",
+    },
+    emptyMatchesText: {
+      fontSize: 14,
+      color: theme.textSecondary,
+      textAlign: "center",
+    },
     chartContainer: {
       flexDirection: "row",
       alignItems: "flex-end",
@@ -901,7 +925,8 @@ const createStyles = (theme: any, isDark: boolean) =>
       alignItems: "center",
       justifyContent: "center",
       gap: 10,
-      marginTop: 20,
+      marginTop: 10,
+      marginBottom: 20,
       padding: 15,
     },
     logoutText: {

@@ -213,30 +213,6 @@ export default function HomeScreen() {
   );
 }
 
-function PlayerAvatar({
-  player,
-  theme,
-  isDark,
-}: {
-  player: Player;
-  theme: any;
-  isDark: boolean;
-}) {
-  const styles = createStyles(theme, isDark);
-  const displayName = player.nickname || player.full_name.split(" ")[0];
-  const avatarUrl = player.photo || `https://i.pravatar.cc/150?u=${player.id}`;
-
-  return (
-    <View style={styles.playerContainer}>
-      <View style={styles.avatarBorder}>
-        <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
-      </View>
-      <Text style={[styles.playerName, { color: theme.text }]}>
-        {displayName}
-      </Text>
-    </View>
-  );
-}
 
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
