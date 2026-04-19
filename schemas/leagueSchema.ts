@@ -1,0 +1,9 @@
+import { z } from 'zod';
+
+export const leagueSchema = z.object({
+  name: z.string().min(3, 'El nombre debe tener al menos 3 caracteres'),
+  city: z.string().min(1, 'La ciudad es requerida'),
+  country: z.string().min(1, 'El país es requerido'),
+});
+
+export type LeagueSchema = z.infer<typeof leagueSchema>;

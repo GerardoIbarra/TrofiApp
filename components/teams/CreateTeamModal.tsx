@@ -1,27 +1,27 @@
-import React, { useEffect, useState } from "react";
-import {
-  Modal,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
-import { X, Trophy, MapPin, CheckCircle2 } from "lucide-react-native";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { teamSchema, TeamSchema } from "@/schemas/teamSchema";
-import { useTheme } from "@/context/ThemeContext";
 import { BackgroundGradient } from "@/components/BackgroundGradient";
 import { FormInput } from "@/components/FormInput";
 import { PrimaryButton } from "@/components/PrimaryButton";
-import { useAuthStore } from "@/store/authStore";
+import { useTheme } from "@/context/ThemeContext";
+import { TeamSchema, teamSchema } from "@/schemas/teamSchema";
 import api from "@/services/api";
+import { useAuthStore } from "@/store/authStore";
 import { League, LeaguesResponse } from "@/types/league";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2, Trophy, X } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface CreateTeamModalProps {
   visible: boolean;
@@ -99,7 +99,7 @@ export function CreateTeamModal({
       console.error("Error creating team:", error);
       Alert.alert(
         "Error",
-        error.message || "Ocurrió un problema al crear el equipo."
+        error.message || "Ocurrió un problema al crear el equipo.",
       );
     }
   };

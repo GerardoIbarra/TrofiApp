@@ -12,6 +12,8 @@ import api from '@/services/api';
 import { League, LeaguesResponse } from '@/types/league';
 import { useState, useEffect } from 'react';
 import { ActivityIndicator } from 'react-native';
+import { CreateLeagueModal } from '@/components/leagues/CreateLeagueModal';
+import { Plus } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +40,7 @@ export default function LeaguesExplorerScreen() {
 
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     fetchLeagues();
@@ -185,6 +188,22 @@ export default function LeaguesExplorerScreen() {
 
           </View>
         </ScrollView>
+
+        {/* Floating Action Button */}
+        <TouchableOpacity 
+          style={styles.fab} 
+          activeOpacity={0.8}
+          onPress={() => setIsModalVisible(true)}
+        >
+          <Plus size={28} color="#001A2C" />
+        </TouchableOpacity>
+
+        {/* Create League Modal */}
+        <CreateLeagueModal 
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onSuccess={fetchLeagues}
+        />
       </SafeAreaView>
     </View>
   );
@@ -393,5 +412,21 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontSize: 9,
     fontWeight: '900',
     letterSpacing: 0.3,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 115,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    backgroundColor: theme.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: theme.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: isDark ? 0.3 : 0.6,
+    shadowRadius: 12,
   },
 });
