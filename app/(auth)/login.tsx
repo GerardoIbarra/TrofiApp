@@ -14,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Info } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { registerSchema, RegisterSchema } from '@/schemas/authSchemas';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { FormInput } from '@/components/FormInput';
@@ -22,14 +24,7 @@ import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
 import { RegisterResponse } from '@/types/auth';
 
-interface RegisterFormData {
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  password: string;
-  password2: string;
-}
+
 
 export default function RegisterScreen() {
   const { theme, isDark } = useTheme();
@@ -38,9 +33,9 @@ export default function RegisterScreen() {
   const {
     control,
     handleSubmit,
-    watch,
     formState: { isSubmitting },
-  } = useForm<RegisterFormData>({
+  } = useForm<RegisterSchema>({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       username: '',
       email: '',
@@ -51,9 +46,7 @@ export default function RegisterScreen() {
     },
   });
 
-  const password = watch('password');
-
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = async (data: RegisterSchema) => {
     try {
       await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
       Alert.alert('¡Registro exitoso!', 'Tu cuenta ha sido creada. Inicia sesión para continuar.', [
@@ -102,7 +95,6 @@ export default function RegisterScreen() {
               label="NOMBRE DE USUARIO"
               placeholder="jugador99"
               required
-              rules={{ required: 'El nombre de usuario es obligatorio' }}
             />
 
             <FormInput
@@ -112,13 +104,6 @@ export default function RegisterScreen() {
               placeholder="correo@ejemplo.com"
               keyboardType="email-address"
               required
-              rules={{
-                required: 'El correo es obligatorio',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Indica un correo electrónico válido',
-                },
-              }}
             />
 
             <View style={styles.row}>
@@ -128,7 +113,6 @@ export default function RegisterScreen() {
                 label="NOMBRE"
                 placeholder="Carlos"
                 required
-                rules={{ required: '*' }}
                 containerStyle={styles.halfField}
                 autoCapitalize="words"
               />
@@ -138,7 +122,6 @@ export default function RegisterScreen() {
                 label="APELLIDO"
                 placeholder="García"
                 required
-                rules={{ required: '*' }}
                 containerStyle={styles.halfField}
                 autoCapitalize="words"
               />
@@ -148,13 +131,9 @@ export default function RegisterScreen() {
               control={control}
               name="password"
               label="CONTRASEÑA"
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Mínimo 6 caracteres"
               required
               isPassword
-              rules={{
-                required: 'La contraseña es obligatoria',
-                minLength: { value: 8, message: 'La contraseña debe tener al menos 8 caracteres' },
-              }}
             />
 
             <FormInput
@@ -164,10 +143,6 @@ export default function RegisterScreen() {
               placeholder="Repite tu contraseña"
               required
               isPassword
-              rules={{
-                required: 'Confirma tu contraseña',
-                validate: (value: string) => value === password || 'Las contraseñas no coinciden',
-              }}
             />
 
             {/* Register Button */}

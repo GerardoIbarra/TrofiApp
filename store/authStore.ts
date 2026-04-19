@@ -1,0 +1,48 @@
+import { create } from 'zustand';
+import { User, AuthResponse } from '@/types/auth';
+import { AuthStorage } from '@/services/authStorage';
+import { router } from 'expo-router';
+
+interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  signIn: (response: AuthResponse) => Promise<void>;
+  signOut: () => Promise<void>;
+  initialize: () => Promise<void>;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+
+  initialize: async () => {
+    try {
+      const storedUser = await AuthStorage.getUser();
+      const token = await AuthStorage.getAccessToken();
+
+      if (storedUser && token) {
+        set({ user: storedUser, isAuthenticated: true });
+      }
+    } catch (e) {
+      console.error('Failed to initialize auth store', e);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  signIn: async (response: AuthResponse) => {
+    const { access, refresh, user } = response;
+    await AuthStorage.saveTokens(access, refresh);
+    await AuthStorage.saveUser(user);
+    set({ user, isAuthenticated: true });
+    router.replace('/(tabs)' as any);
+  },
+
+  signOut: async () => {
+    await AuthStorage.clearSession();
+    set({ user: null, isAuthenticated: false });
+    router.replace('/(auth)/signin' as any);
+  },
+}));

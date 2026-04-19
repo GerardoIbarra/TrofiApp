@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import * as SplashScreen from 'expo-splash-screen';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/store/authStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,7 +13,11 @@ export const unstable_settings = {
 };
 
 function InitialNavigation() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, initialize } = useAuthStore();
+
+  useEffect(() => {
+    initialize();
+  }, []);
 
   useEffect(() => {
     if (!isLoading) {
@@ -41,11 +45,9 @@ function InitialNavigation() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <InitialNavigation />
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <InitialNavigation />
+      <StatusBar style="auto" />
+    </ThemeProvider>
   );
 }

@@ -13,34 +13,34 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Info } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema, LoginSchema } from '@/schemas/authSchemas';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { FormInput } from '@/components/FormInput';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthStore } from '@/store/authStore';
 import { AuthResponse } from '@/types/auth';
 
-interface LoginFormData {
-  identifier: string;
-  password: string;
-}
+
 
 export default function SignInScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
-  const { signIn } = useAuth();
+  const signIn = useAuthStore((state) => state.signIn);
 
   const {
     control,
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm<LoginFormData>({
+  } = useForm<LoginSchema>({
+    resolver: zodResolver(loginSchema),
     defaultValues: { identifier: '', password: '' },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: LoginSchema) => {
     try {
       const res = await api.post<AuthResponse>(
         '/v1/auth/login/',
@@ -88,9 +88,6 @@ export default function SignInScreen() {
               placeholder="correo@ejemplo.com"
               keyboardType="email-address"
               required
-              rules={{
-                required: 'Este campo es obligatorio',
-              }}
             />
 
             {/* Password */}
@@ -101,7 +98,6 @@ export default function SignInScreen() {
               placeholder="Tu contraseña"
               required
               isPassword
-              rules={{ required: 'La contraseña es obligatoria' }}
             />
 
             {/* Login Button */}
