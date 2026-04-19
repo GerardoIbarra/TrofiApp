@@ -10,7 +10,7 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { X, Trophy, MapPin, Globe } from "lucide-react-native";
+import { X, Trophy, MapPin, Globe, Trash2 } from "lucide-react-native";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { leagueSchema, LeagueSchema } from "@/schemas/leagueSchema";
@@ -22,6 +22,7 @@ import { useAuthStore } from "@/store/authStore";
 import api from "@/services/api";
 import { League } from "@/types/league";
 import { useEffect } from "react";
+import { router } from "expo-router";
 
 interface CreateLeagueModalProps {
   visible: boolean;
@@ -111,6 +112,34 @@ export function CreateLeagueModal({
     }
   };
 
+  const handleDelete = () => {
+    if (!initialData?.id) return;
+
+    Alert.alert(
+      "Eliminar Liga",
+      "¿Estás seguro de que deseas eliminar esta liga? Esta acción no se puede deshacer y se perderán todos los datos asociados.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar definitivamente",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await api.delete(`/v1/leagues/${initialData.id}/`);
+              onClose();
+              // Redirect to main leagues explorer
+              router.push("/(tabs)/leagues" as any);
+              onSuccess();
+            } catch (error: any) {
+              console.error("Error deleting league:", error);
+              Alert.alert("Error", "No se pudo eliminar la liga.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <Modal
       visible={visible}
@@ -196,6 +225,17 @@ export function CreateLeagueModal({
                 style={{ marginTop: 10 }}
                 fullWidth
               />
+
+              {isEditing && (
+                <TouchableOpacity 
+                  style={styles.deleteButton} 
+                  onPress={handleDelete}
+                  disabled={isSubmitting}
+                >
+                  <Trash2 size={18} color="#FF4B4B" />
+                  <Text style={styles.deleteButtonText}>Eliminar Liga</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -286,5 +326,21 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 12,
       color: theme.textSecondary,
       lineHeight: 18,
+    },
+    deleteButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 25,
+      padding: 15,
+      gap: 10,
+      borderTopWidth: 1,
+      borderTopColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    },
+    deleteButtonText: {
+      color: '#FF4B4B',
+      fontSize: 14,
+      fontWeight: '700',
+      letterSpacing: 0.5,
     },
   });
