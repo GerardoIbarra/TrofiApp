@@ -9,6 +9,7 @@ import { Tournament } from '@/types/tournament';
 import { TournamentHeader } from '@/components/leagues/TournamentHeader';
 import { CreateTournamentModal } from '@/components/leagues/CreateTournamentModal';
 import { TournamentStandingsWidget } from '@/components/tournaments/TournamentStandingsWidget';
+import { TournamentMatchesWidget } from '@/components/tournaments/TournamentMatchesWidget';
 import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode } from 'lucide-react-native';
 
 export default function TournamentDetailScreen() {
@@ -79,10 +80,7 @@ export default function TournamentDetailScreen() {
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
       
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <View style={styles.contentWrapper}>
         <View style={styles.webContainer}>
           <TournamentHeader 
             tournament={tournament} 
@@ -103,21 +101,20 @@ export default function TournamentDetailScreen() {
             ))}
           </View>
 
-          <View style={styles.contentPadding}>
+          <View style={styles.tabContentArea}>
             {activeTab === 'POSICIONES' && (
               <TournamentStandingsWidget tournamentId={tournament.id} />
             )}
 
             {activeTab === 'PARTIDOS' && (
-              <View style={styles.comingSoonBox}>
-                <Text style={styles.comingSoonText}>
-                  El calendario y los enfrentamientos se están generando.
-                </Text>
-              </View>
+              <TournamentMatchesWidget tournamentId={tournament.id} isAdmin={true} />
             )}
 
             {activeTab === 'INFO' && (
-              <>
+              <ScrollView 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.infoScrollContent}
+              >
                 <View style={styles.infoSection}>
                   <View style={styles.sectionHeader}>
                     <Info size={16} color={theme.primary} />
@@ -145,11 +142,11 @@ export default function TournamentDetailScreen() {
                   <Info size={18} color={theme.primary} />
                   <Text style={styles.rulesText}>Ver Reglamento del Torneo</Text>
                 </TouchableOpacity>
-              </>
+              </ScrollView>
             )}
           </View>
         </View>
-      </ScrollView>
+      </View>
 
       <CreateTournamentModal
         visible={isEditModalVisible}
@@ -166,14 +163,26 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
+  contentWrapper: {
+    flex: 1,
+  },
   webContainer: {
     maxWidth: 800,
     width: '100%',
     alignSelf: 'center',
+    flex: 1,
   },
   contentPadding: {
     paddingHorizontal: 20,
     marginTop: 20,
+  },
+  tabContentArea: {
+    flex: 1,
+    paddingHorizontal: 20,
+    marginTop: 20,
+  },
+  infoScrollContent: {
+    paddingBottom: 40,
   },
   infoSection: {
     marginBottom: 25,
