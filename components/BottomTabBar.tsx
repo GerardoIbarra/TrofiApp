@@ -53,19 +53,26 @@ export function BottomTabBar({ state, navigation }: any) {
       {/* Empty space filler for center tab */}
       <View style={{ width: 60 }} />
       
-      <TabItem 
-        icon={<Users size={22} color={currentRouteName === 'teams' ? theme.primary : theme.textSecondary} />} 
-        label="Teams" 
-        active={currentRouteName === 'teams'}
+      <TabItem
+        icon={
+          <Users
+            size={22}
+            color={
+              currentRouteName === "teams" ? theme.primary : theme.textSecondary
+            }
+          />
+        }
+        label="Teams"
+        active={currentRouteName === "teams"}
         theme={theme}
-        onPress={() => handlePress('teams', 4)}
+        onPress={() => handlePress("teams", 3)}
       />
       <TabItem 
         icon={<User size={22} color={currentRouteName === 'profile' ? theme.primary : theme.textSecondary} />} 
         label="Profile" 
         active={currentRouteName === 'profile'}
         theme={theme}
-        onPress={() => handlePress('profile', 5)}
+        onPress={() => handlePress('profile', 4)}
       />
 
       <View style={styles.centerTabContainer}>
@@ -79,7 +86,7 @@ export function BottomTabBar({ state, navigation }: any) {
           ]}
           onPress={() => {
             if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            handlePress('explore', 3);
+            handlePress('explore', 2);
           }}
           activeOpacity={0.8}
         >
