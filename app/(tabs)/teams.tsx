@@ -6,42 +6,46 @@ import { LayoutHeader } from '@/components/LayoutHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Calendar, AlertCircle, Plus } from 'lucide-react-native';
+import api from '@/services/api';
+import { Team, TeamsResponse } from '@/types/team';
+import { useState, useEffect } from 'react';
+import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-const MOCK_TEAMS = [
-  { 
-    id: '1', 
-    name: 'Real Goliza', 
-    league: 'Liga Zapopan Norte', 
-    standing: '2nd PLACE', 
-    nextMatch: 'Sat, 18:00 • Field 4',
-    logo: 'https://i.pravatar.cc/150?u=RealGoliza',
-    status: 'scheduled'
-  },
-  { 
-    id: '2', 
-    name: 'Atle. San Pancho', 
-    league: 'Torneo de Apertura', 
-    standing: '5th PLACE', 
-    nextMatch: 'Sun, 10:30 • Stadium Main',
-    logo: 'https://i.pravatar.cc/150?u=AtlticoSanPancho',
-    status: 'scheduled'
-  },
-  { 
-    id: '3', 
-    name: 'Trofi Legends', 
-    league: 'Veterans League A', 
-    standing: '1st PLACE', 
-    nextMatch: 'Rescheduled • TBD',
-    logo: 'https://i.pravatar.cc/150?u=Legends',
-    status: 'alert'
-  },
+// Fallback logos for teams
+const FALLBACK_LOGOS = [
+  'https://images.pexels.com/photos/209637/pexels-photo-209637.jpeg?auto=compress&cs=tinysrgb&w=150',
+  'https://images.pexels.com/photos/159515/football-gridiron-soccer-pitch-159515.jpeg?auto=compress&cs=tinysrgb&w=150',
+  'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=150',
 ];
+
+const getTeamLogo = (logo: string | null, index: number) => 
+  logo || FALLBACK_LOGOS[index % FALLBACK_LOGOS.length];
 
 export default function TeamsScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTeams();
+  }, []);
+
+  const fetchTeams = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get<TeamsResponse>('/v1/teams/');
+      setTeams(response.results);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <View style={GlobalStyles.container}>
@@ -57,58 +61,64 @@ export default function TeamsScreen() {
               <View>
                 <Text style={styles.mainTitle}>MY TEAMS</Text>
                 <View style={styles.activeBadge}>
-                  <Text style={styles.activeBadgeText}>3 TEAMS ACTIVE</Text>
+                  <Text style={styles.activeBadgeText}>
+                    {isLoading ? "..." : `${teams.length} TEAMS ACTIVE`}
+                  </Text>
                 </View>
               </View>
             </View>
 
             {/* Teams List */}
-            {MOCK_TEAMS.map((team) => (
-              <View key={team.id} style={styles.teamCard}>
-                <View style={styles.teamHeader}>
-                  <Image source={{ uri: team.logo }} style={styles.teamLogo} />
-                  <View style={styles.teamInfo}>
-                    <Text style={styles.teamNameText}>{team.name}</Text>
-                    <Text style={styles.leagueNameText}>{team.league}</Text>
-                  </View>
-                </View>
-
-                {/* Vertical Divider Indicator for #1 team */}
-                {team.standing === '1st PLACE' && <View style={styles.exclusiveHighlight} />}
-
-                <View style={styles.statsRow}>
-                  <View style={styles.statColumn}>
-                    <Text style={styles.statLabel}>STANDING</Text>
-                    <Text style={styles.standingValue}>{team.standing}</Text>
-                  </View>
-                  <View style={styles.statColumn}>
-                    <Text style={styles.statLabel}>NEXT MATCH</Text>
-                    <View style={styles.nextMatchContainer}>
-                      {team.status === 'alert' ? (
-                        <AlertCircle size={14} color="#FF6B6B" style={{ marginRight: 6 }} />
-                      ) : (
-                        <Calendar size={14} color={theme.primary} style={{ marginRight: 6 }} />
-                      )}
-                      <Text style={[
-                        styles.nextMatchValue,
-                        team.status === 'alert' && { color: '#FF6B6B' }
-                      ]}>
-                        {team.nextMatch}
+            {isLoading ? (
+              <View style={{ marginTop: 50, alignItems: 'center' }}>
+                <ActivityIndicator color={theme.primary} size="large" />
+              </View>
+            ) : teams.length > 0 ? (
+              teams.map((team, index) => (
+                <View key={team.id} style={styles.teamCard}>
+                  <View style={styles.teamHeader}>
+                    <Image 
+                      source={{ uri: getTeamLogo(team.logo, index) }} 
+                      style={styles.teamLogo} 
+                    />
+                    <View style={styles.teamInfo}>
+                      <Text style={styles.teamNameText}>{team.name}</Text>
+                      <Text style={styles.leagueNameText}>
+                        {team.league_name || "Free Agent Team"}
                       </Text>
                     </View>
                   </View>
-                </View>
 
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity style={styles.viewButton}>
-                    <Text style={styles.viewButtonText}>View Team Page</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.manageButton}>
-                    <Text style={styles.manageButtonText}>Manage Roster</Text>
-                  </TouchableOpacity>
+                  <View style={styles.statsRow}>
+                    <View style={styles.statColumn}>
+                      <Text style={styles.statLabel}>LOCATION</Text>
+                      <Text style={styles.standingValue}>{team.city}</Text>
+                    </View>
+                    <View style={styles.statColumn}>
+                      <Text style={styles.statLabel}>OWNER</Text>
+                      <View style={styles.nextMatchContainer}>
+                        <Text style={styles.nextMatchValue}>{team.owner_name}</Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.buttonRow}>
+                    <TouchableOpacity style={styles.viewButton}>
+                      <Text style={styles.viewButtonText}>View Team Page</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.manageButton}>
+                      <Text style={styles.manageButtonText}>Manage Roster</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <AlertCircle size={48} color={theme.textSecondary} style={{ opacity: 0.3, marginBottom: 15 }} />
+                <Text style={styles.emptyTitle}>No teams yet</Text>
+                <Text style={styles.emptySubtitle}>Join a league or create your own team to start competing.</Text>
               </View>
-            ))}
+            )}
           </View>
         </ScrollView>
 
@@ -283,5 +293,22 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: isDark ? 0.3 : 0.6,
     shadowRadius: 12,
+  },
+  emptyContainer: {
+    marginTop: 60,
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: theme.text,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    textAlign: "center",
+    lineHeight: 20,
   },
 });
