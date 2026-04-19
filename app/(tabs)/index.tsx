@@ -7,7 +7,8 @@ import api from "@/services/api";
 import { PaginatedPlayers, Player } from "@/types/player";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { ArrowUpRight, Bell, TrendingUp } from "lucide-react-native";
+import { ArrowUpRight, Bell, TrendingUp, Plus } from "lucide-react-native";
+import { CreatePlayerModal } from "@/components/players/CreatePlayerModal";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -35,6 +36,7 @@ export default function HomeScreen() {
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [isPlayersLoading, setIsPlayersLoading] = useState(true);
+  const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
 
   useEffect(() => {
     loadPlayers();
@@ -175,9 +177,17 @@ export default function HomeScreen() {
               <Text style={[GlobalStyles.sectionTitle, { color: theme.text }]}>
                 JUGADORES
               </Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAllText}>VER TODOS</Text>
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                <TouchableOpacity 
+                    onPress={() => setIsPlayerModalVisible(true)}
+                    style={styles.actionIcon}
+                >
+                    <Plus size={20} color={theme.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity>
+                    <Text style={styles.seeAllText}>VER TODOS</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <FlatList
@@ -209,6 +219,13 @@ export default function HomeScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* MODAL DE CREACIÓN DE JUGADOR */}
+      <CreatePlayerModal
+        visible={isPlayerModalVisible}
+        onClose={() => setIsPlayerModalVisible(false)}
+        onSuccess={loadPlayers}
+      />
     </View>
   );
 }
@@ -459,6 +476,19 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 12,
       fontWeight: "700",
       color: theme.primary,
+    },
+    headerActions: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 15,
+    },
+    actionIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+        justifyContent: "center",
+        alignItems: "center",
     },
     playersScrollContent: {
       paddingRight: 20,
