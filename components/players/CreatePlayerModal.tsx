@@ -207,6 +207,7 @@ export function CreatePlayerModal({
                       <FormInput
                         control={control}
                         name={stat.name as any}
+                        label=""
                         placeholder="50"
                         keyboardType="numeric"
                         containerStyle={{ marginBottom: 0 }}
