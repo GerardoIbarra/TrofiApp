@@ -1,36 +1,50 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView, Text } from 'react-native';
-import { GlobalStyles } from '@/constants/GlobalStyles';
-import { BackgroundGradient } from '@/components/BackgroundGradient';
-import { useTheme } from '@/context/ThemeContext';
+import { BackgroundGradient } from "@/components/BackgroundGradient";
+import { GlobalStyles } from "@/constants/GlobalStyles";
+import { useTheme } from "@/context/ThemeContext";
+import React, { useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
-import { LeagueHeader } from '@/components/leagues/LeagueHeader';
-import { LeagueTabsList } from '@/components/leagues/LeagueTabsList';
-import { LeagueMembersWidget } from '@/components/leagues/LeagueMembersWidget';
-import { BulletinWidget } from '@/components/leagues/BulletinWidget';
-import { CreateLeagueModal } from '@/components/leagues/CreateLeagueModal';
-import { useLocalSearchParams } from 'expo-router';
-import { useEffect } from 'react';
-import api from '@/services/api';
-import { League } from '@/types/league';
-import { ActivityIndicator } from 'react-native';
-import { 
-  CreditCard, 
-  QrCode, 
-  MessageSquare, 
-  ShieldCheck, 
-  ShoppingBag, 
+import { CreateLeagueModal } from "@/components/leagues/CreateLeagueModal";
+import { CreateTournamentModal } from "@/components/leagues/CreateTournamentModal";
+import { LeagueHeader } from "@/components/leagues/LeagueHeader";
+import { LeagueMembersWidget } from "@/components/leagues/LeagueMembersWidget";
+import { LeagueTabsList } from "@/components/leagues/LeagueTabsList";
+import { LeagueTournamentsWidget } from "@/components/leagues/LeagueTournamentsWidget";
+import api from "@/services/api";
+import { useAuthStore } from "@/store/authStore";
+import { League } from "@/types/league";
+import { useLocalSearchParams } from "expo-router";
+import {
   Award,
-  Zap
-} from 'lucide-react-native';
+  CreditCard,
+  MessageSquare,
+  Plus,
+  QrCode,
+  ShieldCheck,
+  ShoppingBag,
+  Zap,
+} from "lucide-react-native";
+import { useEffect } from "react";
+import { ActivityIndicator } from "react-native";
 
 export default function LeagueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState('POSICIONES');
+  const [activeTab, setActiveTab] = useState("POSICIONES");
   const [league, setLeague] = useState<League | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  
+  const [isTournamentModalVisible, setIsTournamentModalVisible] =
+    useState(false);
+
+  const user = useAuthStore((state) => state.user);
+  const isOwner = user?.id === league?.created_by;
+
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
 
@@ -46,29 +60,31 @@ export default function LeagueDetailScreen() {
       const response = await api.get<League>(`/v1/leagues/${id}/`);
       setLeague(response);
     } catch (error) {
-      console.error('Error fetching league details:', error);
+      console.error("Error fetching league details:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const FEATURE_CONFIG = [
-    { key: 'payments_enabled', label: 'Pagos', icon: CreditCard },
-    { key: 'qr_checkin_enabled', label: 'QR', icon: QrCode },
-    { key: 'comms_enabled', label: 'Chat', icon: MessageSquare },
-    { key: 'discipline_enabled', label: 'Disciplina', icon: ShieldCheck },
-    { key: 'player_market_enabled', label: 'Mercado', icon: ShoppingBag },
-    { key: 'sponsors_enabled', label: 'Sponsors', icon: Award },
-    { key: 'white_label_enabled', label: 'Premium', icon: Zap },
+    { key: "payments_enabled", label: "Pagos", icon: CreditCard },
+    { key: "qr_checkin_enabled", label: "QR", icon: QrCode },
+    { key: "comms_enabled", label: "Chat", icon: MessageSquare },
+    { key: "discipline_enabled", label: "Disciplina", icon: ShieldCheck },
+    { key: "player_market_enabled", label: "Mercado", icon: ShoppingBag },
+    { key: "sponsors_enabled", label: "Sponsors", icon: Award },
+    { key: "white_label_enabled", label: "Premium", icon: Zap },
   ];
 
-  const activeFeatures = FEATURE_CONFIG.filter(f => league?.features?.[f.key as keyof typeof league.features]);
+  const activeFeatures = FEATURE_CONFIG.filter(
+    (f) => league?.features?.[f.key as keyof typeof league.features],
+  );
 
   // Generate Dynamic Tabs
-  const dynamicTabs = ['POSICIONES', 'PARTIDOS'];
-  if (league?.features?.comms_enabled) dynamicTabs.push('NOTICIAS');
-  dynamicTabs.push('JUGADORES');
-  if (league?.features?.payments_enabled) dynamicTabs.push('PAGOS');
+  const dynamicTabs = ["POSICIONES", "PARTIDOS"];
+  if (league?.features?.comms_enabled) dynamicTabs.push("NOTICIAS");
+  dynamicTabs.push("JUGADORES");
+  if (league?.features?.payments_enabled) dynamicTabs.push("PAGOS");
 
   // Fallback to first tab if activeTab is not in dynamicTabs
   useEffect(() => {
@@ -79,7 +95,12 @@ export default function LeagueDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={[GlobalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View
+        style={[
+          GlobalStyles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
         <BackgroundGradient />
         <ActivityIndicator size="large" color={theme.primary} />
       </View>
@@ -90,22 +111,26 @@ export default function LeagueDetailScreen() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'JUGADORES':
+      case "JUGADORES":
         return <LeagueMembersWidget leagueId={league.id} />;
-      case 'PAGOS':
+      case "PAGOS":
         return (
           <View style={styles.comingSoonBox}>
-             <Text style={styles.comingSoonText}>
-               El módulo de pagos seguros está siendo configurado por el administrador de la liga.
-             </Text>
+            <Text style={styles.comingSoonText}>
+              El módulo de pagos seguros está siendo configurado por el
+              administrador de la liga.
+            </Text>
           </View>
         );
+      case "POSICIONES":
+        return <LeagueTournamentsWidget leagueId={league.id} />;
       default:
         return (
           <View style={styles.comingSoonBox}>
-             <Text style={styles.comingSoonText}>
-               Las estadísticas y resultados de {activeTab.toLowerCase()} estarán disponibles una vez que inicie el torneo.
-             </Text>
+            <Text style={styles.comingSoonText}>
+              Las estadísticas y resultados de {activeTab.toLowerCase()} estarán
+              disponibles una vez que inicie el torneo.
+            </Text>
           </View>
         );
     }
@@ -115,22 +140,22 @@ export default function LeagueDetailScreen() {
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
+      <ScrollView
+        showsVerticalScrollIndicator={false}
         bounces={false}
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.webContainer}>
           {/* ENCABEZADO MONUMENTAL */}
-          <LeagueHeader 
-            league={league} 
-            onEditPress={() => setIsEditModalVisible(true)} 
+          <LeagueHeader
+            league={league}
+            onEditPress={() => setIsEditModalVisible(true)}
           />
 
           {/* FEATURES CHIPS */}
           {activeFeatures.length > 0 && (
-            <ScrollView 
-              horizontal 
+            <ScrollView
+              horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.featuresScroll}
             >
@@ -148,16 +173,27 @@ export default function LeagueDetailScreen() {
 
           {/* CONTENIDO DESLIZABLE */}
           <View style={styles.contentWrapper}>
-            <LeagueTabsList 
+            <LeagueTabsList
               tabs={dynamicTabs}
-              activeTab={activeTab} 
-              onTabChange={setActiveTab} 
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
             />
-            
+
             {renderTabContent()}
           </View>
         </View>
       </ScrollView>
+
+      {/* FAB PARA NUEVO TORNEO (Solo dueño en pestaña posiciones) */}
+      {isOwner && activeTab === "POSICIONES" && (
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setIsTournamentModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <Plus size={28} color="#001A2C" />
+        </TouchableOpacity>
+      )}
 
       {/* MODAL DE EDICIÓN (REUTILIZADO) */}
       <CreateLeagueModal
@@ -166,58 +202,83 @@ export default function LeagueDetailScreen() {
         onSuccess={fetchLeagueDetails}
         initialData={league}
       />
+
+      {/* MODAL DE NUEVO TORNEO */}
+      <CreateTournamentModal
+        visible={isTournamentModalVisible}
+        onClose={() => setIsTournamentModalVisible(false)}
+        onSuccess={fetchLeagueDetails}
+        leagueId={league.id}
+      />
     </View>
   );
 }
 
-const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
-  scrollContent: {
-    paddingBottom: 100, // Extra space for nav
-  },
-  webContainer: {
-    maxWidth: 800,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  contentWrapper: {
-    paddingHorizontal: 20,
-    marginTop: 10,
-  },
-  featuresScroll: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 20,
-    gap: 12,
-  },
-  featureChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-  },
-  featureText: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: theme.text,
-    letterSpacing: 0.5,
-  },
-  comingSoonBox: {
-    padding: 30,
-    backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-    marginTop: 20,
-  },
-  comingSoonText: {
-    textAlign: 'center',
-    color: theme.textSecondary,
-    fontSize: 14,
-    lineHeight: 22,
-  },
-});
+const createStyles = (theme: any, isDark: boolean) =>
+  StyleSheet.create({
+    scrollContent: {
+      paddingBottom: 100, // Extra space for nav
+    },
+    webContainer: {
+      maxWidth: 800,
+      width: "100%",
+      alignSelf: "center",
+    },
+    contentWrapper: {
+      paddingHorizontal: 20,
+      marginTop: 10,
+    },
+    featuresScroll: {
+      paddingHorizontal: 20,
+      paddingTop: 10,
+      paddingBottom: 20,
+      gap: 12,
+    },
+    featureChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 20,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+    },
+    featureText: {
+      fontSize: 10,
+      fontWeight: "800",
+      color: theme.text,
+      letterSpacing: 0.5,
+    },
+    comingSoonBox: {
+      padding: 30,
+      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      marginTop: 20,
+    },
+    comingSoonText: {
+      textAlign: "center",
+      color: theme.textSecondary,
+      fontSize: 14,
+      lineHeight: 22,
+    },
+    fab: {
+      position: "absolute",
+      bottom: 30,
+      right: 20,
+      width: 60,
+      height: 60,
+      borderRadius: 16,
+      backgroundColor: theme.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 10,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: isDark ? 0.3 : 0.6,
+      shadowRadius: 12,
+    },
+  });
