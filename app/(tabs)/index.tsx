@@ -91,11 +91,11 @@ export default function HomeScreen() {
                   <View style={styles.leagueTag}>
                     <Text style={styles.leagueTagText}>LIGA ZAPOPAN NORTE</Text>
                   </View>
-                  <Text style={styles.matchTime}>TODAY, OCT 26</Text>
+                  <Text style={styles.matchTime}>HOY, 26 OCT</Text>
                 </View>
 
-                <Text style={styles.matchdayText}>Matchday 12</Text>
-                <Text style={styles.matchPhase}>Final Stage</Text>
+                <Text style={styles.matchdayText}>Jornada 12</Text>
+                <Text style={styles.matchPhase}>Etapa Final</Text>
 
                 <View style={styles.matchTeams}>
                   <View style={styles.team}>
@@ -112,11 +112,11 @@ export default function HomeScreen() {
                 <View style={styles.matchFooter}>
                   <View style={styles.locationContainer}>
                     <Text style={styles.locationText}>
-                      📍 Today, Oct 26 • Field 4
+                      📍 Hoy, 26 Oct • Campo 4
                     </Text>
                   </View>
                   <TouchableOpacity style={styles.viewDetailsButton}>
-                    <Text style={styles.viewDetailsText}>VIEW FIXTURE</Text>
+                    <Text style={styles.viewDetailsText}>VER PARTIDO</Text>
                   </TouchableOpacity>
                 </View>
               </LinearGradient>
@@ -125,7 +125,7 @@ export default function HomeScreen() {
             {/* Stats Summary Area */}
             <View style={styles.statsContainer}>
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>WIN RATE</Text>
+                <Text style={styles.statLabel}>VICTORIAS</Text>
                 <View style={styles.statValueContainer}>
                   <Text style={styles.statValue}>94%</Text>
                   <TrendingUp size={16} color={theme.primary} />
@@ -136,7 +136,7 @@ export default function HomeScreen() {
               </View>
 
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>GOALS / GAME</Text>
+                <Text style={styles.statLabel}>GOLES / PARTIDO</Text>
                 <View style={styles.statValueContainer}>
                   <Text style={styles.statValue}>2.2</Text>
                   <TrendingUp size={16} color={theme.primary} />
@@ -159,9 +159,9 @@ export default function HomeScreen() {
                   <Text style={styles.bannerOverline}>
                     LIGA DE INVIERNO 2024
                   </Text>
-                  <Text style={styles.bannerTitle}>The Road to Glory</Text>
+                  <Text style={styles.bannerTitle}>El Camino a la Gloria</Text>
                   <Text style={styles.bannerSubtitle}>
-                    Registrations are now open.
+                    Inscripciones abiertas ahora.
                   </Text>
                 </View>
                 <View style={styles.bannerArrow}>
@@ -173,10 +173,10 @@ export default function HomeScreen() {
             {/* Players List Section */}
             <View style={styles.sectionHeader}>
               <Text style={[GlobalStyles.sectionTitle, { color: theme.text }]}>
-                PLAYERS
+                JUGADORES
               </Text>
               <TouchableOpacity>
-                <Text style={styles.seeAllText}>VIEW ALL</Text>
+                <Text style={styles.seeAllText}>VER TODOS</Text>
               </TouchableOpacity>
             </View>
 

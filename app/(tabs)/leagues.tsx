@@ -60,7 +60,7 @@ export default function LeaguesExplorerScreen() {
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
       <SafeAreaView style={GlobalStyles.safeArea} edges={['top']}>
-        <LayoutHeader title="EXPLORE" />
+        <LayoutHeader />
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.webContainer}>
@@ -70,7 +70,7 @@ export default function LeaguesExplorerScreen() {
               <View style={styles.searchBar}>
                 <Search size={20} color={theme.textSecondary} />
                 <TextInput 
-                  placeholder="FIND YOUR NEXT ARENA..." 
+                  placeholder="ENCUENTRA TU PRÓXIMA ARENA..." 
                   placeholderTextColor={theme.textSecondary}
                   style={styles.searchInput}
                 />
@@ -80,11 +80,11 @@ export default function LeaguesExplorerScreen() {
             {/* Featured Leagues */}
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionOverline}>ELITE COMPETITIONS</Text>
-                <Text style={styles.sectionTitle}>FEATURED LEAGUES</Text>
+                <Text style={styles.sectionOverline}>COMPETICIONES ELITE</Text>
+                <Text style={styles.sectionTitle}>LIGAS DESTACADAS</Text>
               </View>
               <TouchableOpacity>
-                <Text style={styles.viewAllText}>VIEW ALL</Text>
+                <Text style={styles.viewAllText}>VER TODO</Text>
               </TouchableOpacity>
             </View>
 
@@ -114,7 +114,7 @@ export default function LeaguesExplorerScreen() {
                     />
                     <View style={styles.featuredContent}>
                       <View style={styles.statusBadge}>
-                        <Text style={styles.statusText}>REGISTRATION OPEN</Text>
+                        <Text style={styles.statusText}>INSCRIPCIONES ABIERTAS</Text>
                       </View>
                       <Text style={styles.featuredName}>{league.name}</Text>
                       <View style={styles.featuredCategoryRow}>
@@ -126,14 +126,14 @@ export default function LeaguesExplorerScreen() {
                 ))
               ) : (
                 <View style={{ width: width - 40, height: 220, justifyContent: 'center', alignItems: 'center' }}>
-                  <Text style={{ color: theme.textSecondary }}>No leagues found</Text>
+                  <Text style={{ color: theme.textSecondary }}>No se encontraron ligas</Text>
                 </View>
               )}
             </ScrollView>
 
             {/* Game Formats */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>GAME FORMATS</Text>
+              <Text style={styles.sectionTitle}>FORMATOS DE JUEGO</Text>
             </View>
 
             <View style={styles.formatsGrid}>
@@ -151,10 +151,10 @@ export default function LeaguesExplorerScreen() {
             {/* Nearby Competitions */}
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionTitle}>NEARBY COMPETITIONS</Text>
+                <Text style={styles.sectionTitle}>COMPETICIONES CERCANAS</Text>
               </View>
               <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterText}>All Distances</Text>
+                <Text style={styles.filterText}>Todas las distancias</Text>
               </TouchableOpacity>
             </View>
 
@@ -177,7 +177,7 @@ export default function LeaguesExplorerScreen() {
                   </View>
                 </View>
                 <View style={styles.nearbyStatusColumn}>
-                  <Text style={[styles.nearbyStatus, { color: theme.primary }]}>ACTIVE</Text>
+                  <Text style={[styles.nearbyStatus, { color: theme.primary }]}>ACTIVA</Text>
                   <ChevronRight size={18} color={theme.textSecondary} />
                 </View>
               </TouchableOpacity>

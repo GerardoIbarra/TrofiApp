@@ -27,7 +27,7 @@ export default function ExploreScreen() {
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
       <SafeAreaView style={GlobalStyles.safeArea} edges={['top']}>
-        <LayoutHeader title="SEARCH" />
+        <LayoutHeader />
         
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.webContainer}>
@@ -37,7 +37,7 @@ export default function ExploreScreen() {
               <View style={styles.searchBar}>
                 <SearchIcon size={20} color={theme.textSecondary} />
                 <TextInput 
-                  placeholder="Leagues, teams, or players..." 
+                  placeholder="Ligas, equipos o jugadores..." 
                   placeholderTextColor={theme.textSecondary}
                   style={styles.searchInput}
                 />
@@ -49,9 +49,9 @@ export default function ExploreScreen() {
 
             {/* Recent Searches */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionLabel}>RECENT SEARCHES</Text>
+              <Text style={styles.sectionLabel}>BÚSQUEDAS RECIENTES</Text>
               <TouchableOpacity>
-                <Text style={styles.clearAllText}>CLEAR ALL</Text>
+                <Text style={styles.clearAllText}>BORRAR TODO</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.recentView}>
@@ -66,7 +66,7 @@ export default function ExploreScreen() {
             </View>
 
             {/* Recommended for You */}
-            <Text style={styles.sectionTitle}>Recommended for You</Text>
+            <Text style={styles.sectionTitle}>Recomendado para ti</Text>
             
             <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9}>
               <Image 
@@ -79,10 +79,10 @@ export default function ExploreScreen() {
               />
               <View style={styles.cardContent}>
                 <View style={styles.trendingBadge}>
-                  <Text style={styles.trendingText}>TRENDING LEAGUE</Text>
+                  <Text style={styles.trendingText}>LIGA EN TENDENCIA</Text>
                 </View>
                 <Text style={styles.cardMainTitle}>METROPOLIS PREMIER</Text>
-                <Text style={styles.cardSubtitle}>Join the 12th annual championship kickoff.</Text>
+                <Text style={styles.cardSubtitle}>Únete al inicio del 12º campeonato anual.</Text>
               </View>
             </TouchableOpacity>
 
@@ -94,10 +94,10 @@ export default function ExploreScreen() {
                 </View>
               </View>
               <View style={styles.playerInfo}>
-                <Text style={styles.playerCardTitle}>Player of the Month</Text>
+                <Text style={styles.playerCardTitle}>Jugador del Mes</Text>
                 <Text style={styles.playerName}>Marcus "Viper" Chen</Text>
                 <TouchableOpacity style={styles.viewProfileRow}>
-                   <Text style={styles.viewProfileText}>VIEW PROFILE</Text>
+                   <Text style={styles.viewProfileText}>VER PERFIL</Text>
                    <ChevronRight size={14} color={theme.primary} />
                 </TouchableOpacity>
               </View>
@@ -108,9 +108,9 @@ export default function ExploreScreen() {
 
             {/* Popular Teams Grid */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Popular Teams</Text>
+              <Text style={styles.sectionTitle}>Equipos Populares</Text>
               <TouchableOpacity>
-                <Text style={styles.seeAllText}>SEE ALL</Text>
+                <Text style={styles.seeAllText}>VER TODO</Text>
               </TouchableOpacity>
             </View>
 
@@ -131,14 +131,14 @@ export default function ExploreScreen() {
             </View>
 
             {/* Explore Sports */}
-            <Text style={styles.sectionTitle}>Explore Sports</Text>
+            <Text style={styles.sectionTitle}>Explorar Deportes</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sportsScroll}>
               <SportCard 
-                title="Soccer" 
+                title="Fútbol" 
                 image="https://images.pexels.com/photos/46734/pexels-photo-46734.jpeg?auto=compress&cs=tinysrgb&w=800"
               />
               <SportCard 
-                title="Basketball" 
+                title="Básquetbol" 
                 image="https://images.pexels.com/photos/1752757/pexels-photo-1752757.jpeg?auto=compress&cs=tinysrgb&w=800"
               />
             </ScrollView>

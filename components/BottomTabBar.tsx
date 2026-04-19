@@ -37,14 +37,14 @@ export function BottomTabBar({ state, navigation }: any) {
     ]}>
       <TabItem 
         icon={<Home size={22} color={currentRouteName === 'index' ? theme.primary : theme.textSecondary} />} 
-        label="Home" 
+        label="Inicio" 
         active={currentRouteName === 'index'} 
         theme={theme}
         onPress={() => handlePress('index', 0)}
       />
       <TabItem 
         icon={<Trophy size={22} color={isLeaguesActive ? theme.primary : theme.textSecondary} />} 
-        label="Leagues" 
+        label="Ligas" 
         active={isLeaguesActive} 
         theme={theme}
         onPress={() => handlePress('leagues', 1)}
@@ -62,14 +62,14 @@ export function BottomTabBar({ state, navigation }: any) {
             }
           />
         }
-        label="Teams"
+        label="Equipos"
         active={currentRouteName === "teams"}
         theme={theme}
         onPress={() => handlePress("teams", 3)}
       />
       <TabItem 
         icon={<User size={22} color={currentRouteName === 'profile' ? theme.primary : theme.textSecondary} />} 
-        label="Profile" 
+        label="Perfil" 
         active={currentRouteName === 'profile'}
         theme={theme}
         onPress={() => handlePress('profile', 4)}

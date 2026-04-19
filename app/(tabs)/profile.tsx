@@ -132,7 +132,7 @@ export default function ProfileScreen() {
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
       <SafeAreaView style={GlobalStyles.safeArea} edges={["top"]}>
-        <LayoutHeader title="PLAYER PROFILE" />
+        <LayoutHeader />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -178,17 +178,17 @@ export default function ProfileScreen() {
 
                     <View style={styles.infoRow}>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>POSITION</Text>
+                        <Text style={styles.infoLabel}>POSICIÓN</Text>
                         <Text style={styles.infoValue}>
                           {profile?.position || "--"}
                         </Text>
                       </View>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>JERSEY</Text>
+                        <Text style={styles.infoLabel}>DORSAL</Text>
                         <Text style={styles.infoValue}>--</Text>
                       </View>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>HEIGHT</Text>
+                        <Text style={styles.infoLabel}>ALTURA</Text>
                         <Text style={styles.infoValue}>--</Text>
                       </View>
                     </View>
@@ -200,19 +200,19 @@ export default function ProfileScreen() {
             {/* Core Stats */}
             <View style={styles.kpiRow}>
               <KPIBox
-                label="GOALS"
+                label="GOLES"
                 value={stats?.goals?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
               />
               <KPIBox
-                label="ASSISTS"
+                label="ASISTENCIAS"
                 value={stats?.assists?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
               />
               <KPIBox
-                label="MATCHES"
+                label="PARTIDOS"
                 value={stats?.matches_played?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
@@ -221,7 +221,7 @@ export default function ProfileScreen() {
 
             {/* Current Team Section */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionOverline}>CURRENT TEAM</Text>
+              <Text style={styles.sectionOverline}>EQUIPO ACTUAL</Text>
             </View>
             <View style={styles.teamCard}>
               <View style={styles.teamBrandBox}>
@@ -239,7 +239,7 @@ export default function ProfileScreen() {
               </View>
               {profile?.memberships?.[0] && (
                 <TouchableOpacity style={styles.viewTeamBtn}>
-                  <Text style={styles.viewTeamBtnText}>VIEW TEAM PAGE</Text>
+                  <Text style={styles.viewTeamBtnText}>VER EQUIPO</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -248,13 +248,13 @@ export default function ProfileScreen() {
             <View style={styles.trendSection}>
               <View style={styles.trendHeader}>
                 <View>
-                  <Text style={styles.trendTitle}>PERFORMANCE TREND</Text>
+                  <Text style={styles.trendTitle}>TENDENCIA</Text>
                   <Text style={styles.trendSubtitle}>
-                    Avg. Match Rating:{" "}
+                    Calificación Promedio:{" "}
                     <Text style={{ color: theme.primary }}>0.0</Text>
                   </Text>
                 </View>
-                <Text style={styles.lastGamesText}>NO MATCH DATA</Text>
+                <Text style={styles.lastGamesText}>SIN DATOS DE PARTIDOS</Text>
               </View>
 
               <View style={styles.chartContainer}>
@@ -277,7 +277,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* Recent Matches */}
-            <Text style={styles.mainSectionTitle}>RECENT MATCHES</Text>
+            <Text style={styles.mainSectionTitle}>PARTIDOS RECIENTES</Text>
             {MATCHES.length > 0 ? (
               MATCHES.map((match) => (
                 <TouchableOpacity key={match.id} style={styles.matchCard}>
@@ -453,11 +453,11 @@ function UltimateCard({
         <View style={styles.statsColumn}>
           <View style={styles.statLine}>
             <Text style={styles.statValue}>{card?.pace || "--"}</Text>
-            <Text style={styles.statKey}>PAC</Text>
+            <Text style={styles.statKey}>RIT</Text>
           </View>
           <View style={styles.statLine}>
             <Text style={styles.statValue}>{card?.shooting || "--"}</Text>
-            <Text style={styles.statKey}>SHO</Text>
+            <Text style={styles.statKey}>TIR</Text>
           </View>
           <View style={styles.statLine}>
             <Text style={styles.statValue}>{card?.passing || "--"}</Text>
@@ -468,7 +468,7 @@ function UltimateCard({
         <View style={styles.statsColumn}>
           <View style={styles.statLine}>
             <Text style={styles.statValue}>{card?.dribbling || "--"}</Text>
-            <Text style={styles.statKey}>DRI</Text>
+            <Text style={styles.statKey}>REG</Text>
           </View>
           <View style={styles.statLine}>
             <Text style={styles.statValue}>{card?.defense || "--"}</Text>
@@ -476,7 +476,7 @@ function UltimateCard({
           </View>
           <View style={styles.statLine}>
             <Text style={styles.statValue}>{card?.physical || "--"}</Text>
-            <Text style={styles.statKey}>PHY</Text>
+            <Text style={styles.statKey}>FIS</Text>
           </View>
         </View>
       </View>
