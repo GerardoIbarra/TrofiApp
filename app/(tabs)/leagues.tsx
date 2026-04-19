@@ -8,25 +8,22 @@ import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { LayoutHeader } from '@/components/LayoutHeader';
 import { useTheme } from '@/context/ThemeContext';
+import api from '@/services/api';
+import { League, LeaguesResponse } from '@/types/league';
+import { useState, useEffect } from 'react';
+import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-const FEATURED_LEAGUES = [
-  { 
-    id: '1', 
-    name: 'Zapopan Regional League', 
-    category: 'PRO DIVISION', 
-    image: 'https://images.pexels.com/photos/209637/pexels-photo-209637.jpeg?auto=compress&cs=tinysrgb&w=800',
-    status: 'REGISTRATION OPEN'
-  },
-  { 
-    id: '2', 
-    name: 'Elite Soccer Cup', 
-    category: 'VETERAN LEAGUE', 
-    image: 'https://images.pexels.com/photos/159515/football-gridiron-soccer-pitch-159515.jpeg?auto=compress&cs=tinysrgb&w=800',
-    status: 'ENROLLING'
-  },
+// Fallback images array for a premium look
+const FALLBACK_IMAGES = [
+  'https://images.pexels.com/photos/209637/pexels-photo-209637.jpeg?auto=compress&cs=tinysrgb&w=800',
+  'https://images.pexels.com/photos/159515/football-gridiron-soccer-pitch-159515.jpeg?auto=compress&cs=tinysrgb&w=800',
+  'https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=800',
+  'https://images.pexels.com/photos/114296/pexels-photo-114296.jpeg?auto=compress&cs=tinysrgb&w=800',
 ];
+
+const getLeagueImage = (index: number) => FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 
 const GAME_FORMATS = [
   { id: '1', name: 'FÚTBOL 7', icon: CircleDot },
@@ -39,11 +36,25 @@ export default function LeaguesExplorerScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
 
-  const NEARBY = [
-    { id: '1', name: 'NORTHSIDE AMATEUR CUP', distance: '1.2 KM AWAY', teams: '24 TEAMS', status: 'REGISTRATION OPEN', statusColor: theme.primary },
-    { id: '2', name: 'URBAN FUTBOL SERIES', distance: '3.5 KM AWAY', teams: '12 TEAMS', status: 'FINALS WEEK', statusColor: '#FFD700' },
-    { id: '3', name: 'THE SUNSET LEAGUE', distance: '5.0 KM AWAY', teams: '16 TEAMS', status: 'SEASON ENDED', statusColor: '#FF6B6B' },
-  ];
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeagues();
+  }, []);
+
+  const fetchLeagues = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get<LeaguesResponse>('/v1/leagues/');
+      setLeagues(response.results);
+    } catch (error) {
+      console.error('Error fetching leagues:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <View style={GlobalStyles.container}>
@@ -84,30 +95,40 @@ export default function LeaguesExplorerScreen() {
               snapToInterval={width * 0.85 + 20}
               decelerationRate="fast"
             >
-              {FEATURED_LEAGUES.map((league) => (
-                <TouchableOpacity 
-                  key={league.id} 
-                  style={styles.featuredCard}
-                  onPress={() => router.push('/league-detail')}
-                  activeOpacity={0.9}
-                >
-                  <Image source={{ uri: league.image }} style={styles.featuredImage} />
-                  <LinearGradient
-                    colors={['transparent', isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.9)']}
-                    style={styles.featuredGradient}
-                  />
-                  <View style={styles.featuredContent}>
-                    <View style={styles.statusBadge}>
-                      <Text style={styles.statusText}>{league.status}</Text>
+              {isLoading ? (
+                <View style={{ width: width - 40, height: 220, justifyContent: 'center', alignItems: 'center' }}>
+                  <ActivityIndicator color={theme.primary} size="large" />
+                </View>
+              ) : leagues.length > 0 ? (
+                leagues.map((league, index) => (
+                  <TouchableOpacity 
+                    key={league.id} 
+                    style={styles.featuredCard}
+                    onPress={() => router.push({ pathname: '/league-detail', params: { id: league.id } })}
+                    activeOpacity={0.9}
+                  >
+                    <Image source={{ uri: getLeagueImage(index) }} style={styles.featuredImage} />
+                    <LinearGradient
+                      colors={['transparent', isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.9)']}
+                      style={styles.featuredGradient}
+                    />
+                    <View style={styles.featuredContent}>
+                      <View style={styles.statusBadge}>
+                        <Text style={styles.statusText}>REGISTRATION OPEN</Text>
+                      </View>
+                      <Text style={styles.featuredName}>{league.name}</Text>
+                      <View style={styles.featuredCategoryRow}>
+                        <Trophy size={14} color={theme.primary} />
+                        <Text style={styles.featuredCategory}>{league.city}, {league.country}</Text>
+                      </View>
                     </View>
-                    <Text style={styles.featuredName}>{league.name}</Text>
-                    <View style={styles.featuredCategoryRow}>
-                      <Trophy size={14} color={theme.primary} />
-                      <Text style={styles.featuredCategory}>{league.category}</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={{ width: width - 40, height: 220, justifyContent: 'center', alignItems: 'center' }}>
+                  <Text style={{ color: theme.textSecondary }}>No leagues found</Text>
+                </View>
+              )}
             </ScrollView>
 
             {/* Game Formats */}
@@ -137,11 +158,11 @@ export default function LeaguesExplorerScreen() {
               </TouchableOpacity>
             </View>
 
-            {NEARBY.map((item) => (
+            {leagues.map((item) => (
               <TouchableOpacity 
                 key={item.id} 
                 style={styles.nearbyCard}
-                onPress={() => router.push('/league-detail')}
+                onPress={() => router.push({ pathname: '/league-detail', params: { id: item.id } })}
               >
                 <View style={styles.nearbyLogo}>
                    <View style={styles.logoCircle}>
@@ -151,12 +172,12 @@ export default function LeaguesExplorerScreen() {
                 <View style={styles.nearbyInfo}>
                   <Text style={styles.nearbyName}>{item.name}</Text>
                   <View style={styles.nearbyMetaRow}>
-                    <Text style={styles.nearbyMeta}>📍 {item.distance}</Text>
-                    <Text style={styles.nearbyMeta}> • 👥 {item.teams}</Text>
+                    <Text style={styles.nearbyMeta}>📍 {item.city}</Text>
+                    <Text style={styles.nearbyMeta}> • 🗓️ {new Date(item.created_at).toLocaleDateString()}</Text>
                   </View>
                 </View>
                 <View style={styles.nearbyStatusColumn}>
-                  <Text style={[styles.nearbyStatus, { color: item.statusColor }]}>{item.status}</Text>
+                  <Text style={[styles.nearbyStatus, { color: theme.primary }]}>ACTIVE</Text>
                   <ChevronRight size={18} color={theme.textSecondary} />
                 </View>
               </TouchableOpacity>
