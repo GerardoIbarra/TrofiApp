@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Settings, LogOut, ChevronRight, Award, Shield, User, Star, Activity, Moon } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuth } from '@/context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +31,7 @@ const MATCHES = [
 
 export default function ProfileScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
+  const { signOut } = useAuth();
   const styles = createStyles(theme, isDark);
 
   return (
@@ -171,7 +173,7 @@ export default function ProfileScreen() {
             <MenuItem icon={<Shield size={20} color={theme.primary} />} label="Privacidad y Seguridad" theme={theme} isDark={isDark} />
             <MenuItem icon={<Settings size={20} color={theme.primary} />} label="Ajustes de la App" theme={theme} isDark={isDark} />
 
-            <TouchableOpacity style={styles.logoutButton}>
+            <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
               <LogOut size={20} color={theme.error} />
               <Text style={styles.logoutText}>CERRAR SESIÓN</Text>
             </TouchableOpacity>

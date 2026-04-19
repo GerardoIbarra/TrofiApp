@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   View,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -20,47 +19,37 @@ import { FormInput } from '@/components/FormInput';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
-import { RegisterResponse } from '@/types/auth';
+import { useAuth } from '@/context/AuthContext';
+import { AuthResponse } from '@/types/auth';
 
-interface RegisterFormData {
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
+interface LoginFormData {
+  identifier: string;
   password: string;
-  password2: string;
 }
 
-export default function RegisterScreen() {
+export default function SignInScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { signIn } = useAuth();
 
   const {
     control,
     handleSubmit,
-    watch,
     formState: { isSubmitting },
-  } = useForm<RegisterFormData>({
-    defaultValues: {
-      username: '',
-      email: '',
-      first_name: '',
-      last_name: '',
-      password: '',
-      password2: '',
-    },
+  } = useForm<LoginFormData>({
+    defaultValues: { identifier: '', password: '' },
   });
 
-  const password = watch('password');
-
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = async (data: LoginFormData) => {
     try {
-      await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
-      Alert.alert('¡Registro exitoso!', 'Tu cuenta ha sido creada. Inicia sesión para continuar.', [
-        { text: 'Iniciar sesión', onPress: () => router.push('/(auth)/signin' as any) },
-      ]);
+      const res = await api.post<AuthResponse>(
+        '/v1/auth/login/',
+        data as unknown as Record<string, unknown>
+      );
+      
+      await signIn(res);
     } catch (err: any) {
-      Alert.alert('Error de registro', err.message ?? 'Ocurrió un error. Intenta de nuevo.');
+      Alert.alert('Error al iniciar sesión', err.message ?? 'Credenciales incorrectas.');
     }
   };
 
@@ -82,102 +71,47 @@ export default function RegisterScreen() {
             <View style={{ width: 28 }} />
           </View>
 
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+          <View style={styles.content}>
             {/* Title */}
             <View style={styles.textSection}>
-              <Text style={[GlobalStyles.title, { color: theme.text }]}>Crea tu cuenta</Text>
+              <Text style={[GlobalStyles.title, { color: theme.text }]}>Bienvenido</Text>
               <Text style={[GlobalStyles.subtitle, { color: theme.textSecondary }]}>
-                Completa tus datos para unirte a la liga.
+                Ingresa tus credenciales para continuar al campo.
               </Text>
             </View>
 
-            {/* Form Fields */}
+            {/* Email/Identifier */}
             <FormInput
               control={control}
-              name="username"
-              label="NOMBRE DE USUARIO"
-              placeholder="jugador99"
-              required
-              rules={{ required: 'El nombre de usuario es obligatorio' }}
-            />
-
-            <FormInput
-              control={control}
-              name="email"
+              name="identifier"
               label="CORREO ELECTRÓNICO"
               placeholder="correo@ejemplo.com"
               keyboardType="email-address"
               required
               rules={{
-                required: 'El correo es obligatorio',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Indica un correo electrónico válido',
-                },
+                required: 'Este campo es obligatorio',
               }}
             />
 
-            <View style={styles.row}>
-              <FormInput
-                control={control}
-                name="first_name"
-                label="NOMBRE"
-                placeholder="Carlos"
-                required
-                rules={{ required: '*' }}
-                containerStyle={styles.halfField}
-                autoCapitalize="words"
-              />
-              <FormInput
-                control={control}
-                name="last_name"
-                label="APELLIDO"
-                placeholder="García"
-                required
-                rules={{ required: '*' }}
-                containerStyle={styles.halfField}
-                autoCapitalize="words"
-              />
-            </View>
-
+            {/* Password */}
             <FormInput
               control={control}
               name="password"
               label="CONTRASEÑA"
-              placeholder="Mínimo 8 caracteres"
+              placeholder="Tu contraseña"
               required
               isPassword
-              rules={{
-                required: 'La contraseña es obligatoria',
-                minLength: { value: 8, message: 'La contraseña debe tener al menos 8 caracteres' },
-              }}
+              rules={{ required: 'La contraseña es obligatoria' }}
             />
 
-            <FormInput
-              control={control}
-              name="password2"
-              label="CONFIRMAR CONTRASEÑA"
-              placeholder="Repite tu contraseña"
-              required
-              isPassword
-              rules={{
-                required: 'Confirma tu contraseña',
-                validate: (value: string) => value === password || 'Las contraseñas no coinciden',
-              }}
-            />
-
-            {/* Register Button */}
+            {/* Login Button */}
             {isSubmitting ? (
               <View style={styles.loadingWrapper}>
                 <ActivityIndicator color={theme.primary} size="large" />
               </View>
             ) : (
               <PrimaryButton
-                title="Crear cuenta"
+                title="Iniciar sesión"
                 onPress={handleSubmit(onSubmit)}
                 fullWidth
                 style={{ marginTop: 10 }}
@@ -187,23 +121,23 @@ export default function RegisterScreen() {
             {/* Divider */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>¿Ya tienes cuenta?</Text>
+              <Text style={styles.dividerText}>¿No tienes cuenta?</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Go to Login */}
+            {/* Go to Register */}
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => router.push('/(auth)/signin' as any)}
+              onPress={() => router.push('/(auth)/login' as any)}
             >
-              <Text style={styles.secondaryButtonText}>Iniciar sesión</Text>
+              <Text style={styles.secondaryButtonText}>Crear cuenta</Text>
             </TouchableOpacity>
 
             <View style={styles.infoContainer}>
               <Info size={16} color={theme.textSecondary} />
               <Text style={styles.infoText}>TROFI ELITE SPORTS MANAGEMENT - 2024</Text>
             </View>
-          </ScrollView>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
@@ -234,20 +168,12 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.primary,
       letterSpacing: 2,
     },
-    scrollContent: {
-      paddingHorizontal: 30,
-      paddingTop: 20,
-      paddingBottom: 40,
-    },
-    textSection: { marginBottom: 32 },
-    row: {
-      flexDirection: 'row',
-      gap: 12,
-      marginBottom: 0,
-    },
-    halfField: {
+    content: {
       flex: 1,
+      paddingHorizontal: 30,
+      paddingTop: 40,
     },
+    textSection: { marginBottom: 40 },
     loadingWrapper: {
       height: 56,
       justifyContent: 'center',
@@ -288,7 +214,8 @@ const createStyles = (theme: any, isDark: boolean) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: 32,
+      marginTop: 'auto',
+      marginBottom: 20,
       gap: 8,
     },
     infoText: {
