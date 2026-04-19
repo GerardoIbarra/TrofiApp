@@ -1,25 +1,31 @@
 import { BackgroundGradient } from "@/components/BackgroundGradient";
 import { LayoutHeader } from "@/components/LayoutHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
+import { CreatePlayerModal } from "@/components/players/CreatePlayerModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
+import { Match, PaginatedMatches } from "@/types/match";
 import { PaginatedPlayers, Player } from "@/types/player";
-import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { ArrowUpRight, Bell, TrendingUp, Plus } from "lucide-react-native";
-import { CreatePlayerModal } from "@/components/players/CreatePlayerModal";
+import { useRouter } from "expo-router";
+import {
+  ArrowUpRight,
+  Bell,
+  Calendar,
+  Plus,
+  TrendingUp,
+} from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
   FlatList,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import {
   SafeAreaView,
@@ -37,9 +43,11 @@ export default function HomeScreen() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isPlayersLoading, setIsPlayersLoading] = useState(true);
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
+  const [nextMatch, setNextMatch] = useState<Match | null>(null);
 
   useEffect(() => {
     loadPlayers();
+    loadNextMatch();
   }, []);
 
   const loadPlayers = async () => {
@@ -50,6 +58,19 @@ export default function HomeScreen() {
       console.error("Error loading players:", err);
     } finally {
       setIsPlayersLoading(false);
+    }
+  };
+
+  const loadNextMatch = async () => {
+    try {
+      const res = await api.get<PaginatedMatches>(
+        "/v1/matches/?status=scheduled&ordering=start_datetime&limit=1",
+      );
+      if (res.results.length > 0) {
+        setNextMatch(res.results[0]);
+      }
+    } catch (err) {
+      console.error("Error loading next match:", err);
     }
   };
 
@@ -89,38 +110,97 @@ export default function HomeScreen() {
               >
                 <View style={styles.userHighlight} />
 
-                <View style={styles.cardHeader}>
-                  <View style={styles.leagueTag}>
-                    <Text style={styles.leagueTagText}>LIGA ZAPOPAN NORTE</Text>
-                  </View>
-                  <Text style={styles.matchTime}>HOY, 26 OCT</Text>
-                </View>
+                {nextMatch ? (
+                  <>
+                    <View style={styles.cardHeader}>
+                      <View style={styles.leagueTag}>
+                        <Text style={styles.leagueTagText}>
+                          {nextMatch.tournament_name.toUpperCase()}
+                        </Text>
+                      </View>
+                      <Text style={styles.matchTime}>
+                        {new Date(nextMatch.start_datetime)
+                          .toLocaleDateString("es-ES", {
+                            day: "numeric",
+                            month: "short",
+                          })
+                          .toUpperCase()}{" "}
+                        •{" "}
+                        {new Date(nextMatch.start_datetime).toLocaleTimeString(
+                          "es-ES",
+                          { hour: "2-digit", minute: "2-digit" },
+                        )}
+                      </Text>
+                    </View>
 
-                <Text style={styles.matchdayText}>Jornada 12</Text>
-                <Text style={styles.matchPhase}>Etapa Final</Text>
+                    <Text style={styles.matchdayText}>
+                      {nextMatch.status === "ongoing"
+                        ? "En Vivo"
+                        : "Próximo Partido"}
+                    </Text>
+                    <Text style={styles.matchPhase}>Temporada Regular</Text>
 
-                <View style={styles.matchTeams}>
-                  <View style={styles.team}>
-                    <View style={styles.teamBadgePlaceholder} />
-                    <Text style={styles.teamName}>Real Goliza</Text>
-                  </View>
-                  <Text style={styles.vsText}>VS</Text>
-                  <View style={styles.team}>
-                    <View style={styles.teamBadgePlaceholder} />
-                    <Text style={styles.teamName}>Atlc. San Pancho</Text>
-                  </View>
-                </View>
+                    <View style={styles.matchTeams}>
+                      <View style={styles.team}>
+                        <View
+                          style={[
+                            styles.teamBadgePlaceholder,
+                            { backgroundColor: theme.primary + "10" },
+                          ]}
+                        />
+                        <Text style={styles.teamName}>
+                          {nextMatch.home_team_name}
+                        </Text>
+                      </View>
+                      <Text style={styles.vsText}>VS</Text>
+                      <View style={styles.team}>
+                        <View
+                          style={[
+                            styles.teamBadgePlaceholder,
+                            { backgroundColor: theme.primary + "10" },
+                          ]}
+                        />
+                        <Text style={styles.teamName}>
+                          {nextMatch.away_team_name}
+                        </Text>
+                      </View>
+                    </View>
 
-                <View style={styles.matchFooter}>
-                  <View style={styles.locationContainer}>
-                    <Text style={styles.locationText}>
-                      📍 Hoy, 26 Oct • Campo 4
+                    <View style={styles.matchFooter}>
+                      <View style={styles.locationContainer}>
+                        <Text style={styles.locationText}>
+                          📍 {nextMatch.venue_name || "Sede por definir"}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.viewDetailsButton}
+                        onPress={() =>
+                          router.push({
+                            pathname: "/tournament-detail",
+                            params: { id: nextMatch.tournament },
+                          })
+                        }
+                      >
+                        <Text style={styles.viewDetailsText}>VER DETALLES</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                ) : (
+                  <View style={styles.emptyFeaturedCard}>
+                    <Calendar
+                      size={32}
+                      color={theme.textSecondary}
+                      opacity={0.3}
+                    />
+                    <Text style={styles.emptyFeaturedTitle}>
+                      NO HAY PARTIDOS PRÓXIMOS
+                    </Text>
+                    <Text style={styles.emptyFeaturedSubtitle}>
+                      Los encuentros aparecerán aquí cuando la liga anuncie la
+                      nueva jornada.
                     </Text>
                   </View>
-                  <TouchableOpacity style={styles.viewDetailsButton}>
-                    <Text style={styles.viewDetailsText}>VER PARTIDO</Text>
-                  </TouchableOpacity>
-                </View>
+                )}
               </LinearGradient>
             </View>
 
@@ -178,44 +258,50 @@ export default function HomeScreen() {
                 JUGADORES
               </Text>
               <View style={styles.headerActions}>
-                <TouchableOpacity 
-                    onPress={() => setIsPlayerModalVisible(true)}
-                    style={styles.actionIcon}
+                <TouchableOpacity
+                  onPress={() => setIsPlayerModalVisible(true)}
+                  style={styles.actionIcon}
                 >
-                    <Plus size={20} color={theme.primary} />
+                  <Plus size={20} color={theme.primary} />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                {players.length > 0 && (
+                  <TouchableOpacity>
                     <Text style={styles.seeAllText}>VER TODOS</Text>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 
-            <FlatList
-              data={players}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.playersScrollContent}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => router.push({ pathname: '/profile', params: { id: item.id } })}>
-                  <PlayerAvatar player={item} theme={theme} isDark={isDark} />
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={
-                !isPlayersLoading ? (
-                  <Text
-                    style={[styles.emptyText, { color: theme.textSecondary }]}
+            {isPlayersLoading ? (
+              <ActivityIndicator
+                color={theme.primary}
+                style={{ marginLeft: 20, marginTop: 20 }}
+              />
+            ) : players.length === 0 ? (
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                No se encontraron jugadores
+              </Text>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.playersScrollContent}
+              >
+                {players.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/profile",
+                        params: { id: item.id },
+                      })
+                    }
                   >
-                    No se encontraron jugadores
-                  </Text>
-                ) : (
-                  <ActivityIndicator
-                    color={theme.primary}
-                    style={{ marginLeft: 20 }}
-                  />
-                )
-              }
-            />
+                    <PlayerAvatar player={item} theme={theme} isDark={isDark} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -229,7 +315,6 @@ export default function HomeScreen() {
     </View>
   );
 }
-
 
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
@@ -478,17 +563,17 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.primary,
     },
     headerActions: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 15,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 15,
     },
     actionIcon: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
-        justifyContent: "center",
-        alignItems: "center",
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      justifyContent: "center",
+      alignItems: "center",
     },
     playersScrollContent: {
       paddingRight: 20,
@@ -516,4 +601,26 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 11,
       fontWeight: "500",
     },
+    emptyFeaturedCard: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 30,
+      gap: 12,
+    },
+    emptyFeaturedTitle: {
+      fontSize: 14,
+      fontWeight: "900",
+      color: theme.text,
+      letterSpacing: 1,
+    },
+    emptyFeaturedSubtitle: {
+      fontSize: 11,
+      color: theme.textSecondary,
+      textAlign: "center",
+      paddingHorizontal: 20,
+      lineHeight: 16,
+    },
+    playerSection: {
+        marginTop: 10,
+    }
   });
