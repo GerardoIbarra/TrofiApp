@@ -8,16 +8,29 @@ import api from '@/services/api';
 import { Tournament } from '@/types/tournament';
 import { TournamentHeader } from '@/components/leagues/TournamentHeader';
 import { CreateTournamentModal } from '@/components/leagues/CreateTournamentModal';
+import { TournamentStandingsWidget } from '@/components/tournaments/TournamentStandingsWidget';
 import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode } from 'lucide-react-native';
 
 export default function TournamentDetailScreen() {
   const { id } = useLocalSearchParams();
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+
+  const ServiceItem = ({ icon: Icon, label, active }: { icon: any, label: string, active: boolean }) => {
+    return (
+      <View style={[styles.featureBox, !active && styles.featureDisabled]}>
+        <Icon size={20} color={active ? theme.primary : theme.textSecondary} />
+        <Text style={[styles.featureLabel, !active && { color: theme.textSecondary }]}>
+          {label}
+        </Text>
+      </View>
+    );
+  };
   
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState('POSICIONES');
 
   useEffect(() => {
     if (id) {
@@ -71,62 +84,73 @@ export default function TournamentDetailScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.webContainer}>
-          {/* HEADER MONUMENTAL */}
           <TournamentHeader 
             tournament={tournament} 
             onEditPress={() => setIsEditModalVisible(true)}
           />
 
+          <View style={styles.tabContainer}>
+            {['POSICIONES', 'PARTIDOS', 'INFO'].map((tab) => (
+              <TouchableOpacity
+                key={tab}
+                onPress={() => setActiveTab(tab)}
+                style={[styles.tabButton, activeTab === tab && styles.tabActive]}
+              >
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                  {tab}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <View style={styles.contentPadding}>
-            {/* DESCRIPTION WIDGET */}
-            {tournament.description && (
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <Info size={16} color={theme.primary} />
-                  <Text style={styles.cardTitle}>SOBRE EL TORNEO</Text>
-                </View>
-                <Text style={styles.description}>{tournament.description}</Text>
+            {activeTab === 'POSICIONES' && (
+              <TournamentStandingsWidget tournamentId={tournament.id} />
+            )}
+
+            {activeTab === 'PARTIDOS' && (
+              <View style={styles.comingSoonBox}>
+                <Text style={styles.comingSoonText}>
+                  El calendario y los enfrentamientos se están generando.
+                </Text>
               </View>
             )}
 
-            {/* FEATURES GRID */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>SERVICIOS ACTIVOS</Text>
-            </View>
-            
-            <View style={styles.featuresGrid}>
-              {FEATURE_LIST.map((feature) => {
-                const isEnabled = tournament.features?.[feature.key as keyof typeof tournament.features];
-                const Icon = feature.icon;
-                return (
-                  <View 
-                    key={feature.key} 
-                    style={[styles.featureBox, !isEnabled && styles.featureDisabled]}
-                  >
-                    <Icon size={20} color={isEnabled ? theme.primary : theme.textSecondary} />
-                    <Text style={[styles.featureLabel, !isEnabled && { color: theme.textSecondary }]}>
-                      {feature.label}
-                    </Text>
+            {activeTab === 'INFO' && (
+              <>
+                <View style={styles.infoSection}>
+                  <View style={styles.sectionHeader}>
+                    <Info size={16} color={theme.primary} />
+                    <Text style={styles.sectionTitle}>SOBRE EL TORNEO</Text>
                   </View>
-                );
-              })}
-            </View>
+                  <Text style={styles.description}>
+                    {tournament.description || 'Esta competición aún no tiene una descripción detallada.'}
+                  </Text>
+                </View>
 
-            {/* STANDINGS PREVIEW / ACTION BUTTONS */}
-            <TouchableOpacity style={styles.mainActionButton}>
-              <Trophy size={20} color="#001A2C" />
-              <Text style={styles.mainActionText}>VER TABLA DE POSICIONES</Text>
-            </TouchableOpacity>
+                <View style={styles.infoSection}>
+                  <View style={styles.sectionHeader}>
+                    <ShieldCheck size={16} color={theme.primary} />
+                    <Text style={styles.sectionTitle}>SERVICIOS DE LA LIGA</Text>
+                  </View>
+                  <View style={styles.featuresGrid}>
+                    <ServiceItem icon={CreditCard} label="Pagos" active={!!tournament.features?.payments_enabled} />
+                    <ServiceItem icon={QrCode} label="Check-in QR" active={!!tournament.features?.qr_checkin_enabled} />
+                    <ServiceItem icon={MessageSquare} label="Comms" active={!!tournament.features?.comms_enabled} />
+                    <ServiceItem icon={ShieldCheck} label="Disciplina" active={!!tournament.features?.discipline_enabled} />
+                  </View>
+                </View>
 
-            <TouchableOpacity style={[styles.mainActionButton, { backgroundColor: 'transparent', borderWidth: 1, borderColor: theme.primary, marginTop: 12 }]}>
-              <Calendar size={20} color={theme.primary} />
-              <Text style={[styles.mainActionText, { color: theme.primary }]}>VER CALENDARIO DE PARTIDOS</Text>
-            </TouchableOpacity>
+                <TouchableOpacity style={styles.rulesButton} activeOpacity={0.7}>
+                  <Info size={18} color={theme.primary} />
+                  <Text style={styles.rulesText}>Ver Reglamento del Torneo</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </ScrollView>
 
-      {/* MODAL DE GESTIÓN */}
       <CreateTournamentModal
         visible={isEditModalVisible}
         onClose={() => setIsEditModalVisible(false)}
@@ -149,36 +173,16 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   },
   contentPadding: {
     paddingHorizontal: 20,
-    marginTop: -20,
+    marginTop: 20,
   },
-  card: {
-    backgroundColor: theme.surface,
-    padding: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-    marginBottom: 20,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
-  },
-  cardTitle: {
-    fontSize: 10,
-    fontWeight: '900',
-    color: theme.primary,
-    letterSpacing: 1,
-  },
-  description: {
-    fontSize: 14,
-    color: theme.textSecondary,
-    lineHeight: 22,
+  infoSection: {
+    marginBottom: 25,
   },
   sectionHeader: {
-    marginVertical: 15,
-    paddingHorizontal: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 11,
@@ -186,11 +190,15 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     color: theme.textSecondary,
     letterSpacing: 1,
   },
+  description: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    lineHeight: 22,
+  },
   featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 30,
   },
   featureBox: {
     width: '48%',
@@ -212,19 +220,61 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontWeight: '800',
     color: theme.text,
   },
-  mainActionButton: {
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginTop: 20,
+    gap: 10,
+  },
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+  },
+  tabActive: {
+    backgroundColor: theme.primary + '20',
+    borderWidth: 1,
+    borderColor: theme.primary + '40',
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: theme.textSecondary,
+    letterSpacing: 0.5,
+  },
+  tabTextActive: {
+    color: theme.primary,
+  },
+  comingSoonBox: {
+    padding: 40,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+    borderRadius: 20,
+    alignItems: 'center',
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    borderStyle: 'dashed',
+  },
+  comingSoonText: {
+    color: theme.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  rulesButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.primary,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
     padding: 18,
     borderRadius: 16,
     gap: 12,
+    marginTop: 10,
   },
-  mainActionText: {
+  rulesText: {
+    color: theme.primary,
     fontSize: 14,
-    fontWeight: '900',
-    color: '#001A2C',
-    letterSpacing: 0.5,
+    fontWeight: '700',
   },
 });
