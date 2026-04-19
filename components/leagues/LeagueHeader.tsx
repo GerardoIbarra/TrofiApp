@@ -1,71 +1,85 @@
+import { LayoutHeader } from "@/components/LayoutHeader";
+import { League } from "@/types/league";
 import { useTheme } from "@/context/ThemeContext";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-export function LeagueHeader() {
+interface LeagueHeaderProps {
+  league: League;
+}
+
+export function LeagueHeader({ league }: LeagueHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
 
+  // Split name for visual impact if it has more than one word
+  const nameParts = league.name.split(" ");
+  const firstPart = nameParts[0];
+  const secondPart = nameParts.slice(1).join(" ");
+
   return (
     <View style={styles.container}>
-      {/* Imagen del Estadio Pexels (Directo) con expo-image */}
+      {/* Dynamic Background or Fallback */}
       <Image
-        source="https://images.pexels.com/photos/47730/the-ball-stadion-football-the-pitch-47730.jpeg?auto=compress&cs=tinysrgb&w=1600"
+        source={
+          league.logo ||
+          "https://images.pexels.com/photos/47730/the-ball-stadion-football-the-pitch-47730.jpeg?auto=compress&cs=tinysrgb&w=1600"
+        }
         style={StyleSheet.absoluteFillObject}
         contentFit="cover"
         transition={600}
         cachePolicy="disk"
       />
 
-      {/* Capa de Gradiente para fusionar con el fondo */}
+      {/* Gradient Overlay */}
       <LinearGradient
         colors={[
-          isDark ? "rgba(10, 25, 47, 0.2)" : "rgba(255, 255, 255, 0.2)",
-          isDark ? "rgba(10, 25, 47, 0.6)" : "rgba(255, 255, 255, 0.6)",
+          isDark ? "rgba(10, 25, 47, 0.4)" : "rgba(255, 255, 255, 0.2)",
+          isDark ? "rgba(10, 25, 47, 0.7)" : "rgba(255, 255, 255, 0.6)",
           theme.background,
         ]}
         style={styles.gradientOverlay}
       >
-        {/* Navegación Superior */}
-        <View style={[styles.topNav, { marginTop: insets.top }]}>
-          <Text style={styles.logoText}>TROFI</Text>
-          <TouchableOpacity>
-            <Image
-              source="https://i.pravatar.cc/150?u=luis"
-              style={styles.avatar}
-            />
-          </TouchableOpacity>
+        {/* Navigation - Unificada con el estándar de la app */}
+        <View style={styles.headerWrapper}>
+          <LayoutHeader />
         </View>
 
-        {/* Tag de Temporada */}
+        {/* Region / Status Tag */}
         <View style={styles.seasonTagContainer}>
           <View style={styles.liveTag}>
-            <Text style={styles.liveText}>LIVE SEASON</Text>
+            <Text style={styles.liveText}>LIGA ACTIVA</Text>
           </View>
-          <Text style={styles.leagueRegion}>ZAPOPAN REGIONAL LEAGUE</Text>
-        </View>
-
-        {/* Título Monumental */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleGiant}>ZAPOPAN</Text>
-          <Text style={[styles.titleGiant, { color: theme.primary }]}>
-            NORTE
+          <Text style={styles.leagueRegion}>
+            {league.city.toUpperCase()}, {league.country.toUpperCase()}
           </Text>
         </View>
 
-        {/* Puntuación General / Stats */}
+        {/* Monumental Title */}
+        <View style={styles.titleContainer}>
+          <Text style={styles.titleGiant}>{firstPart.toUpperCase()}</Text>
+          {secondPart ? (
+            <Text style={[styles.titleGiant, { color: theme.primary }]}>
+              {secondPart.toUpperCase()}
+            </Text>
+          ) : null}
+        </View>
+
+        {/* Stats / KPI Row */}
         <View style={styles.statsRow}>
           <View style={styles.statLine}>
-            <Text style={styles.statLabel}>TOTAL TEAMS</Text>
-            <Text style={styles.statKpi}>16</Text>
+            <Text style={styles.statLabel}>TORNEOS TOTALES</Text>
+            <Text style={styles.statKpi}>{league.tournament_count || "0"}</Text>
           </View>
           <View style={styles.statLine}>
-            <Text style={styles.statLabel}>ROUNDS LEFT</Text>
-            <Text style={styles.statKpi}>04</Text>
+            <Text style={styles.statLabel}>MIEMBROS</Text>
+            <Text style={styles.statKpi}>
+              {league.memberships?.length || "0"}
+            </Text>
           </View>
         </View>
       </LinearGradient>
@@ -86,28 +100,11 @@ const createStyles = (theme: any, isDark: boolean) =>
       justifyContent: "flex-end",
       paddingBottom: 45, // Ajustado para que no choque con los widgets
     },
-    topNav: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+    headerWrapper: {
       position: "absolute",
-      top: 15,
-      left: 20,
-      right: 20,
-    },
-    logoText: {
-      fontSize: 22,
-      fontWeight: "900",
-      color: isDark ? "#F8FAFC" : theme.text,
-      letterSpacing: 2,
-      fontStyle: "italic",
-    },
-    avatar: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      borderWidth: 1.5,
-      borderColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
+      top: 0,
+      left: 0,
+      right: 0,
     },
     seasonTagContainer: {
       flexDirection: "row",

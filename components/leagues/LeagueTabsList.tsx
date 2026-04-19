@@ -3,13 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { useTheme } from '@/context/ThemeContext';
 
 interface LeagueTabsListProps {
+  tabs: string[];
   activeTab: string;
   onTabChange: (tab: string) => void;
 }
 
-const TABS = ['STANDINGS', 'MATCHES', 'PLAYERS', 'NEWS'];
-
-export function LeagueTabsList({ activeTab, onTabChange }: LeagueTabsListProps) {
+export function LeagueTabsList({ tabs, activeTab, onTabChange }: LeagueTabsListProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
 
@@ -20,7 +19,7 @@ export function LeagueTabsList({ activeTab, onTabChange }: LeagueTabsListProps) 
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const isActive = activeTab === tab;
           return (
             <TouchableOpacity 
