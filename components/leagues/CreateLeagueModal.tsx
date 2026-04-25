@@ -1,31 +1,40 @@
-import React from "react";
-import {
-  Modal,
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from "react-native";
-import { X, Trophy, MapPin, Globe, Trash2, Camera, Image as ImageIcon, Layout } from "lucide-react-native";
-import { useForm, useWatch } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as ImagePicker from "expo-image-picker";
-import { Image } from "expo-image";
-import { leagueSchema, LeagueSchema } from "@/features/leagues/schemas/leagueSchema";
-import { useTheme } from "@/context/ThemeContext";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { FormInput } from "@/components/ui/forms/FormInput";
 import { FormSelect } from "@/components/ui/forms/FormSelect";
-import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
+import { useTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import api from "@/services/api";
+import {
+  LeagueSchema,
+  leagueSchema,
+} from "@/features/leagues/schemas/leagueSchema";
 import { League } from "@/features/leagues/types/league";
-import { useEffect } from "react";
+import api from "@/services/api";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import {
+  Camera,
+  Globe,
+  Layout,
+  Trash2,
+  Trophy,
+  X
+} from "lucide-react-native";
+import React, { useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface CreateLeagueModalProps {
   visible: boolean;
@@ -79,7 +88,7 @@ export function CreateLeagueModal({
   const pickImage = async (field: "logo" | "background_image") => {
     const isLogo = field === "logo";
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: isLogo ? [1, 1] : [16, 9],
       quality: 0.8,
@@ -88,7 +97,7 @@ export function CreateLeagueModal({
     if (!result.canceled) {
       reset({
         ...control._formValues,
-        [field]: result.assets[0].uri
+        [field]: result.assets[0].uri,
       });
       // A safer way to update specific field in react-hook-form
       // but setValue is more standard:
@@ -129,8 +138,10 @@ export function CreateLeagueModal({
 
     try {
       const formData = new FormData();
-      const slug = isEditing ? initialData.slug : slugify(data.name) + "-" + Math.floor(Math.random() * 1000);
-      
+      const slug = isEditing
+        ? initialData.slug
+        : slugify(data.name) + "-" + Math.floor(Math.random() * 1000);
+
       formData.append("name", data.name);
       formData.append("slug", slug);
       formData.append("city", data.city);
@@ -140,16 +151,19 @@ export function CreateLeagueModal({
       // Handle Logo
       if (data.logo && data.logo.startsWith("file://")) {
         const uri = data.logo;
-        const name = uri.split('/').pop() || 'logo.jpg';
-        const type = `image/${name.split('.').pop() || 'jpg'}`;
+        const name = uri.split("/").pop() || "logo.jpg";
+        const type = `image/${name.split(".").pop() || "jpg"}`;
         formData.append("logo", { uri, name, type } as any);
       }
 
       // Handle Background
-      if (data.background_image && data.background_image.startsWith("file://")) {
+      if (
+        data.background_image &&
+        data.background_image.startsWith("file://")
+      ) {
         const uri = data.background_image;
-        const name = uri.split('/').pop() || 'background.jpg';
-        const type = `image/${name.split('.').pop() || 'jpg'}`;
+        const name = uri.split("/").pop() || "background.jpg";
+        const type = `image/${name.split(".").pop() || "jpg"}`;
         formData.append("background_image", { uri, name, type } as any);
       }
 
@@ -168,7 +182,7 @@ export function CreateLeagueModal({
       console.error("Error saving league:", error);
       Alert.alert(
         "Error",
-        error.message || "Ocurrió un problema al guardar la liga."
+        error.message || "Ocurrió un problema al guardar la liga.",
       );
     }
   };
@@ -197,7 +211,7 @@ export function CreateLeagueModal({
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -233,13 +247,16 @@ export function CreateLeagueModal({
               {/* BRANDING SECTION */}
               <View style={styles.brandingContainer}>
                 {/* Background Image Picker */}
-                <TouchableOpacity 
-                  style={styles.backgroundPicker} 
+                <TouchableOpacity
+                  style={styles.backgroundPicker}
                   onPress={() => pickImage("background_image")}
                   activeOpacity={0.8}
                 >
                   {backgroundImage ? (
-                    <Image source={{ uri: backgroundImage }} style={styles.backgroundImage} />
+                    <Image
+                      source={{ uri: backgroundImage }}
+                      style={styles.backgroundImage}
+                    />
                   ) : (
                     <View style={styles.backgroundPlaceholder}>
                       <Layout size={24} color={theme.textSecondary} />
@@ -250,8 +267,8 @@ export function CreateLeagueModal({
                 </TouchableOpacity>
 
                 {/* Logo Picker (Overlapping) */}
-                <TouchableOpacity 
-                  style={styles.logoPicker} 
+                <TouchableOpacity
+                  style={styles.logoPicker}
                   onPress={() => pickImage("logo")}
                   activeOpacity={0.9}
                 >
@@ -267,15 +284,14 @@ export function CreateLeagueModal({
                   </View>
                 </TouchableOpacity>
               </View>
-              
+
               <Text style={styles.sectionTitle}>
                 {isEditing ? "Actualizar Liga" : "Organiza tu Liga"}
               </Text>
               <Text style={styles.sectionSubtitle}>
-                {isEditing 
+                {isEditing
                   ? "Modifica los detalles visuales y básicos de tu competición."
-                  : "Crea una nueva competición y gestiona equipos, calendarios y estadísticas."
-                }
+                  : "Crea una nueva competición y gestiona equipos, calendarios y estadísticas."}
               </Text>
 
               <FormInput
@@ -287,15 +303,6 @@ export function CreateLeagueModal({
               />
 
               <View style={styles.row}>
-                <FormInput
-                  control={control}
-                  name="city"
-                  label="CIUDAD"
-                  placeholder="Ej. Guadalajara"
-                  required
-                  containerStyle={{ flex: 1 }}
-                />
-                <View style={{ width: 15 }} />
                 <FormSelect
                   control={control}
                   name="country"
@@ -304,17 +311,33 @@ export function CreateLeagueModal({
                   required
                   containerStyle={{ flex: 1 }}
                 />
+                <View style={{ width: 15 }} />
+                <FormInput
+                  control={control}
+                  name="city"
+                  label="CIUDAD"
+                  placeholder="Ej. Guadalajara"
+                  required
+                  containerStyle={{ flex: 1 }}
+                />
               </View>
 
               <View style={styles.infoBox}>
                 <Globe size={18} color={theme.primary} />
                 <Text style={styles.infoText}>
-                  La liga será visible para todos los jugadores en la sección de exploración.
+                  La liga será visible para todos los jugadores en la sección de
+                  exploración.
                 </Text>
               </View>
 
               <PrimaryButton
-                title={isSubmitting ? "Guardando..." : (isEditing ? "Guardar Cambios" : "Crear Liga Ahora")}
+                title={
+                  isSubmitting
+                    ? "Guardando..."
+                    : isEditing
+                      ? "Guardar Cambios"
+                      : "Crear Liga Ahora"
+                }
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 style={{ marginTop: 10 }}
@@ -322,8 +345,8 @@ export function CreateLeagueModal({
               />
 
               {isEditing && (
-                <TouchableOpacity 
-                  style={styles.deleteButton} 
+                <TouchableOpacity
+                  style={styles.deleteButton}
                   onPress={handleDelete}
                   disabled={isSubmitting}
                 >
@@ -373,77 +396,77 @@ const createStyles = (theme: any, isDark: boolean) =>
       paddingBottom: 40,
     },
     brandingContainer: {
-      width: '100%',
+      width: "100%",
       height: 180,
       marginBottom: 60,
-      position: 'relative',
+      position: "relative",
     },
     backgroundPicker: {
-      width: '100%',
+      width: "100%",
       height: 140,
       borderRadius: 20,
-      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-      overflow: 'hidden',
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+      overflow: "hidden",
       borderWidth: 1,
-      borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+      borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
     },
     backgroundImage: {
-      width: '100%',
-      height: '100%',
+      width: "100%",
+      height: "100%",
     },
     backgroundPlaceholder: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       gap: 8,
     },
     placeholderText: {
       fontSize: 10,
-      fontWeight: '900',
+      fontWeight: "900",
       color: theme.textSecondary,
       letterSpacing: 1,
     },
     overlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.1)',
+      backgroundColor: "rgba(0,0,0,0.1)",
     },
     logoPicker: {
-      position: 'absolute',
+      position: "absolute",
       bottom: 0,
-      alignSelf: 'center',
+      alignSelf: "center",
       width: 90,
       height: 90,
       borderRadius: 45,
       backgroundColor: theme.surface,
       borderWidth: 4,
       borderColor: theme.background,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       elevation: 8,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.2,
       shadowRadius: 8,
     },
     logoImage: {
-      width: '100%',
-      height: '100%',
+      width: "100%",
+      height: "100%",
       borderRadius: 41,
     },
     logoPlaceholder: {
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: "center",
+      justifyContent: "center",
     },
     cameraBadge: {
-      position: 'absolute',
+      position: "absolute",
       bottom: 0,
       right: 0,
       backgroundColor: theme.primary,
       width: 28,
       height: 28,
       borderRadius: 14,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       borderWidth: 2,
       borderColor: theme.background,
     },
@@ -455,25 +478,25 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "900",
       color: theme.text,
       marginBottom: 8,
-      textAlign: 'center',
+      textAlign: "center",
     },
     sectionSubtitle: {
       fontSize: 14,
       color: theme.textSecondary,
       marginBottom: 35,
-      textAlign: 'center',
+      textAlign: "center",
       paddingHorizontal: 10,
     },
     row: {
-      flexDirection: 'row',
-      width: '100%',
+      flexDirection: "row",
+      width: "100%",
     },
     infoBox: {
-      flexDirection: 'row',
+      flexDirection: "row",
       backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
       padding: 15,
       borderRadius: 12,
-      alignItems: 'center',
+      alignItems: "center",
       gap: 12,
       marginBottom: 30,
       borderWidth: 1,
@@ -486,19 +509,19 @@ const createStyles = (theme: any, isDark: boolean) =>
       lineHeight: 18,
     },
     deleteButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
       marginTop: 25,
       padding: 15,
       gap: 10,
       borderTopWidth: 1,
-      borderTopColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+      borderTopColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
     },
     deleteButtonText: {
-      color: '#FF4B4B',
+      color: "#FF4B4B",
       fontSize: 14,
-      fontWeight: '700',
+      fontWeight: "700",
       letterSpacing: 0.5,
     },
   });
