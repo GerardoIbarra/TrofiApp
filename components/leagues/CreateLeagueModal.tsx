@@ -13,14 +13,14 @@ import {
 import { X, Trophy, MapPin, Globe, Trash2 } from "lucide-react-native";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { leagueSchema, LeagueSchema } from "@/schemas/leagueSchema";
+import { leagueSchema, LeagueSchema } from "@/features/leagues/schemas/leagueSchema";
 import { useTheme } from "@/context/ThemeContext";
-import { BackgroundGradient } from "@/components/BackgroundGradient";
-import { FormInput } from "@/components/FormInput";
-import { PrimaryButton } from "@/components/PrimaryButton";
-import { useAuthStore } from "@/store/authStore";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { FormInput } from "@/components/ui/forms/FormInput";
+import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import api from "@/services/api";
-import { League } from "@/types/league";
+import { League } from "@/features/leagues/types/league";
 import { useEffect } from "react";
 import { router } from "expo-router";
 

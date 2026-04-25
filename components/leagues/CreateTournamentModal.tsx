@@ -1,9 +1,9 @@
-import { BackgroundGradient } from "@/components/BackgroundGradient";
-import { FormInput } from "@/components/FormInput";
-import { FormDatePicker } from "@/components/FormDatePicker";
-import { PrimaryButton } from "@/components/PrimaryButton";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { FormInput } from "@/components/ui/forms/FormInput";
+import { FormDatePicker } from "@/components/ui/forms/FormDatePicker";
+import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { useTheme } from "@/context/ThemeContext";
-import { TournamentSchema, tournamentSchema } from "@/schemas/tournamentSchema";
+import { TournamentSchema, tournamentSchema } from "@/features/tournaments/schemas/tournamentSchema";
 import api from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trophy, X, Calendar, Trash2, AlertTriangle } from "lucide-react-native";
@@ -21,7 +21,7 @@ import {
   View,
   ActivityIndicator
 } from "react-native";
-import { Tournament } from "@/types/tournament";
+import { Tournament } from "@/features/tournaments/types/tournament";
 import { router } from "expo-router";
 
 interface CreateTournamentModalProps {

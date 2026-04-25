@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { User, AuthResponse } from '@/types/auth';
-import { AuthStorage } from '@/services/authStorage';
+import { User, AuthResponse } from '@/features/auth/types/auth';
+import { AuthStorage } from '@/features/auth/services/authStorage';
 import { router } from 'expo-router';
 
 interface AuthState {

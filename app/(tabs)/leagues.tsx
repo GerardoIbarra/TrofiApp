@@ -1,10 +1,10 @@
-import { BackgroundGradient } from "@/components/BackgroundGradient";
-import { LayoutHeader } from "@/components/LayoutHeader";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { CreateLeagueModal } from "@/components/leagues/CreateLeagueModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
-import { League, LeaguesResponse } from "@/types/league";
+import { League, LeaguesResponse } from "@/features/leagues/types/league";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {

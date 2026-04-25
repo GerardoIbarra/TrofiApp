@@ -1,5 +1,5 @@
-import { LayoutHeader } from "@/components/LayoutHeader";
-import { Team } from "@/types/team";
+import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
+import { Team } from "@/features/teams/types/team";
 import { useTheme } from "@/context/ThemeContext";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,7 +7,7 @@ import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/features/auth/store/authStore";
 
 interface TeamHeaderProps {
   team: Team;

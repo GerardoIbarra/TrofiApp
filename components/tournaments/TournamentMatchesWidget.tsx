@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
-import { Match, PaginatedMatches } from '@/types/match';
+import { Match, PaginatedMatches } from '@/features/tournaments/types/match';
 import { Calendar, MapPin, Trophy, ChevronRight } from 'lucide-react-native';
 import { MatchResultModal } from './MatchResultModal';
 

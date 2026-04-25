@@ -1,12 +1,12 @@
-import { BackgroundGradient } from "@/components/BackgroundGradient";
-import { LayoutHeader } from "@/components/LayoutHeader";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { CreatePlayerModal } from "@/components/players/CreatePlayerModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
-import { Match, PaginatedMatches } from "@/types/match";
-import { PaginatedPlayers, Player } from "@/types/player";
+import { Match, PaginatedMatches } from "@/features/tournaments/types/match";
+import { PaginatedPlayers, Player } from "@/features/players/types/player";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {

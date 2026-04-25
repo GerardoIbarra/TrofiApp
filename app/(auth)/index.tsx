@@ -14,10 +14,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as SplashScreen from 'expo-splash-screen';
 
-import { BackgroundGradient } from '@/components/BackgroundGradient';
-import { PrimaryButton } from '@/components/PrimaryButton';
-import { SecondaryButton } from '@/components/SecondaryButton';
-import { TrofyLogo } from '@/components/TrofyLogo';
+import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
+import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
+import { SecondaryButton } from '@/components/ui/buttons/SecondaryButton';
+import { TrofyLogo } from '@/components/ui/branding/TrofyLogo';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 

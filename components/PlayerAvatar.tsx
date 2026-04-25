@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import { Player } from '@/types/player';
+import { Player } from '@/features/players/types/player';
 
 interface PlayerAvatarProps {
   player: Player;

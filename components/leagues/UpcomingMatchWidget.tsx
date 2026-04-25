@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { PrimaryButton } from '@/components/PrimaryButton';
+import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
 
 export function UpcomingMatchWidget() {
   const { theme, isDark } = useTheme();

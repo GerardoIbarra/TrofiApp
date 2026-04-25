@@ -1,4 +1,4 @@
-import { AuthStorage } from './authStorage';
+import { AuthStorage } from '@/features/auth/services/authStorage';
 
 /**
  * Centralized API client for TrofiApp with Silent Refresh logic.

@@ -1,7 +1,7 @@
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { GlobalStyles } from '@/constants/GlobalStyles';
-import { BackgroundGradient } from '@/components/BackgroundGradient';
+import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { TrofiTheme } from '@/constants/theme';
 
 export default function NotFoundScreen() {

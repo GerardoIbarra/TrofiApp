@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import { User } from '@/types/auth';
+import { User } from '@/features/auth/types/auth';
 
 const TOKEN_KEY = 'trofi_access_token';
 const REFRESH_TOKEN_KEY = 'trofi_refresh_token';

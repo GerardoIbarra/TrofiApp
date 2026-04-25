@@ -1,9 +1,9 @@
-import { BackgroundGradient } from "@/components/BackgroundGradient";
-import { FormInput } from "@/components/FormInput";
-import { FormDatePicker } from "@/components/FormDatePicker";
-import { PrimaryButton } from "@/components/PrimaryButton";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { FormInput } from "@/components/ui/forms/FormInput";
+import { FormDatePicker } from "@/components/ui/forms/FormDatePicker";
+import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { useTheme } from "@/context/ThemeContext";
-import { PlayerSchema, playerSchema } from "@/schemas/playerSchema";
+import { PlayerSchema, playerSchema } from "@/features/players/schemas/playerSchema";
 import api from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserPlus, X, Shield, Zap, Target, Activity, Swords, Dumbbell } from "lucide-react-native";

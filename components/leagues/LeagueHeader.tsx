@@ -1,5 +1,5 @@
-import { LayoutHeader } from "@/components/LayoutHeader";
-import { League } from "@/types/league";
+import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
+import { League } from "@/features/leagues/types/league";
 import { useTheme } from "@/context/ThemeContext";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
@@ -7,7 +7,7 @@ import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "@/features/auth/store/authStore";
 
 interface LeagueHeaderProps {
   league: League;

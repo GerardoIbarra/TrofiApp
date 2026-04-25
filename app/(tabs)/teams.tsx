@@ -1,10 +1,10 @@
-import { BackgroundGradient } from "@/components/BackgroundGradient";
-import { LayoutHeader } from "@/components/LayoutHeader";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { CreateTeamModal } from "@/components/teams/CreateTeamModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
-import { Team, TeamsResponse } from "@/types/team";
+import { Team, TeamsResponse } from "@/features/teams/types/team";
 import { AlertCircle, Plus } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {

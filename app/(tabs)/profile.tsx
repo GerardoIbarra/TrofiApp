@@ -1,11 +1,11 @@
-import { BackgroundGradient } from "@/components/BackgroundGradient";
-import { LayoutHeader } from "@/components/LayoutHeader";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
-import { useAuthStore } from "@/store/authStore";
-import { User as UserType } from "@/types/auth";
-import { CardHistory, PlayerStats } from "@/types/player";
+import { useAuthStore } from "@/features/auth/store/authStore";
+import { User as UserType } from "@/features/auth/types/auth";
+import { CardHistory, PlayerStats } from "@/features/players/types/player";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import {

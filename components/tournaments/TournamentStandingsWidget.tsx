@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
-import { StandingItem } from '@/types/standings';
+import { StandingItem } from '@/features/leagues/types/standings';
 import { Trophy, AlertCircle } from 'lucide-react-native';
 
 interface TournamentStandingsWidgetProps {

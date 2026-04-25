@@ -11,11 +11,11 @@ import {
 } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { useTheme } from '@/context/ThemeContext';
-import { FormInput } from '@/components/FormInput';
-import { FormDatePicker } from '@/components/FormDatePicker';
+import { FormInput } from '@/components/ui/forms/FormInput';
+import { FormDatePicker } from '@/components/ui/forms/FormDatePicker';
 import { X, MapPin } from 'lucide-react-native';
 import api from '@/services/api';
-import { Match, MatchStatus } from '@/types/match';
+import { Match, MatchStatus } from '@/features/tournaments/types/match';
 
 interface MatchFormData {
   home_team: string;

@@ -1,5 +1,5 @@
-import { LayoutHeader } from "@/components/LayoutHeader";
-import { Tournament } from "@/types/tournament";
+import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
+import { Tournament } from "@/features/tournaments/types/tournament";
 import { useTheme } from "@/context/ThemeContext";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";

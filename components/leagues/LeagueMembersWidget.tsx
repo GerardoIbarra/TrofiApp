@@ -10,7 +10,7 @@ import {
 import { Users, Shield, User, ChevronRight } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
-import { LeagueMembership } from "@/types/league";
+import { LeagueMembership } from "@/features/leagues/types/league";
 import { Image } from "expo-image";
 
 interface LeagueMembersWidgetProps {

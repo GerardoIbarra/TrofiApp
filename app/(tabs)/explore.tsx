@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { GlobalStyles } from '@/constants/GlobalStyles';
-import { BackgroundGradient } from '@/components/BackgroundGradient';
-import { LayoutHeader } from '@/components/LayoutHeader';
+import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
+import { LayoutHeader } from '@/components/ui/layout/LayoutHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Search as SearchIcon, SlidersHorizontal, X, Star, ChevronRight, User as UserIcon, CircleDot, Sun, Zap, Mountain } from 'lucide-react-native';

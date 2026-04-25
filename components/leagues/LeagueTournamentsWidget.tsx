@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { Tournament, TournamentsResponse } from '@/types/tournament';
+import { Tournament, TournamentsResponse } from '@/features/tournaments/types/tournament';
 import api from '@/services/api';
 import { Trophy, Calendar, ChevronRight, CircleDot } from 'lucide-react-native';
 import { router } from 'expo-router';

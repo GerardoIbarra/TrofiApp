@@ -3,8 +3,10 @@ import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import * as SplashScreen from 'expo-splash-screen';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/services/queryClient';
 import { ThemeProvider } from '@/context/ThemeContext';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/features/auth/store/authStore';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -45,9 +47,11 @@ function InitialNavigation() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <InitialNavigation />
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <InitialNavigation />
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

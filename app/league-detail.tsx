@@ -1,4 +1,4 @@
-import { BackgroundGradient } from "@/components/BackgroundGradient";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import React, { useState } from "react";
@@ -17,8 +17,8 @@ import { LeagueMembersWidget } from "@/components/leagues/LeagueMembersWidget";
 import { LeagueTabsList } from "@/components/leagues/LeagueTabsList";
 import { LeagueTournamentsWidget } from "@/components/leagues/LeagueTournamentsWidget";
 import api from "@/services/api";
-import { useAuthStore } from "@/store/authStore";
-import { League } from "@/types/league";
+import { useAuthStore } from "@/features/auth/store/authStore";
+import { League } from "@/features/leagues/types/league";
 import { useLocalSearchParams } from "expo-router";
 import {
   Award,

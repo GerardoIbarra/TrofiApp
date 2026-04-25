@@ -14,15 +14,15 @@ import { ChevronLeft, Info } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginSchema } from '@/schemas/authSchemas';
-import { BackgroundGradient } from '@/components/BackgroundGradient';
-import { PrimaryButton } from '@/components/PrimaryButton';
-import { FormInput } from '@/components/FormInput';
+import { loginSchema, LoginSchema } from '@/features/auth/schemas/authSchemas';
+import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
+import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
+import { FormInput } from '@/components/ui/forms/FormInput';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
-import { useAuthStore } from '@/store/authStore';
-import { AuthResponse } from '@/types/auth';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { AuthResponse } from '@/features/auth/types/auth';
 
 
 

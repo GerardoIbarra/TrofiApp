@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { X, Trophy, Save } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { Match } from '@/types/match';
+import { Match } from '@/features/tournaments/types/match';
 import api from '@/services/api';
 
 interface MatchResultModalProps {
