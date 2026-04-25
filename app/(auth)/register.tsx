@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -14,42 +15,45 @@ import { ChevronLeft, Info } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginSchema } from '@/schemas/authSchemas';
+import { registerSchema, RegisterSchema } from '@/schemas/authSchemas';
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { FormInput } from '@/components/FormInput';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
-import { useAuthStore } from '@/store/authStore';
-import { AuthResponse } from '@/types/auth';
+import { RegisterResponse } from '@/types/auth';
 
 
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
-  const signIn = useAuthStore((state) => state.signIn);
 
   const {
     control,
     handleSubmit,
     formState: { isSubmitting },
-  } = useForm<LoginSchema>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { identifier: '', password: '' },
+  } = useForm<RegisterSchema>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      first_name: '',
+      last_name: '',
+      password: '',
+      password2: '',
+    },
   });
 
-  const onSubmit = async (data: LoginSchema) => {
+  const onSubmit = async (data: RegisterSchema) => {
     try {
-      const res = await api.post<AuthResponse>(
-        '/v1/auth/login/',
-        data as unknown as Record<string, unknown>
-      );
-      
-      await signIn(res);
+      await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
+      Alert.alert('¡Registro exitoso!', 'Tu cuenta ha sido creada. Inicia sesión para continuar.', [
+        { text: 'Iniciar sesión', onPress: () => router.push('/(auth)/login' as any) },
+      ]);
     } catch (err: any) {
-      Alert.alert('Error al iniciar sesión', err.message ?? 'Credenciales incorrectas.');
+      Alert.alert('Error de registro', err.message ?? 'Ocurrió un error. Intenta de nuevo.');
     }
   };
 
@@ -71,43 +75,84 @@ export default function LoginScreen() {
             <View style={{ width: 28 }} />
           </View>
 
-          <View style={styles.content}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             {/* Title */}
             <View style={styles.textSection}>
-              <Text style={[GlobalStyles.title, { color: theme.text }]}>Bienvenido</Text>
+              <Text style={[GlobalStyles.title, { color: theme.text }]}>Crea tu cuenta</Text>
               <Text style={[GlobalStyles.subtitle, { color: theme.textSecondary }]}>
-                Ingresa tus credenciales para continuar al campo.
+                Completa tus datos para unirte a la liga.
               </Text>
             </View>
 
-            {/* Email/Identifier */}
+            {/* Form Fields */}
             <FormInput
               control={control}
-              name="identifier"
+              name="username"
+              label="NOMBRE DE USUARIO"
+              placeholder="jugador99"
+              required
+            />
+
+            <FormInput
+              control={control}
+              name="email"
               label="CORREO ELECTRÓNICO"
               placeholder="correo@ejemplo.com"
               keyboardType="email-address"
               required
             />
 
-            {/* Password */}
+            <View style={styles.row}>
+              <FormInput
+                control={control}
+                name="first_name"
+                label="NOMBRE"
+                placeholder="Carlos"
+                required
+                containerStyle={styles.halfField}
+                autoCapitalize="words"
+              />
+              <FormInput
+                control={control}
+                name="last_name"
+                label="APELLIDO"
+                placeholder="García"
+                required
+                containerStyle={styles.halfField}
+                autoCapitalize="words"
+              />
+            </View>
+
             <FormInput
               control={control}
               name="password"
               label="CONTRASEÑA"
-              placeholder="Tu contraseña"
+              placeholder="Mínimo 6 caracteres"
               required
               isPassword
             />
 
-            {/* Login Button */}
+            <FormInput
+              control={control}
+              name="password2"
+              label="CONFIRMAR CONTRASEÑA"
+              placeholder="Repite tu contraseña"
+              required
+              isPassword
+            />
+
+            {/* Register Button */}
             {isSubmitting ? (
               <View style={styles.loadingWrapper}>
                 <ActivityIndicator color={theme.primary} size="large" />
               </View>
             ) : (
               <PrimaryButton
-                title="Iniciar sesión"
+                title="Crear cuenta"
                 onPress={handleSubmit(onSubmit)}
                 fullWidth
                 style={{ marginTop: 10 }}
@@ -117,23 +162,23 @@ export default function LoginScreen() {
             {/* Divider */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>¿No tienes cuenta?</Text>
+              <Text style={styles.dividerText}>¿Ya tienes cuenta?</Text>
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Go to Register */}
+            {/* Go to Login */}
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => router.push('/(auth)/register' as any)}
+              onPress={() => router.push('/(auth)/login' as any)}
             >
-              <Text style={styles.secondaryButtonText}>Crear cuenta</Text>
+              <Text style={styles.secondaryButtonText}>Iniciar sesión</Text>
             </TouchableOpacity>
 
             <View style={styles.infoContainer}>
               <Info size={16} color={theme.textSecondary} />
               <Text style={styles.infoText}>TROFI ELITE SPORTS MANAGEMENT - 2024</Text>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
@@ -164,12 +209,20 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.primary,
       letterSpacing: 2,
     },
-    content: {
-      flex: 1,
+    scrollContent: {
       paddingHorizontal: 30,
-      paddingTop: 40,
+      paddingTop: 20,
+      paddingBottom: 40,
     },
-    textSection: { marginBottom: 40 },
+    textSection: { marginBottom: 32 },
+    row: {
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 0,
+    },
+    halfField: {
+      flex: 1,
+    },
     loadingWrapper: {
       height: 56,
       justifyContent: 'center',
@@ -210,8 +263,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      marginTop: 'auto',
-      marginBottom: 20,
+      marginTop: 32,
       gap: 8,
     },
     infoText: {

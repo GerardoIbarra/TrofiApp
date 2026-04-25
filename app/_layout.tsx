@@ -25,7 +25,7 @@ function InitialNavigation() {
       
       // Auto-navigation based on auth state
       if (!isAuthenticated) {
-        router.replace('/(auth)/signin' as any);
+        router.replace('/(auth)' as any);
       } else {
         router.replace('/(tabs)' as any);
       }

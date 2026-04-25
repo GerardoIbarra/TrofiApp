@@ -16,6 +16,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { SecondaryButton } from '@/components/SecondaryButton';
 import { TrofyLogo } from '@/components/TrofyLogo';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
@@ -72,11 +73,16 @@ export default function WelcomeScreen() {
             <FeatureIcon icon={<BarChart3 size={24} color={theme.text} />} label="Estadísticas" theme={theme} isDark={isDark} />
           </Animated.View>
 
-          <Animated.View entering={FadeInDown.delay(1600).duration(800)} style={{ width: '100%', alignItems: 'center' }}>
+          <Animated.View entering={FadeInDown.delay(1600).duration(800)} style={styles.actions}>
             <PrimaryButton 
-              title="EMPEZAR" 
+              title="CREAR CUENTA" 
+              onPress={() => router.push('/(auth)/register' as any)} 
+              style={{ width: '100%', borderRadius: 28 }} 
+            />
+            <SecondaryButton 
+              title="INICIAR SESIÓN" 
               onPress={() => router.push('/(auth)/login' as any)} 
-              style={{ width: '80%', borderRadius: 28 }} 
+              style={{ width: '100%', borderRadius: 28 }} 
             />
             <Text style={styles.footerText}>PROXIMO EVENTO: LIGA ZAPOPAN NORTE</Text>
           </Animated.View>
@@ -166,10 +172,15 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.5,
   },
+  actions: {
+    width: '80%',
+    alignItems: 'center',
+    gap: 12,
+  },
   footerText: {
     fontSize: 10,
     color: theme.textSecondary,
     letterSpacing: 1,
-    marginTop: 20,
+    marginTop: 10,
   },
 });
