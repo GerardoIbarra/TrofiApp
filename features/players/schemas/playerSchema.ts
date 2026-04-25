@@ -15,6 +15,7 @@ export const playerSchema = z.object({
   dribbling: z.number().min(1).max(99).default(50),
   defense: z.number().min(1).max(99).default(50),
   physical: z.number().min(1).max(99).default(50),
+  photo: z.string().min(1, "La foto es obligatoria"),
 });
 
 export type PlayerSchema = z.infer<typeof playerSchema>;

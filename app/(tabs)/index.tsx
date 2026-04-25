@@ -265,7 +265,7 @@ export default function HomeScreen() {
                   <Plus size={20} color={theme.primary} />
                 </TouchableOpacity>
                 {players.length > 0 && (
-                  <TouchableOpacity>
+                  <TouchableOpacity onPress={() => router.push("/players-list" as any)}>
                     <Text style={styles.seeAllText}>VER TODOS</Text>
                   </TouchableOpacity>
                 )}

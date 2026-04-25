@@ -7,7 +7,7 @@ import { AuthStorage } from '@/features/auth/services/authStorage';
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
-  body?: Record<string, unknown> | null;
+  body?: Record<string, unknown> | FormData | null;
 };
 
 let isRefreshing = false;
@@ -30,11 +30,16 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   // 1. Get access token and add to headers
   const token = await AuthStorage.getAccessToken();
   
+  const isFormData = body instanceof FormData;
+  
   const authHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
     ...(headers as Record<string, string>),
   };
+
+  if (!isFormData) {
+    authHeaders['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     authHeaders['Authorization'] = `Bearer ${token}`;
@@ -44,7 +49,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     return fetch(`${BASE_URL}${endpoint}`, {
       ...rest,
       headers: authHeaders,
-      body: body ? JSON.stringify(body) : undefined,
+      body: isFormData ? (body as any) : (body ? JSON.stringify(body) : undefined),
     });
   };
 
@@ -101,7 +106,14 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || errorData.detail || `API Error ${response.status}`);
+    console.error(`[API ERROR] ${endpoint} ${response.status}:`, errorData);
+    
+    // Si es un objeto de errores (común en Django), intentamos extraer un mensaje útil
+    const errorMessage = typeof errorData === 'object' 
+      ? Object.entries(errorData).map(([key, value]) => `${key}: ${value}`).join(', ')
+      : errorData.message || errorData.detail;
+
+    throw new Error(errorMessage || `API Error ${response.status}`);
   }
 
   return response.json() as Promise<T>;
@@ -111,7 +123,7 @@ export const api = {
   get: <T>(endpoint: string, options?: RequestOptions) =>
     request<T>(endpoint, { method: 'GET', ...options }),
 
-  post: <T>(endpoint: string, body?: Record<string, unknown>, options?: RequestOptions) =>
+  post: <T>(endpoint: string, body?: Record<string, unknown> | FormData, options?: RequestOptions) =>
     request<T>(endpoint, { method: 'POST', body, ...options }),
 
   put: <T>(endpoint: string, body: Record<string, unknown>, options?: RequestOptions) =>

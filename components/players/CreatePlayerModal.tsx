@@ -1,12 +1,27 @@
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
-import { FormInput } from "@/components/ui/forms/FormInput";
-import { FormDatePicker } from "@/components/ui/forms/FormDatePicker";
 import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
+import { FormDatePicker } from "@/components/ui/forms/FormDatePicker";
+import { FormInput } from "@/components/ui/forms/FormInput";
 import { useTheme } from "@/context/ThemeContext";
-import { PlayerSchema, playerSchema } from "@/features/players/schemas/playerSchema";
+import {
+  PlayerSchema,
+  playerSchema,
+} from "@/features/players/schemas/playerSchema";
 import api from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserPlus, X, Shield, Zap, Target, Activity, Swords, Dumbbell } from "lucide-react-native";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import {
+  Activity,
+  Camera,
+  Dumbbell,
+  Image as ImageIcon,
+  Shield,
+  Swords,
+  Target,
+  X,
+  Zap
+} from "lucide-react-native";
 import React, { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
@@ -71,8 +86,45 @@ export function CreatePlayerModal({
       dribbling: 50,
       defense: 50,
       physical: 50,
+      photo: "",
     },
   });
+
+  const photo = useWatch({ control, name: "photo" });
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setValue("photo", result.assets[0].uri, { shouldValidate: true });
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permiso denegado",
+        "Necesitamos permiso para usar la cámara.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setValue("photo", result.assets[0].uri, { shouldValidate: true });
+    }
+  };
 
   const statsValues = useWatch({
     control,
@@ -81,7 +133,9 @@ export function CreatePlayerModal({
 
   useEffect(() => {
     // Calculamos el promedio para el Overall Rating automáticamente
-    const avg = Math.round(statsValues.reduce((a, b) => (a || 0) + (b || 0), 0) / 6);
+    const avg = Math.round(
+      statsValues.reduce((a, b) => (a || 0) + (b || 0), 0) / 6,
+    );
     setValue("overall_rating", avg || 50);
   }, [statsValues]);
 
@@ -92,8 +146,31 @@ export function CreatePlayerModal({
   }, [visible, reset]);
 
   const onSubmit = async (data: PlayerSchema) => {
+    console.log("Submitting Player Data:", data);
     try {
-      await api.post("/v1/players/", data);
+      const formData = new FormData();
+
+      // Append all fields to FormData robustly
+      Object.keys(data).forEach((key) => {
+        const value = (data as any)[key];
+
+        if (key === "photo" && value) {
+          const uri = value;
+          const name = uri.split("/").pop() || "photo.jpg";
+          const match = /\.(\w+)$/.exec(name);
+          const type = match ? `image/${match[1]}` : `image/jpg`;
+
+          formData.append("photo", {
+            uri,
+            name,
+            type,
+          } as any);
+        } else if (value !== undefined && value !== null && value !== "") {
+          formData.append(key, value.toString());
+        }
+      });
+
+      await api.post("/v1/players/", formData);
       Alert.alert("¡Fichaje Completado!", "El jugador ha sido registrado.");
       onSuccess();
       onClose();
@@ -101,7 +178,7 @@ export function CreatePlayerModal({
       console.error("Error creating player:", error);
       Alert.alert(
         "Error",
-        error.message || "Ocurrió un problema al registrar al jugador."
+        error.message || "Ocurrió un problema al registrar al jugador.",
       );
     }
   };
@@ -133,15 +210,59 @@ export function CreatePlayerModal({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.formSection}>
+              {/* SELECTOR DE FOTO */}
+              <View style={styles.photoSection}>
+                <TouchableOpacity
+                  style={styles.photoContainer}
+                  onPress={pickImage}
+                  activeOpacity={0.8}
+                >
+                  {photo ? (
+                    <Image
+                      source={{ uri: photo }}
+                      style={styles.previewImage}
+                    />
+                  ) : (
+                    <View style={styles.photoPlaceholder}>
+                      <ImageIcon size={32} color={theme.textSecondary} />
+                      <Text style={styles.photoPlaceholderText}>
+                        AÑADIR FOTO
+                      </Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.cameraButton}
+                    onPress={takePhoto}
+                  >
+                    <Camera size={18} color="#FFF" />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+                <View style={styles.heroTextContent}>
+                  <Text style={styles.sectionTitle}>Ficha Técnica</Text>
+                  <Text style={styles.sectionSubtitle}>
+                    La foto es obligatoria para el carnet oficial.
+                  </Text>
+                </View>
+              </View>
+
               <View style={styles.heroBox}>
-                  <View style={styles.ratingBadge}>
-                      <Text style={styles.ratingText}>{statsValues.reduce((a, b) => (a || 0) + (b || 0), 0) ? Math.round(statsValues.reduce((a, b) => (a || 0) + (b || 0), 0) / 6) : 50}</Text>
-                      <Text style={styles.ratingLabel}>OVR</Text>
-                  </View>
-                  <View style={styles.heroTextContent}>
-                      <Text style={styles.sectionTitle}>Ficha Técnica</Text>
-                      <Text style={styles.sectionSubtitle}>Crea el perfil deportivo del jugador y configura sus habilidades.</Text>
-                  </View>
+                <View style={styles.ratingBadge}>
+                  <Text style={styles.ratingText}>
+                    {statsValues.reduce((a, b) => (a || 0) + (b || 0), 0)
+                      ? Math.round(
+                          statsValues.reduce((a, b) => (a || 0) + (b || 0), 0) /
+                            6,
+                        )
+                      : 50}
+                  </Text>
+                  <Text style={styles.ratingLabel}>OVR</Text>
+                </View>
+                <View style={styles.heroTextContent}>
+                  <Text style={styles.heroTitle}>Resumen de Stats</Text>
+                  <Text style={styles.heroSubtitle}>
+                    El rating se calcula automáticamente.
+                  </Text>
+                </View>
               </View>
 
               {/* DATOS BÁSICOS */}
@@ -172,24 +293,35 @@ export function CreatePlayerModal({
                 </View>
                 <View style={{ width: 15 }} />
                 <View style={{ flex: 1 }}>
-                    <Text style={styles.fieldLabel}>POSICIÓN</Text>
-                    <View style={styles.positionContainer}>
-                        {POSITIONS.map((pos) => {
-                            const isSelected = useWatch({ control, name: "position" }) === pos.value;
-                            return (
-                                <TouchableOpacity 
-                                    key={pos.value}
-                                    onPress={() => setValue("position", pos.value as any)}
-                                    style={[
-                                        styles.posChip, 
-                                        isSelected && { backgroundColor: pos.color, borderColor: pos.color }
-                                    ]}
-                                >
-                                    <Text style={[styles.posChipText, isSelected && { color: "#FFF" }]}>{pos.label}</Text>
-                                </TouchableOpacity>
-                            )
-                        })}
-                    </View>
+                  <Text style={styles.fieldLabel}>POSICIÓN</Text>
+                  <View style={styles.positionContainer}>
+                    {POSITIONS.map((pos) => {
+                      const isSelected =
+                        useWatch({ control, name: "position" }) === pos.value;
+                      return (
+                        <TouchableOpacity
+                          key={pos.value}
+                          onPress={() => setValue("position", pos.value as any)}
+                          style={[
+                            styles.posChip,
+                            isSelected && {
+                              backgroundColor: pos.color,
+                              borderColor: pos.color,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.posChipText,
+                              isSelected && { color: "#FFF" },
+                            ]}
+                          >
+                            {pos.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </View>
               </View>
 
@@ -270,47 +402,56 @@ const createStyles = (theme: any, isDark: boolean) =>
       width: "100%",
     },
     heroBox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 30,
-        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-        padding: 20,
-        borderRadius: 24,
-        borderWidth: 1,
-        borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 30,
+      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+      padding: 20,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
     },
     ratingBadge: {
-        width: 60,
-        height: 60,
-        borderRadius: 15,
-        backgroundColor: theme.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 20,
-        shadowColor: theme.primary,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
+      width: 60,
+      height: 60,
+      borderRadius: 15,
+      backgroundColor: theme.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: 20,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 5,
     },
     ratingText: {
-        fontSize: 24,
-        fontWeight: '900',
-        color: '#001A2C',
+      fontSize: 24,
+      fontWeight: "900",
+      color: "#001A2C",
     },
     ratingLabel: {
-        fontSize: 8,
-        fontWeight: '900',
-        color: '#001A2C',
-        marginTop: -4,
+      fontSize: 8,
+      fontWeight: "900",
+      color: "#001A2C",
+      marginTop: -4,
     },
     heroTextContent: {
-        flex: 1,
+      flex: 1,
     },
     sectionTitle: {
-      fontSize: 20,
+      fontSize: 18,
       fontWeight: "900",
       color: theme.text,
+    },
+    heroTitle: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: theme.text,
+    },
+    heroSubtitle: {
+      fontSize: 11,
+      color: theme.textSecondary,
     },
     sectionSubtitle: {
       fontSize: 12,
@@ -318,74 +459,119 @@ const createStyles = (theme: any, isDark: boolean) =>
       lineHeight: 16,
       marginTop: 4,
     },
+    photoSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 20,
+      gap: 20,
+    },
+    photoContainer: {
+      width: 100,
+      height: 100,
+      borderRadius: 50,
+      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 2,
+      borderColor: theme.primary + "40",
+      borderStyle: "dashed",
+      position: "relative",
+    },
+    previewImage: {
+      width: "100%",
+      height: "100%",
+      borderRadius: 50,
+    },
+    photoPlaceholder: {
+      alignItems: "center",
+      gap: 5,
+    },
+    photoPlaceholderText: {
+      fontSize: 8,
+      fontWeight: "900",
+      color: theme.textSecondary,
+    },
+    cameraButton: {
+      position: "absolute",
+      bottom: 0,
+      right: 0,
+      backgroundColor: theme.primary,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 3,
+      borderColor: theme.background,
+    },
     row: {
-      flexDirection: 'row',
+      flexDirection: "row",
     },
     fieldLabel: {
-        fontSize: 11,
-        fontWeight: '800',
-        color: theme.textSecondary,
-        marginBottom: 8,
-        letterSpacing: 1,
+      fontSize: 11,
+      fontWeight: "800",
+      color: theme.textSecondary,
+      marginBottom: 8,
+      letterSpacing: 1,
     },
     positionContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 8,
     },
     posChip: {
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'transparent',
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "transparent",
     },
     posChipText: {
-        fontSize: 10,
-        fontWeight: '900',
-        color: theme.textSecondary,
+      fontSize: 10,
+      fontWeight: "900",
+      color: theme.textSecondary,
     },
     statsHeader: {
-        fontSize: 12,
-        fontWeight: '900',
-        color: theme.primary,
-        letterSpacing: 1.5,
-        marginTop: 30,
-        marginBottom: 15,
-        textAlign: 'center',
+      fontSize: 12,
+      fontWeight: "900",
+      color: theme.primary,
+      letterSpacing: 1.5,
+      marginTop: 30,
+      marginBottom: 15,
+      textAlign: "center",
     },
     statsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-        justifyContent: 'space-between',
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 12,
+      justifyContent: "space-between",
     },
     statBox: {
-        width: '30%',
-        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.01)',
-        padding: 12,
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-        alignItems: 'center',
+      width: "30%",
+      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.01)",
+      padding: 12,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      alignItems: "center",
     },
     statIconHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        marginBottom: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      marginBottom: 8,
     },
     statLabel: {
-        fontSize: 9,
-        fontWeight: '900',
-        color: theme.textSecondary,
+      fontSize: 9,
+      fontWeight: "900",
+      color: theme.textSecondary,
     },
     statInput: {
-        textAlign: 'center',
-        paddingHorizontal: 0,
-        fontSize: 18,
-        fontWeight: '900',
-        height: 40,
-    }
+      textAlign: "center",
+      paddingHorizontal: 0,
+      fontSize: 18,
+      fontWeight: "900",
+      height: 40,
+    },
   });
