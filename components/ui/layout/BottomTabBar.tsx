@@ -50,8 +50,15 @@ export function BottomTabBar({ state, navigation }: any) {
         onPress={() => handlePress('leagues', 1)}
       />
       
-      {/* Empty space filler for center tab */}
-      <View style={{ width: 60 }} />
+      <TabItem 
+        isCenter 
+        theme={theme} 
+        isDark={isDark} 
+        handlePress={() => {
+          if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          handlePress('explore', 2);
+        }}
+      />
       
       <TabItem
         icon={
@@ -74,8 +81,14 @@ export function BottomTabBar({ state, navigation }: any) {
         theme={theme}
         onPress={() => handlePress('profile', 4)}
       />
+    </View>
+  );
+}
 
-      <View style={styles.centerTabContainer}>
+function TabItem({ icon, label, active = false, theme, onPress, isCenter = false, isDark = false, handlePress }: any) {
+  if (isCenter) {
+    return (
+      <View style={styles.centerTabWrapper}>
         <TouchableOpacity 
           style={[
             styles.centerTab,
@@ -84,20 +97,15 @@ export function BottomTabBar({ state, navigation }: any) {
               borderColor: isDark ? '#050A15' : '#FFFFFF',
             }
           ]}
-          onPress={() => {
-            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            handlePress('explore', 2);
-          }}
+          onPress={handlePress}
           activeOpacity={0.8}
         >
           <Search size={26} color="#001A2C" />
         </TouchableOpacity>
       </View>
-    </View>
-  );
-}
+    );
+  }
 
-function TabItem({ icon, label, active = false, theme, onPress }: { icon: React.ReactNode, label: string, active?: boolean, theme: any, onPress: () => void }) {
   return (
     <TouchableOpacity style={styles.tabItem} onPress={onPress} activeOpacity={0.7}>
       {icon}
@@ -118,14 +126,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     borderTopWidth: 1,
-    paddingHorizontal: 10,
     paddingTop: 10,
-    justifyContent: 'space-around',
+    paddingHorizontal: 15,
     zIndex: 10,
   },
   tabItem: {
+    flex: 1,
     alignItems: 'center',
-    width: 60,
+    justifyContent: 'center',
   },
   tabLabel: {
     fontSize: 9,
@@ -133,22 +141,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  centerTabContainer: {
-    position: 'absolute',
-    top: -24,
-    left: '50%',
-    marginLeft: -30,
-    width: 60,
+  centerTabWrapper: {
+    flex: 1,
     alignItems: 'center',
-    zIndex: 20,
+    justifyContent: 'center',
   },
   centerTab: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 4,
+    position: 'absolute',
+    top: -32,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
