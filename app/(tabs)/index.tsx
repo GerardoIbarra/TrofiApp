@@ -5,6 +5,7 @@ import { CreatePlayerModal } from "@/components/players/CreatePlayerModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
+import { AuthStorage } from "@/features/auth/services/authStorage";
 import { Match, PaginatedMatches, TeamFeedResponse } from "@/features/tournaments/types/match";
 import { PaginatedPlayers, Player } from "@/features/players/types/player";
 import { LinearGradient } from "expo-linear-gradient";
@@ -62,8 +63,9 @@ export default function HomeScreen() {
 
   const loadNextMatch = async () => {
     try {
+      const token = await AuthStorage.getAccessToken();
       const res = await api.get<TeamFeedResponse>(
-        "/v1/matches/my_team_feed/",
+        `/v1/matches/my_team_feed/?token=${token}`,
       );
       
       // Buscamos el primer partido disponible en cualquiera de sus equipos
