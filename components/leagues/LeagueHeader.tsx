@@ -52,7 +52,7 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
       >
         {/* Navigation - Unificada con el estándar de la app */}
         <View style={styles.headerWrapper}>
-          <LayoutHeader />
+          <LayoutHeader showBackButton={true} />
         </View>
 
         {/* Region / Status Tag */}

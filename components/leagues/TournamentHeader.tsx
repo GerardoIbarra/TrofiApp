@@ -54,7 +54,7 @@ export function TournamentHeader({ tournament, onEditPress }: TournamentHeaderPr
       >
         {/* Navigation */}
         <View style={styles.headerWrapper}>
-          <LayoutHeader />
+          <LayoutHeader showBackButton={true} />
         </View>
 
         {/* Info Tag */}

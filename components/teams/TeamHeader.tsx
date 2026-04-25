@@ -52,7 +52,7 @@ export function TeamHeader({ team, onEditPress }: TeamHeaderProps) {
       >
         {/* Navigation */}
         <View style={styles.headerWrapper}>
-          <LayoutHeader />
+          <LayoutHeader showBackButton={true} />
         </View>
 
         {/* Info Tag */}
