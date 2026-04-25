@@ -9,6 +9,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: Record<string, unknown> | FormData | null;
+  silent?: boolean;
 };
 
 let isRefreshing = false;
@@ -114,14 +115,19 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    console.error(`[API ERROR] ${endpoint} ${response.status}:`, errorData);
     
-    // Si es un objeto de errores (común en Django), intentamos extraer un mensaje útil
+    if (!options.silent) {
+      console.error(`[API ERROR] ${endpoint} ${response.status}:`, errorData);
+    }
+    
     const errorMessage = typeof errorData === 'object' 
       ? Object.entries(errorData).map(([key, value]) => `${key}: ${value}`).join(', ')
       : errorData.message || errorData.detail;
 
-    throw new Error(errorMessage || `API Error ${response.status}`);
+    const error = new Error(errorMessage || `API Error ${response.status}`) as any;
+    error.status = response.status;
+    error.data = errorData;
+    throw error;
   }
 
   return response.json() as Promise<T>;

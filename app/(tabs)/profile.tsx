@@ -87,10 +87,14 @@ export default function ProfileScreen() {
         try {
           const statsRes = await api.get<PlayerStats>(
             `/v1/player-stats/${userId}/`,
+            { silent: true }
           );
           setStats(statsRes);
-        } catch (err) {
-          console.warn("Player stats not found for this user/player", err);
+        } catch (err: any) {
+          // Si es 404 es normal para usuarios nuevos, no lo tratamos como error crítico
+          if (err?.status !== 404) {
+            console.warn("Player stats fetch issue:", err);
+          }
           setStats(null);
         }
 
@@ -98,10 +102,13 @@ export default function ProfileScreen() {
         try {
           const cardRes = await api.get<CardHistory>(
             `/v1/card-history/${userId}/`,
+            { silent: true }
           );
           setCard(cardRes);
-        } catch (err) {
-          console.warn("Card history not found for this user/player", err);
+        } catch (err: any) {
+          if (err?.status !== 404) {
+            console.warn("Card history fetch issue:", err);
+          }
           setCard(null);
         }
       }

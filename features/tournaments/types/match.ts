@@ -1,4 +1,4 @@
-export type MatchStatus = 'scheduled' | 'ongoing' | 'finished' | 'canceled';
+export type MatchStatus = 'scheduled' | 'ongoing' | 'live' | 'finished' | 'canceled';
 
 export interface MatchResult {
   id: string;
@@ -12,6 +12,13 @@ export interface MatchResult {
   updated_at: string;
 }
 
+export interface RelevantTeam {
+  id: string;
+  name: string;
+  side: 'home' | 'away';
+  sources: string[];
+}
+
 export interface Match {
   id: string;
   tournament: string;
@@ -23,9 +30,11 @@ export interface Match {
   venue_name?: string;
   start_datetime: string;
   status: MatchStatus;
+  current_minute?: number | null;
   referee?: string;
   referee_name?: string;
   result?: MatchResult;
+  relevant_teams?: RelevantTeam[];
   created_at: string;
   updated_at: string;
 }

@@ -9,13 +9,16 @@ import { AuthStorage } from "@/features/auth/services/authStorage";
 import { Match, PaginatedMatches, TeamFeedResponse } from "@/features/tournaments/types/match";
 import { PaginatedPlayers, Player } from "@/features/players/types/player";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, router } from "expo-router";
 import {
   ArrowUpRight,
   Calendar,
   Plus,
   TrendingUp,
+  Trophy,
 } from "lucide-react-native";
+import { Image } from "expo-image";
+import { useMatchLiveUpdate } from "@/hooks/useMatchLiveUpdate";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -33,6 +36,115 @@ import {
 } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
+const { height } = Dimensions.get("window");
+
+const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
+  const initialMatch = team.matches[0];
+  const { liveMatch } = useMatchLiveUpdate(initialMatch?.id, initialMatch?.status === 'live');
+  
+  // Usamos los datos en vivo si existen, si no los iniciales
+  const match = liveMatch || initialMatch;
+
+  if (!match) {
+    return (
+      <View style={[styles.featuredCard, { width: width - 40 }]}>
+        <LinearGradient
+          colors={isDark ? [theme.surface, "#0A1525"] : ["#FFFFFF", "#F3F4F6"]}
+          style={styles.cardGradient}
+        >
+          <View style={styles.emptyFeaturedCard}>
+            <Trophy size={32} color={theme.textSecondary} opacity={0.3} />
+            <Text style={styles.emptyFeaturedTitle}>{team.name.toUpperCase()}</Text>
+            <Text style={styles.emptyFeaturedSubtitle}>Sin partidos programados</Text>
+          </View>
+        </LinearGradient>
+      </View>
+    );
+  }
+
+  const isLive = match.status === 'live';
+
+  return (
+    <View style={[styles.featuredCard, { width: width - 40 }]}>
+      <LinearGradient
+        colors={isDark ? [theme.surface, "#0A1525"] : ["#FFFFFF", "#F3F4F6"]}
+        style={styles.cardGradient}
+      >
+        <View style={styles.userHighlight} />
+        <View style={styles.cardHeader}>
+          <View style={[styles.leagueTag, isLive && { backgroundColor: '#FF4B4B20' }]}>
+            <Text style={[styles.leagueTagText, isLive && { color: '#FF4B4B' }]}>
+              {isLive ? `• EN VIVO ${match.current_minute}'` : match.tournament_name.toUpperCase()}
+            </Text>
+          </View>
+          <Text style={styles.matchTime}>
+            {new Date(match.start_datetime)
+              .toLocaleDateString("es-ES", {
+                day: "numeric",
+                month: "short",
+              })
+              .toUpperCase()}{" "}
+            •{" "}
+            {new Date(match.start_datetime).toLocaleTimeString(
+              "es-ES",
+              { hour: "2-digit", minute: "2-digit" },
+            )}
+          </Text>
+        </View>
+
+        <Text style={styles.matchdayText}>
+          {isLive
+            ? "Partido en Curso"
+            : match.status === "finished"
+            ? "Resultado Final"
+            : "Próximo Partido"}
+        </Text>
+        <Text style={styles.matchPhase}>{team.name}</Text>
+
+        <View style={styles.matchTeams}>
+          <View style={styles.team}>
+            {team.logo ? (
+              <Image source={{ uri: team.logo }} style={styles.teamLogo} />
+            ) : (
+              <View style={[styles.teamBadgePlaceholder, { backgroundColor: theme.primary + "10" }]} />
+            )}
+            <Text style={styles.teamName}>{match.home_team_name}</Text>
+            {(match.result || isLive) && (
+              <Text style={styles.scoreText}>{match.result?.home_score ?? 0}</Text>
+            )}
+          </View>
+          <Text style={styles.vsText}>{(match.result || isLive) ? "-" : "VS"}</Text>
+          <View style={styles.team}>
+            <View style={[styles.teamBadgePlaceholder, { backgroundColor: theme.primary + "10" }]} />
+            <Text style={styles.teamName}>{match.away_team_name}</Text>
+            {(match.result || isLive) && (
+              <Text style={styles.scoreText}>{match.result?.away_score ?? 0}</Text>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.matchFooter}>
+          <View style={styles.locationContainer}>
+            <Text style={styles.locationText}>
+              📍 {match.venue_name || "Sede por definir"}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.viewDetailsButton}
+            onPress={() =>
+              router.push({
+                pathname: "/tournament-detail",
+                params: { id: match.tournament },
+              })
+            }
+          >
+            <Text style={styles.viewDetailsText}>DETALLES</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    </View>
+  );
+};
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -43,7 +155,7 @@ export default function HomeScreen() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isPlayersLoading, setIsPlayersLoading] = useState(true);
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
-  const [nextMatch, setNextMatch] = useState<Match | null>(null);
+  const [teamFeed, setTeamFeed] = useState<TeamFeedResponse | null>(null);
 
   useEffect(() => {
     loadPlayers();
@@ -67,16 +179,7 @@ export default function HomeScreen() {
       const res = await api.get<TeamFeedResponse>(
         `/v1/matches/my_team_feed/?token=${token}`,
       );
-      
-      // Buscamos el primer partido disponible en cualquiera de sus equipos
-      const allMatches = res.teams.flatMap(t => t.matches);
-      if (allMatches.length > 0) {
-        // Ordenamos por fecha para mostrar el más cercano
-        const sorted = allMatches.sort((a, b) => 
-          new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()
-        );
-        setNextMatch(sorted[0]);
-      }
+      setTeamFeed(res);
     } catch (err) {
       console.error("Error loading team feed:", err);
     }
@@ -105,118 +208,42 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Featured Match Card */}
-            <View style={styles.featuredCard}>
-              <LinearGradient
-                colors={
-                  isDark ? [theme.surface, "#0A1525"] : ["#FFFFFF", "#F3F4F6"]
-                }
-                style={styles.cardGradient}
-              >
-                <View style={styles.userHighlight} />
-
-                {nextMatch ? (
-                  <>
-                    <View style={styles.cardHeader}>
-                      <View style={styles.leagueTag}>
-                        <Text style={styles.leagueTagText}>
-                          {nextMatch.tournament_name.toUpperCase()}
-                        </Text>
-                      </View>
-                      <Text style={styles.matchTime}>
-                        {new Date(nextMatch.start_datetime)
-                          .toLocaleDateString("es-ES", {
-                            day: "numeric",
-                            month: "short",
-                          })
-                          .toUpperCase()}{" "}
-                        •{" "}
-                        {new Date(nextMatch.start_datetime).toLocaleTimeString(
-                          "es-ES",
-                          { hour: "2-digit", minute: "2-digit" },
-                        )}
-                      </Text>
-                    </View>
-
-                    <Text style={styles.matchdayText}>
-                      {nextMatch.status === "ongoing"
-                        ? "En Vivo"
-                        : nextMatch.status === "finished"
-                        ? "Resultado Final"
-                        : "Próximo Partido"}
-                    </Text>
-                    <Text style={styles.matchPhase}>Temporada Regular</Text>
-
-                    <View style={styles.matchTeams}>
-                      <View style={styles.team}>
-                        <View
-                          style={[
-                            styles.teamBadgePlaceholder,
-                            { backgroundColor: theme.primary + "10" },
-                          ]}
-                        />
-                        <Text style={styles.teamName}>
-                          {nextMatch.home_team_name}
-                        </Text>
-                        {nextMatch.result && (
-                          <Text style={styles.scoreText}>{nextMatch.result.home_score}</Text>
-                        )}
-                      </View>
-                      <Text style={styles.vsText}>
-                        {nextMatch.result ? "-" : "VS"}
-                      </Text>
-                      <View style={styles.team}>
-                        <View
-                          style={[
-                            styles.teamBadgePlaceholder,
-                            { backgroundColor: theme.primary + "10" },
-                          ]}
-                        />
-                        <Text style={styles.teamName}>
-                          {nextMatch.away_team_name}
-                        </Text>
-                        {nextMatch.result && (
-                          <Text style={styles.scoreText}>{nextMatch.result.away_score}</Text>
-                        )}
-                      </View>
-                    </View>
-
-                    <View style={styles.matchFooter}>
-                      <View style={styles.locationContainer}>
-                        <Text style={styles.locationText}>
-                          📍 {nextMatch.venue_name || "Sede por definir"}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        style={styles.viewDetailsButton}
-                        onPress={() =>
-                          router.push({
-                            pathname: "/tournament-detail",
-                            params: { id: nextMatch.tournament },
-                          })
-                        }
-                      >
-                        <Text style={styles.viewDetailsText}>VER DETALLES</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </>
-                ) : (
-                  <View style={styles.emptyFeaturedCard}>
-                    <Calendar
-                      size={32}
-                      color={theme.textSecondary}
-                      opacity={0.3}
+            {/* Featured Match Carousel */}
+            <View style={styles.carouselContainer}>
+              {teamFeed && teamFeed.teams.length > 0 ? (
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  snapToInterval={width - 40}
+                  decelerationRate="fast"
+                  contentContainerStyle={styles.carouselContent}
+                >
+                  {teamFeed.teams.map((team) => (
+                    <FeaturedMatchCard 
+                      key={team.id} 
+                      team={team} 
+                      isDark={isDark} 
+                      theme={theme} 
+                      width={width}
+                      styles={styles}
                     />
-                    <Text style={styles.emptyFeaturedTitle}>
-                      NO HAY PARTIDOS PRÓXIMOS
-                    </Text>
-                    <Text style={styles.emptyFeaturedSubtitle}>
-                      Los encuentros aparecerán aquí cuando la liga anuncie la
-                      nueva jornada.
-                    </Text>
-                  </View>
-                )}
-              </LinearGradient>
+                  ))}
+                </ScrollView>
+              ) : (
+                <View style={styles.featuredCard}>
+                  <LinearGradient
+                    colors={isDark ? [theme.surface, "#0A1525"] : ["#FFFFFF", "#F3F4F6"]}
+                    style={styles.cardGradient}
+                  >
+                    <View style={styles.emptyFeaturedCard}>
+                      <Calendar size={32} color={theme.textSecondary} opacity={0.3} />
+                      <Text style={styles.emptyFeaturedTitle}>NO HAY PARTIDOS</Text>
+                      <Text style={styles.emptyFeaturedSubtitle}>Únete a un equipo para ver tu feed.</Text>
+                    </View>
+                  </LinearGradient>
+                </View>
+              )}
             </View>
 
             {/* Stats Summary Area */}
@@ -379,18 +406,29 @@ const createStyles = (theme: any, isDark: boolean) =>
       justifyContent: "center",
       alignItems: "center",
     },
-    featuredCard: {
+    carouselContainer: {
       width: "100%",
-      borderRadius: 24,
+      height: 280,
+      marginBottom: 30,
+    },
+    carouselContent: {
+      gap: 0,
+    },
+    featuredCard: {
+      height: 280,
+      borderRadius: 30,
       overflow: "hidden",
-      marginBottom: 25,
-      borderWidth: 1,
-      borderColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.08)",
-      elevation: isDark ? 0 : 6,
+      elevation: 10,
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0 : 0.18,
-      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.3,
+      shadowRadius: 20,
+    },
+    teamLogo: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginBottom: 8,
     },
     cardGradient: {
       padding: 20,
