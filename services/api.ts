@@ -1,4 +1,5 @@
 import { AuthStorage } from '@/features/auth/services/authStorage';
+import { LocationService } from './locationService';
 
 /**
  * Centralized API client for TrofiApp with Silent Refresh logic.
@@ -36,6 +37,13 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     'ngrok-skip-browser-warning': 'true',
     ...(headers as Record<string, string>),
   };
+
+  // Add location headers if available
+  const location = LocationService.getLocation();
+  if (location) {
+    authHeaders['X-Latitude'] = location.latitude.toString();
+    authHeaders['X-Longitude'] = location.longitude.toString();
+  }
 
   if (!isFormData) {
     authHeaders['Content-Type'] = 'application/json';

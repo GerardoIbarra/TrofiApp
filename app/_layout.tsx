@@ -7,6 +7,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/services/queryClient';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import * as Location from 'expo-location';
+import { LocationService } from '@/services/locationService';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -19,7 +21,21 @@ function InitialNavigation() {
 
   useEffect(() => {
     initialize();
+    requestLocation();
   }, []);
+
+  const requestLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') return;
+
+      const location = await Location.getCurrentPositionAsync({});
+      LocationService.setLocation(location.coords.latitude, location.coords.longitude);
+      console.log("📍 Location captured:", location.coords.latitude, location.coords.longitude);
+    } catch (err) {
+      console.error("Error capturing location:", err);
+    }
+  };
 
   useEffect(() => {
     if (!isLoading) {
