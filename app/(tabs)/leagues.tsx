@@ -164,7 +164,7 @@ export default function LeaguesExplorerScreen() {
                     activeOpacity={0.9}
                   >
                     <Image
-                      source={{ uri: getLeagueImage(index) }}
+                      source={{ uri: league.background_image || getLeagueImage(index) }}
                       style={styles.featuredImage}
                     />
                     <LinearGradient
