@@ -64,10 +64,10 @@ export default function SignInScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => router.replace('/(auth)' as any)} style={styles.backButton}>
               <ChevronLeft size={28} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Trofi</Text>
+            <Text style={styles.headerTitle}>TROFY</Text>
             <View style={{ width: 28 }} />
           </View>
 

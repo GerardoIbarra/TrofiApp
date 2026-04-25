@@ -16,6 +16,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { BackgroundGradient } from '@/components/BackgroundGradient';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { TrofyLogo } from '@/components/TrofyLogo';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -54,15 +55,12 @@ export default function WelcomeScreen() {
         <View style={styles.content}>
           <Animated.View entering={FadeIn.duration(1500)} style={[styles.logoContainer, animatedLogoStyle]}>
             <View style={styles.iconCircle}>
-              <Image 
-                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3112/3112946.png' }}
-                style={{ width: 65, height: 65, resizeMode: 'contain', tintColor: theme.primary }}
-              />
+              <TrofyLogo size={80} color={theme.primary} />
             </View>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(800).duration(800)} style={{ alignItems: 'center' }}>
-            <Text style={styles.title}>TROFI</Text>
+            <Text style={styles.title}>TROFY</Text>
             <Text style={styles.subtitle}>TUS TORNEOS LOCALES</Text>
             <Text style={styles.tagline}>EN LA PALMA DE TU MANO</Text>
           </Animated.View>
