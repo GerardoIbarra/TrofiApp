@@ -8,13 +8,15 @@ import { League, LeaguesResponse } from "@/features/leagues/types/league";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import {
+  Trophy,
+  Search,
+  MapPin,
+  Calendar,
   ChevronRight,
   CircleDot,
   Layout,
   Medal,
   Plus,
-  Search,
-  Trophy,
   Venus,
   X
 } from "lucide-react-native";
@@ -22,7 +24,6 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,6 +31,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
@@ -166,6 +168,7 @@ export default function LeaguesExplorerScreen() {
                     <Image
                       source={{ uri: league.background_image || getLeagueImage(index) }}
                       style={styles.featuredImage}
+                      contentFit="cover"
                     />
                     <LinearGradient
                       colors={[
@@ -252,30 +255,44 @@ export default function LeaguesExplorerScreen() {
                   >
                     <View style={styles.nearbyLogo}>
                       <View style={styles.logoCircle}>
-                        <Trophy
-                          size={20}
-                          color={
-                            isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.4)"
-                          }
-                        />
+                        {item.logo ? (
+                          <Image 
+                            source={{ uri: item.logo }} 
+                            style={styles.logoImage} 
+                            contentFit="contain"
+                          />
+                        ) : (
+                          <Trophy
+                            size={20}
+                            color={
+                              isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.4)"
+                            }
+                          />
+                        )}
                       </View>
                     </View>
                     <View style={styles.nearbyInfo}>
-                      <Text style={styles.nearbyName}>{item.name}</Text>
+                      <View style={styles.nameStatusRow}>
+                        <Text style={styles.nearbyName}>{item.name}</Text>
+                        <View style={styles.inlineStatusBadge}>
+                          <Text style={styles.inlineStatusText}>ACTIVA</Text>
+                        </View>
+                      </View>
                       <View style={styles.nearbyMetaRow}>
-                        <Text style={styles.nearbyMeta}>📍 {item.city}</Text>
-                        <Text style={styles.nearbyMeta}>
-                          {" "}
-                          • 🗓️ {new Date(item.created_at).toLocaleDateString()}
-                        </Text>
+                        <View style={styles.metaItem}>
+                          <MapPin size={12} color={theme.textSecondary} />
+                          <Text style={styles.nearbyMeta}>{item.city}</Text>
+                        </View>
+                        <Text style={styles.metaDivider}>•</Text>
+                        <View style={styles.metaItem}>
+                          <Calendar size={12} color={theme.textSecondary} />
+                          <Text style={styles.nearbyMeta}>
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </Text>
+                        </View>
                       </View>
                     </View>
                     <View style={styles.nearbyStatusColumn}>
-                      <Text
-                        style={[styles.nearbyStatus, { color: theme.primary }]}
-                      >
-                        ACTIVA
-                      </Text>
                       <ChevronRight size={18} color={theme.textSecondary} />
                     </View>
                   </TouchableOpacity>
@@ -491,28 +508,65 @@ const createStyles = (theme: any, isDark: boolean) =>
       marginRight: 15,
     },
     logoCircle: {
-      width: 50,
-      height: 50,
-      borderRadius: 10,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
       justifyContent: "center",
       alignItems: "center",
+      overflow: "hidden",
+    },
+    logoImage: {
+      width: "100%",
+      height: "100%",
     },
     nearbyInfo: {
       flex: 1,
+      justifyContent: "center",
+      paddingRight: 10,
+    },
+    nameStatusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 4,
     },
     nearbyName: {
-      fontSize: 15,
+      fontSize: 16,
       fontWeight: "800",
       color: theme.text,
-      marginBottom: 4,
+    },
+    inlineStatusBadge: {
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+      backgroundColor: theme.primary + "15",
+      borderWidth: 0.5,
+      borderColor: theme.primary + "30",
+    },
+    inlineStatusText: {
+      fontSize: 8,
+      fontWeight: "900",
+      color: theme.primary,
+      letterSpacing: 0.5,
     },
     nearbyMetaRow: {
       flexDirection: "row",
       alignItems: "center",
+      gap: 10,
+    },
+    metaItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    metaDivider: {
+      color: theme.textSecondary,
+      opacity: 0.3,
+      fontSize: 12,
     },
     nearbyMeta: {
-      fontSize: 11,
+      fontSize: 12,
       color: theme.textSecondary,
       fontWeight: "600",
     },
