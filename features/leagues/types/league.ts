@@ -24,6 +24,7 @@ export interface League {
   city: string;
   country: string;
   logo: string | null;
+  background_image: string | null;
   created_by: string;
   created_by_name: string;
   features?: LeagueFeatures;

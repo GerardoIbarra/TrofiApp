@@ -10,13 +10,16 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import { X, Trophy, MapPin, Globe, Trash2 } from "lucide-react-native";
-import { useForm } from "react-hook-form";
+import { X, Trophy, MapPin, Globe, Trash2, Camera, Image as ImageIcon, Layout } from "lucide-react-native";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 import { leagueSchema, LeagueSchema } from "@/features/leagues/schemas/leagueSchema";
 import { useTheme } from "@/context/ThemeContext";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { FormInput } from "@/components/ui/forms/FormInput";
+import { FormSelect } from "@/components/ui/forms/FormSelect";
 import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import api from "@/services/api";
@@ -30,6 +33,17 @@ interface CreateLeagueModalProps {
   onSuccess: () => void;
   initialData?: League | null;
 }
+
+const COUNTRIES = [
+  { label: "México", value: "México" },
+  { label: "Estados Unidos", value: "Estados Unidos" },
+  { label: "España", value: "España" },
+  { label: "Colombia", value: "Colombia" },
+  { label: "Argentina", value: "Argentina" },
+  { label: "Chile", value: "Chile" },
+  { label: "Costa Rica", value: "Costa Rica" },
+  { label: "Otro", value: "Otro" },
+];
 
 export function CreateLeagueModal({
   visible,
@@ -54,8 +68,38 @@ export function CreateLeagueModal({
       name: initialData?.name || "",
       city: initialData?.city || "",
       country: initialData?.country || "México",
+      logo: initialData?.logo || "",
+      background_image: initialData?.background_image || "",
     },
   });
+
+  const logo = useWatch({ control, name: "logo" });
+  const backgroundImage = useWatch({ control, name: "background_image" });
+
+  const pickImage = async (field: "logo" | "background_image") => {
+    const isLogo = field === "logo";
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: isLogo ? [1, 1] : [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      reset({
+        ...control._formValues,
+        [field]: result.assets[0].uri
+      });
+      // A safer way to update specific field in react-hook-form
+      // but setValue is more standard:
+      // setValue(field, result.assets[0].uri);
+    }
+  };
+
+  // Helper to update form values manually if needed
+  const updateField = (field: any, value: string) => {
+    reset({ ...control._formValues, [field]: value });
+  };
 
   // Reset form when initialData changes or modal opens
   useEffect(() => {
@@ -84,19 +128,36 @@ export function CreateLeagueModal({
     }
 
     try {
-      const payload = {
-        name: data.name,
-        slug: isEditing ? initialData.slug : slugify(data.name) + "-" + Math.floor(Math.random() * 1000),
-        city: data.city,
-        country: data.country,
-        created_by: user.id,
-      };
+      const formData = new FormData();
+      const slug = isEditing ? initialData.slug : slugify(data.name) + "-" + Math.floor(Math.random() * 1000);
+      
+      formData.append("name", data.name);
+      formData.append("slug", slug);
+      formData.append("city", data.city);
+      formData.append("country", data.country);
+      formData.append("created_by", user.id);
+
+      // Handle Logo
+      if (data.logo && data.logo.startsWith("file://")) {
+        const uri = data.logo;
+        const name = uri.split('/').pop() || 'logo.jpg';
+        const type = `image/${name.split('.').pop() || 'jpg'}`;
+        formData.append("logo", { uri, name, type } as any);
+      }
+
+      // Handle Background
+      if (data.background_image && data.background_image.startsWith("file://")) {
+        const uri = data.background_image;
+        const name = uri.split('/').pop() || 'background.jpg';
+        const type = `image/${name.split('.').pop() || 'jpg'}`;
+        formData.append("background_image", { uri, name, type } as any);
+      }
 
       if (isEditing) {
-        await api.patch(`/v1/leagues/${initialData.id}/`, payload);
+        await api.patch(`/v1/leagues/${initialData.id}/`, formData);
         Alert.alert("¡Éxito!", "La liga ha sido actualizada correctamente.");
       } else {
-        await api.post("/v1/leagues/", payload);
+        await api.post("/v1/leagues/", formData);
         Alert.alert("¡Éxito!", "La liga ha sido registrada correctamente.");
       }
 
@@ -169,8 +230,42 @@ export function CreateLeagueModal({
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.formSection}>
-              <View style={styles.iconCircle}>
-                <Trophy size={40} color={theme.primary} />
+              {/* BRANDING SECTION */}
+              <View style={styles.brandingContainer}>
+                {/* Background Image Picker */}
+                <TouchableOpacity 
+                  style={styles.backgroundPicker} 
+                  onPress={() => pickImage("background_image")}
+                  activeOpacity={0.8}
+                >
+                  {backgroundImage ? (
+                    <Image source={{ uri: backgroundImage }} style={styles.backgroundImage} />
+                  ) : (
+                    <View style={styles.backgroundPlaceholder}>
+                      <Layout size={24} color={theme.textSecondary} />
+                      <Text style={styles.placeholderText}>AÑADIR PORTADA</Text>
+                    </View>
+                  )}
+                  <View style={styles.overlay} />
+                </TouchableOpacity>
+
+                {/* Logo Picker (Overlapping) */}
+                <TouchableOpacity 
+                  style={styles.logoPicker} 
+                  onPress={() => pickImage("logo")}
+                  activeOpacity={0.9}
+                >
+                  {logo ? (
+                    <Image source={{ uri: logo }} style={styles.logoImage} />
+                  ) : (
+                    <View style={styles.logoPlaceholder}>
+                      <Trophy size={30} color={theme.primary} />
+                    </View>
+                  )}
+                  <View style={styles.cameraBadge}>
+                    <Camera size={14} color="#FFF" />
+                  </View>
+                </TouchableOpacity>
               </View>
               
               <Text style={styles.sectionTitle}>
@@ -178,7 +273,7 @@ export function CreateLeagueModal({
               </Text>
               <Text style={styles.sectionSubtitle}>
                 {isEditing 
-                  ? "Modifica los detalles básicos de tu competición para mantenerla actualizada."
+                  ? "Modifica los detalles visuales y básicos de tu competición."
                   : "Crea una nueva competición y gestiona equipos, calendarios y estadísticas."
                 }
               </Text>
@@ -201,11 +296,11 @@ export function CreateLeagueModal({
                   containerStyle={{ flex: 1 }}
                 />
                 <View style={{ width: 15 }} />
-                <FormInput
+                <FormSelect
                   control={control}
                   name="country"
                   label="PAÍS"
-                  placeholder="Ej. México"
+                  options={COUNTRIES}
                   required
                   containerStyle={{ flex: 1 }}
                 />
@@ -277,17 +372,80 @@ const createStyles = (theme: any, isDark: boolean) =>
       paddingTop: 10,
       paddingBottom: 40,
     },
-    iconCircle: {
-      width: 80,
-      height: 80,
-      borderRadius: 40,
-      backgroundColor: isDark ? "rgba(0, 245, 255, 0.05)" : "rgba(0, 245, 255, 0.03)",
-      justifyContent: "center",
-      alignItems: "center",
-      marginBottom: 20,
-      alignSelf: 'center',
+    brandingContainer: {
+      width: '100%',
+      height: 180,
+      marginBottom: 60,
+      position: 'relative',
+    },
+    backgroundPicker: {
+      width: '100%',
+      height: 140,
+      borderRadius: 20,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+      overflow: 'hidden',
       borderWidth: 1,
-      borderColor: isDark ? "rgba(0, 245, 255, 0.1)" : "rgba(0, 245, 255, 0.05)",
+      borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    },
+    backgroundImage: {
+      width: '100%',
+      height: '100%',
+    },
+    backgroundPlaceholder: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+    },
+    placeholderText: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: theme.textSecondary,
+      letterSpacing: 1,
+    },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.1)',
+    },
+    logoPicker: {
+      position: 'absolute',
+      bottom: 0,
+      alignSelf: 'center',
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      backgroundColor: theme.surface,
+      borderWidth: 4,
+      borderColor: theme.background,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 8,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+    },
+    logoImage: {
+      width: '100%',
+      height: '100%',
+      borderRadius: 41,
+    },
+    logoPlaceholder: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cameraBadge: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      backgroundColor: theme.primary,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: theme.background,
     },
     formSection: {
       width: "100%",

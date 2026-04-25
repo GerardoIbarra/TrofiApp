@@ -134,10 +134,10 @@ export const api = {
   post: <T>(endpoint: string, body?: Record<string, unknown> | FormData, options?: RequestOptions) =>
     request<T>(endpoint, { method: 'POST', body, ...options }),
 
-  put: <T>(endpoint: string, body: Record<string, unknown>, options?: RequestOptions) =>
+  put: <T>(endpoint: string, body: Record<string, unknown> | FormData, options?: RequestOptions) =>
     request<T>(endpoint, { method: 'PUT', body, ...options }),
 
-  patch: <T>(endpoint: string, body: Record<string, unknown>, options?: RequestOptions) =>
+  patch: <T>(endpoint: string, body: Record<string, unknown> | FormData, options?: RequestOptions) =>
     request<T>(endpoint, { method: 'PATCH', body, ...options }),
 
   delete: <T>(endpoint: string, options?: RequestOptions) =>
