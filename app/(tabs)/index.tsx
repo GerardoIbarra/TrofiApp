@@ -5,7 +5,7 @@ import { CreatePlayerModal } from "@/components/players/CreatePlayerModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
-import { Match, PaginatedMatches } from "@/features/tournaments/types/match";
+import { Match, PaginatedMatches, TeamFeedResponse } from "@/features/tournaments/types/match";
 import { PaginatedPlayers, Player } from "@/features/players/types/player";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -63,14 +63,21 @@ export default function HomeScreen() {
 
   const loadNextMatch = async () => {
     try {
-      const res = await api.get<PaginatedMatches>(
-        "/v1/matches/?status=scheduled&ordering=start_datetime&limit=1",
+      const res = await api.get<TeamFeedResponse>(
+        "/v1/matches/my_team_feed/",
       );
-      if (res.results.length > 0) {
-        setNextMatch(res.results[0]);
+      
+      // Buscamos el primer partido disponible en cualquiera de sus equipos
+      const allMatches = res.teams.flatMap(t => t.matches);
+      if (allMatches.length > 0) {
+        // Ordenamos por fecha para mostrar el más cercano
+        const sorted = allMatches.sort((a, b) => 
+          new Date(a.start_datetime).getTime() - new Date(b.start_datetime).getTime()
+        );
+        setNextMatch(sorted[0]);
       }
     } catch (err) {
-      console.error("Error loading next match:", err);
+      console.error("Error loading team feed:", err);
     }
   };
 
@@ -136,6 +143,8 @@ export default function HomeScreen() {
                     <Text style={styles.matchdayText}>
                       {nextMatch.status === "ongoing"
                         ? "En Vivo"
+                        : nextMatch.status === "finished"
+                        ? "Resultado Final"
                         : "Próximo Partido"}
                     </Text>
                     <Text style={styles.matchPhase}>Temporada Regular</Text>
@@ -151,8 +160,13 @@ export default function HomeScreen() {
                         <Text style={styles.teamName}>
                           {nextMatch.home_team_name}
                         </Text>
+                        {nextMatch.result && (
+                          <Text style={styles.scoreText}>{nextMatch.result.home_score}</Text>
+                        )}
                       </View>
-                      <Text style={styles.vsText}>VS</Text>
+                      <Text style={styles.vsText}>
+                        {nextMatch.result ? "-" : "VS"}
+                      </Text>
                       <View style={styles.team}>
                         <View
                           style={[
@@ -163,6 +177,9 @@ export default function HomeScreen() {
                         <Text style={styles.teamName}>
                           {nextMatch.away_team_name}
                         </Text>
+                        {nextMatch.result && (
+                          <Text style={styles.scoreText}>{nextMatch.result.away_score}</Text>
+                        )}
                       </View>
                     </View>
 
@@ -443,6 +460,12 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 16,
       fontWeight: "900",
       color: theme.textSecondary,
+    },
+    scoreText: {
+      fontSize: 32,
+      fontWeight: "900",
+      color: theme.primary,
+      marginTop: 5,
     },
     matchFooter: {
       flexDirection: "row",

@@ -36,3 +36,14 @@ export interface PaginatedMatches {
   previous: string | null;
   results: Match[];
 }
+
+export interface TeamFeed {
+  id: string;
+  name: string;
+  logo: string;
+  matches: Match[];
+}
+
+export interface TeamFeedResponse {
+  teams: TeamFeed[];
+}
