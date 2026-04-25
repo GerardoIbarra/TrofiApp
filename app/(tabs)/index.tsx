@@ -11,7 +11,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
   ArrowUpRight,
-  Bell,
   Calendar,
   Plus,
   TrendingUp,
@@ -102,9 +101,6 @@ export default function HomeScreen() {
                   MIS EQUIPOS
                 </Text>
               </View>
-              <TouchableOpacity style={styles.bellButton}>
-                <Bell size={20} color={theme.primary} />
-              </TouchableOpacity>
             </View>
 
             {/* Featured Match Card */}
