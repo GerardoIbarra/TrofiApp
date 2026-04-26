@@ -1,12 +1,12 @@
 import React from 'react';
 import Svg, { Path, Rect, G } from 'react-native-svg';
 
-interface TrofyLogoProps {
+interface TrofiLogoProps {
   size?: number;
   color?: string;
 }
 
-export const TrofyLogo: React.FC<TrofyLogoProps> = ({ size = 100, color = 'black' }) => {
+export const TrofiLogo: React.FC<TrofiLogoProps> = ({ size = 100, color = 'black' }) => {
   return (
     <Svg width={size} height={size} viewBox="0 0 2560 2560" fill="none">
       <G fill={color}>

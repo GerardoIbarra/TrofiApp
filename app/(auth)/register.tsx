@@ -71,7 +71,7 @@ export default function RegisterScreen() {
             <TouchableOpacity onPress={() => router.replace('/(auth)' as any)} style={styles.backButton}>
               <ChevronLeft size={28} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>TROFY</Text>
+            <Text style={styles.headerTitle}>TROFI</Text>
             <View style={{ width: 28 }} />
           </View>
 
