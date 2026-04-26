@@ -10,10 +10,13 @@ import { Match, PaginatedMatches, TeamFeedResponse } from "@/features/tournament
 import { PaginatedPlayers, Player } from "@/features/players/types/player";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import {
   ArrowUpRight,
   Calendar,
+  ChevronRight,
   Plus,
+  Search,
   TrendingUp,
   Trophy,
 } from "lucide-react-native";
@@ -149,6 +152,7 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const router = useRouter();
 
@@ -199,11 +203,11 @@ export default function HomeScreen() {
           <View style={styles.webContainer}>
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionOverline}>RESUMEN SEMANAL</Text>
+                <Text style={styles.sectionOverline}>{t('home.weekly_summary')}</Text>
                 <Text
                   style={[GlobalStyles.sectionTitle, { color: theme.text }]}
                 >
-                  MIS EQUIPOS
+                  {t('home.my_teams')}
                 </Text>
               </View>
             </View>
@@ -238,8 +242,8 @@ export default function HomeScreen() {
                   >
                     <View style={styles.emptyFeaturedCard}>
                       <Calendar size={32} color={theme.textSecondary} opacity={0.3} />
-                      <Text style={styles.emptyFeaturedTitle}>NO HAY PARTIDOS</Text>
-                      <Text style={styles.emptyFeaturedSubtitle}>Únete a un equipo para ver tu feed.</Text>
+                      <Text style={styles.emptyFeaturedTitle}>{t('home.no_matches')}</Text>
+                      <Text style={styles.emptyFeaturedSubtitle}>{t('home.join_team_subtitle')}</Text>
                     </View>
                   </LinearGradient>
                 </View>
@@ -249,7 +253,7 @@ export default function HomeScreen() {
             {/* Stats Summary Area */}
             <View style={styles.statsContainer}>
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>VICTORIAS</Text>
+                <Text style={styles.statLabel}>{t('home.victories')}</Text>
                 <View style={styles.statValueContainer}>
                   <Text style={styles.statValue}>94%</Text>
                   <TrendingUp size={16} color={theme.primary} />
@@ -260,7 +264,7 @@ export default function HomeScreen() {
               </View>
 
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>GOLES / PARTIDO</Text>
+                <Text style={styles.statLabel}>{t('home.goals')} / {t('profile.matches')}</Text>
                 <View style={styles.statValueContainer}>
                   <Text style={styles.statValue}>2.2</Text>
                   <TrendingUp size={16} color={theme.primary} />
@@ -297,7 +301,7 @@ export default function HomeScreen() {
             {/* Players List Section */}
             <View style={styles.sectionHeader}>
               <Text style={[GlobalStyles.sectionTitle, { color: theme.text }]}>
-                JUGADORES
+                {t('home.players')}
               </Text>
               <View style={styles.headerActions}>
                 <TouchableOpacity
@@ -308,7 +312,7 @@ export default function HomeScreen() {
                 </TouchableOpacity>
                 {players.length > 0 && (
                   <TouchableOpacity onPress={() => router.push("/players-list" as any)}>
-                    <Text style={styles.seeAllText}>VER TODOS</Text>
+                    <Text style={styles.seeAllText}>{t('common.see_all')}</Text>
                   </TouchableOpacity>
                 )}
               </View>

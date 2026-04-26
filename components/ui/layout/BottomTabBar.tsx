@@ -4,10 +4,12 @@ import { Trophy, Search, Users, User, Home } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 export function BottomTabBar({ state, navigation }: any) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const bottomPadding = Math.max(insets.bottom, 10);
   
   const handlePress = (routeName: string, index: number) => {
@@ -37,14 +39,14 @@ export function BottomTabBar({ state, navigation }: any) {
     ]}>
       <TabItem 
         icon={<Home size={22} color={currentRouteName === 'index' ? theme.primary : theme.textSecondary} />} 
-        label="Inicio" 
+        label={t('tabs.home')} 
         active={currentRouteName === 'index'} 
         theme={theme}
         onPress={() => handlePress('index', 0)}
       />
       <TabItem 
         icon={<Trophy size={22} color={isLeaguesActive ? theme.primary : theme.textSecondary} />} 
-        label="Ligas" 
+        label={t('tabs.leagues')} 
         active={isLeaguesActive} 
         theme={theme}
         onPress={() => handlePress('leagues', 1)}
@@ -69,14 +71,14 @@ export function BottomTabBar({ state, navigation }: any) {
             }
           />
         }
-        label="Equipos"
+        label={t('tabs.teams')}
         active={currentRouteName === "teams"}
         theme={theme}
         onPress={() => handlePress("teams", 3)}
       />
       <TabItem 
         icon={<User size={22} color={currentRouteName === 'profile' ? theme.primary : theme.textSecondary} />} 
-        label="Perfil" 
+        label={t('tabs.profile')} 
         active={currentRouteName === 'profile'}
         theme={theme}
         onPress={() => handlePress('profile', 4)}

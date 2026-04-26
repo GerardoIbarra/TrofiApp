@@ -9,6 +9,7 @@ import { League, LeaguesResponse } from "@/features/leagues/types/league";
 import { Team } from "@/features/teams/types/team";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Trophy, X, Trash2 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -39,6 +40,7 @@ export function CreateTeamModal({
   initialData = null,
 }: CreateTeamModalProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
@@ -104,10 +106,10 @@ export function CreateTeamModal({
 
       if (isEditing && initialData) {
         await api.patch(`/v1/teams/${initialData.id}/`, payload);
-        Alert.alert("¡Éxito!", "El equipo ha sido actualizado correctamente.");
+        Alert.alert(t('common.save'), t('teams_form.success_update'));
       } else {
         await api.post("/v1/teams/", payload);
-        Alert.alert("¡Éxito!", "El equipo ha sido creado correctamente.");
+        Alert.alert(t('common.save'), t('teams_form.success_create'));
       }
 
       reset();
@@ -126,12 +128,12 @@ export function CreateTeamModal({
     if (!initialData?.id) return;
 
     Alert.alert(
-      "Eliminar Equipo",
-      "¿Estás seguro de que deseas eliminar este equipo? Esta acción no se puede deshacer.",
+      t('teams_form.delete_team'),
+      t('teams_form.delete_confirm_msg'),
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Eliminar definitivamente",
+          text: t('teams_form.delete_team'),
           style: "destructive",
           onPress: async () => {
             try {
@@ -168,7 +170,7 @@ export function CreateTeamModal({
               <X size={24} color={theme.text} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>
-              {isEditing ? "EDITAR EQUIPO" : "NUEVO EQUIPO"}
+              {isEditing ? t('teams_form.edit_team') : t('teams_form.new_team')}
             </Text>
             <View style={{ width: 40 }} />
           </View>
@@ -179,34 +181,34 @@ export function CreateTeamModal({
           >
             <View style={styles.formSection}>
               <Text style={styles.sectionTitle}>
-                {isEditing ? "Ajustes del Equipo" : "Detalles del Equipo"}
+                {isEditing ? t('teams_form.team_settings') : t('teams_form.team_details')}
               </Text>
               <Text style={styles.sectionSubtitle}>
                 {isEditing 
-                  ? "Modifica la identidad y la liga de tu equipo."
-                  : "Define la identidad de tu equipo en la plataforma."
+                  ? t('teams_form.team_subtitle_edit')
+                  : t('teams_form.team_subtitle_new')
                 }
               </Text>
 
               <FormInput
                 control={control}
                 name="name"
-                label="NOMBRE DEL EQUIPO"
-                placeholder="Ej. Galaxy FC"
+                label={t('teams_form.team_name_label')}
+                placeholder={t('teams_form.team_name_placeholder')}
                 required
               />
 
               <FormInput
                 control={control}
                 name="city"
-                label="CIUDAD"
-                placeholder="Ej. Guadalajara"
+                label={t('teams_form.city_label')}
+                placeholder={t('teams_form.city_placeholder')}
                 required
               />
 
               {/* League Selector */}
               <View style={styles.leagueSelectorContainer}>
-                <Text style={styles.selectorLabel}>SELECCIONAR LIGA</Text>
+                <Text style={styles.selectorLabel}>{t('teams_form.select_league')}</Text>
                 {isLoadingLeagues ? (
                   <ActivityIndicator
                     color={theme.primary}
@@ -251,10 +253,10 @@ export function CreateTeamModal({
                     ) : (
                       <View style={styles.noLeaguesBox}>
                         <Text style={styles.noLeaguesText}>
-                          No hay ligas disponibles en este momento.
+                          {t('teams_form.no_leagues_available')}
                         </Text>
                         <TouchableOpacity onPress={fetchLeagues}>
-                          <Text style={styles.retryText}>Reintentar carga</Text>
+                          <Text style={styles.retryText}>{t('teams_form.retry')}</Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -263,7 +265,7 @@ export function CreateTeamModal({
               </View>
 
               <PrimaryButton
-                title={isSubmitting ? "Guardando..." : (isEditing ? "Guardar Cambios" : "Crear Equipo")}
+                title={isSubmitting ? t('teams_form.saving') : (isEditing ? t('teams_form.save_changes') : t('teams_form.create_team'))}
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 style={{ marginTop: 20 }}
@@ -277,7 +279,7 @@ export function CreateTeamModal({
                   disabled={isSubmitting}
                 >
                   <Trash2 size={18} color="#FF4B4B" />
-                  <Text style={styles.deleteButtonText}>Eliminar Equipo</Text>
+                  <Text style={styles.deleteButtonText}>{t('teams_form.delete_team')}</Text>
                 </TouchableOpacity>
               )}
             </View>

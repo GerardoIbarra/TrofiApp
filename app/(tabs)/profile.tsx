@@ -8,9 +8,13 @@ import { User as UserType } from "@/features/auth/types/auth";
 import { CardHistory, PlayerStats } from "@/features/players/types/player";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
+import { useTranslation } from "react-i18next";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LANGUAGE_KEY } from "@/i18n";
 import {
   Award,
   ChevronRight,
+  Globe,
   LogOut,
   Moon,
   Settings,
@@ -50,6 +54,7 @@ const MATCHES: any[] = [];
 
 export default function ProfileScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
+  const { t, i18n } = useTranslation();
   const signOut = useAuthStore((state) => state.signOut);
   const styles = createStyles(theme, isDark);
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -58,6 +63,14 @@ export default function ProfileScreen() {
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [card, setCard] = useState<CardHistory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const currentLanguage = i18n.language;
+
+  const toggleLanguage = async () => {
+    const newLang = currentLanguage === 'es' ? 'en' : 'es';
+    await i18n.changeLanguage(newLang);
+    await AsyncStorage.setItem(LANGUAGE_KEY, newLang);
+  };
 
   useEffect(() => {
     fetchData();
@@ -185,17 +198,17 @@ export default function ProfileScreen() {
 
                     <View style={styles.infoRow}>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>POSICIÓN</Text>
+                        <Text style={styles.infoLabel}>{t('profile.position')}</Text>
                         <Text style={styles.infoValue}>
                           {profile?.position || "--"}
                         </Text>
                       </View>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>DORSAL</Text>
+                        <Text style={styles.infoLabel}>{t('profile.dorsal')}</Text>
                         <Text style={styles.infoValue}>--</Text>
                       </View>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>ALTURA</Text>
+                        <Text style={styles.infoLabel}>{t('profile.height')}</Text>
                         <Text style={styles.infoValue}>--</Text>
                       </View>
                     </View>
@@ -207,19 +220,19 @@ export default function ProfileScreen() {
             {/* Core Stats */}
             <View style={styles.kpiRow}>
               <KPIBox
-                label="GOLES"
+                label={t('profile.goals')}
                 value={stats?.goals?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
               />
               <KPIBox
-                label="ASISTENCIAS"
+                label={t('profile.assists')}
                 value={stats?.assists?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
               />
               <KPIBox
-                label="PARTIDOS"
+                label={t('profile.matches')}
                 value={stats?.matches_played?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
@@ -228,7 +241,7 @@ export default function ProfileScreen() {
 
             {/* Current Team Section */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionOverline}>EQUIPO ACTUAL</Text>
+              <Text style={styles.sectionOverline}>{t('profile.current_team')}</Text>
             </View>
             <View style={styles.teamCard}>
               <View style={styles.teamBrandBox}>
@@ -236,17 +249,17 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.teamCoreInfo}>
                 <Text style={styles.teamNameTitle}>
-                  {profile?.memberships?.[0]?.team_name || "Sin Equipo"}
+                  {profile?.memberships?.[0]?.team_name || t('profile.no_team')}
                 </Text>
                 <Text style={styles.teamSubtitle}>
                   {profile?.memberships?.[0]
-                    ? "Miembro Activo"
-                    : "No registrado en un equipo"}
+                    ? t('profile.active_member')
+                    : t('profile.no_team')}
                 </Text>
               </View>
               {profile?.memberships?.[0] && (
                 <TouchableOpacity style={styles.viewTeamBtn}>
-                  <Text style={styles.viewTeamBtnText}>VER EQUIPO</Text>
+                  <Text style={styles.viewTeamBtnText}>{t('profile.view_team')}</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -255,13 +268,13 @@ export default function ProfileScreen() {
             <View style={styles.trendSection}>
               <View style={styles.trendHeader}>
                 <View>
-                  <Text style={styles.trendTitle}>TENDENCIA</Text>
+                  <Text style={styles.trendTitle}>{t('profile.trend')}</Text>
                   <Text style={styles.trendSubtitle}>
                     Calificación Promedio:{" "}
                     <Text style={{ color: theme.primary }}>0.0</Text>
                   </Text>
                 </View>
-                <Text style={styles.lastGamesText}>SIN DATOS DE PARTIDOS</Text>
+                <Text style={styles.lastGamesText}>SIN DATOS</Text>
               </View>
 
               <View style={styles.chartContainer}>
@@ -284,7 +297,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* Recent Matches */}
-            <Text style={styles.mainSectionTitle}>PARTIDOS RECIENTES</Text>
+            <Text style={styles.mainSectionTitle}>{t('profile.recent_matches')}</Text>
             {MATCHES.length > 0 ? (
               MATCHES.map((match) => (
                 <TouchableOpacity key={match.id} style={styles.matchCard}>
@@ -332,21 +345,21 @@ export default function ProfileScreen() {
                   style={{ marginBottom: 12 }}
                 />
                 <Text style={styles.emptyMatchesText}>
-                  No hay partidos registrados recientemente
+                  {t('profile.no_recent_matches')}
                 </Text>
               </View>
             )}
 
             {/* CONFIGURATION */}
             <View style={[styles.sectionHeader, { marginTop: 25 }]}>
-              <Text style={styles.mainSectionTitle}>CONFIGURACIÓN</Text>
+              <Text style={styles.mainSectionTitle}>{t('profile.configuration')}</Text>
             </View>
 
             {/* Theme Toggle Switch */}
             <View style={styles.menuItem}>
               <View style={styles.menuIconText}>
                 <Moon size={20} color={theme.primary} />
-                <Text style={styles.menuLabel}>Modo Oscuro</Text>
+                <Text style={styles.menuLabel}>{t('profile.dark_mode')}</Text>
               </View>
               <Switch
                 value={isDark}
@@ -356,34 +369,48 @@ export default function ProfileScreen() {
               />
             </View>
 
+            {/* Language Selector */}
+            <TouchableOpacity style={styles.menuItem} onPress={toggleLanguage}>
+              <View style={styles.menuIconText}>
+                <Globe size={20} color={theme.primary} />
+                <Text style={styles.menuLabel}>{t('profile.language')}</Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ color: theme.primary, fontWeight: '700' }}>
+                  {currentLanguage === 'es' ? 'Español' : 'English'}
+                </Text>
+                <ChevronRight size={18} color={theme.textSecondary} />
+              </View>
+            </TouchableOpacity>
+
             <MenuItem
               icon={<User size={20} color={theme.primary} />}
-              label="Mi Cuenta"
+              label={t('profile.my_account')}
               theme={theme}
               isDark={isDark}
             />
             <MenuItem
               icon={<Award size={20} color={theme.primary} />}
-              label="Logros y Trofeos"
+              label={t('profile.achievements')}
               theme={theme}
               isDark={isDark}
             />
             <MenuItem
               icon={<Shield size={20} color={theme.primary} />}
-              label="Privacidad y Seguridad"
+              label={t('profile.privacy')}
               theme={theme}
               isDark={isDark}
             />
             <MenuItem
               icon={<Settings size={20} color={theme.primary} />}
-              label="Ajustes de la App"
+              label={t('profile.app_settings')}
               theme={theme}
               isDark={isDark}
             />
 
             <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
               <LogOut size={20} color={theme.error} />
-              <Text style={styles.logoutText}>CERRAR SESIÓN</Text>
+              <Text style={styles.logoutText}>{t('profile.logout')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

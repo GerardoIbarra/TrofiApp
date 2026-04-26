@@ -22,6 +22,7 @@ import {
   Trophy,
   X
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import React, { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
@@ -61,6 +62,7 @@ export function CreateLeagueModal({
   initialData = null,
 }: CreateLeagueModalProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
@@ -169,10 +171,10 @@ export function CreateLeagueModal({
 
       if (isEditing) {
         await api.patch(`/v1/leagues/${initialData.id}/`, formData);
-        Alert.alert("¡Éxito!", "La liga ha sido actualizada correctamente.");
+        Alert.alert(t('common.save'), t('leagues_form.success_update'));
       } else {
         await api.post("/v1/leagues/", formData);
-        Alert.alert("¡Éxito!", "La liga ha sido registrada correctamente.");
+        Alert.alert(t('common.save'), t('leagues_form.success_create'));
       }
 
       reset();
@@ -191,12 +193,12 @@ export function CreateLeagueModal({
     if (!initialData?.id) return;
 
     Alert.alert(
-      "Eliminar Liga",
-      "¿Estás seguro de que deseas eliminar esta liga? Esta acción no se puede deshacer y se perderán todos los datos asociados.",
+      t('leagues_form.delete_confirm_title'),
+      t('leagues_form.delete_confirm_msg'),
       [
-        { text: "Cancelar", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Eliminar definitivamente",
+          text: t('leagues_form.delete_league'),
           style: "destructive",
           onPress: async () => {
             try {
@@ -234,7 +236,7 @@ export function CreateLeagueModal({
               <X size={24} color={theme.text} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>
-              {isEditing ? "EDITAR LIGA" : "NUEVA LIGA"}
+              {isEditing ? t('leagues_form.edit_league') : t('leagues_form.new_league')}
             </Text>
             <View style={{ width: 40 }} />
           </View>
@@ -260,7 +262,7 @@ export function CreateLeagueModal({
                   ) : (
                     <View style={styles.backgroundPlaceholder}>
                       <Layout size={24} color={theme.textSecondary} />
-                      <Text style={styles.placeholderText}>AÑADIR PORTADA</Text>
+                      <Text style={styles.placeholderText}>{t('leagues_form.add_cover')}</Text>
                     </View>
                   )}
                   <View style={styles.overlay} />
@@ -286,19 +288,19 @@ export function CreateLeagueModal({
               </View>
 
               <Text style={styles.sectionTitle}>
-                {isEditing ? "Actualizar Liga" : "Organiza tu Liga"}
+                {isEditing ? t('leagues_form.update_league') : t('leagues_form.organize_league')}
               </Text>
               <Text style={styles.sectionSubtitle}>
                 {isEditing
-                  ? "Modifica los detalles visuales y básicos de tu competición."
-                  : "Crea una nueva competición y gestiona equipos, calendarios y estadísticas."}
+                  ? t('leagues_form.league_subtitle_edit')
+                  : t('leagues_form.league_subtitle_new')}
               </Text>
 
               <FormInput
                 control={control}
                 name="name"
-                label="NOMBRE DE LA LIGA"
-                placeholder="Ej. Liga Premier Zapopan"
+                label={t('leagues_form.league_name_label')}
+                placeholder={t('leagues_form.league_name_placeholder')}
                 required
               />
 
@@ -306,7 +308,7 @@ export function CreateLeagueModal({
                 <FormSelect
                   control={control}
                   name="country"
-                  label="PAÍS"
+                  label={t('leagues_form.country_label')}
                   options={COUNTRIES}
                   required
                   containerStyle={{ flex: 1 }}
@@ -315,8 +317,8 @@ export function CreateLeagueModal({
                 <FormInput
                   control={control}
                   name="city"
-                  label="CIUDAD"
-                  placeholder="Ej. Guadalajara"
+                  label={t('leagues_form.city_label')}
+                  placeholder={t('leagues_form.city_placeholder')}
                   required
                   containerStyle={{ flex: 1 }}
                 />
@@ -325,18 +327,17 @@ export function CreateLeagueModal({
               <View style={styles.infoBox}>
                 <Globe size={18} color={theme.primary} />
                 <Text style={styles.infoText}>
-                  La liga será visible para todos los jugadores en la sección de
-                  exploración.
+                  {t('leagues_form.visibility_info')}
                 </Text>
               </View>
 
               <PrimaryButton
                 title={
                   isSubmitting
-                    ? "Guardando..."
+                    ? t('leagues_form.saving')
                     : isEditing
-                      ? "Guardar Cambios"
-                      : "Crear Liga Ahora"
+                      ? t('leagues_form.save_changes')
+                      : t('leagues_form.create_league')
                 }
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
@@ -351,7 +352,7 @@ export function CreateLeagueModal({
                   disabled={isSubmitting}
                 >
                   <Trash2 size={18} color="#FF4B4B" />
-                  <Text style={styles.deleteButtonText}>Eliminar Liga</Text>
+                  <Text style={styles.deleteButtonText}>{t('leagues_form.delete_league')}</Text>
                 </TouchableOpacity>
               )}
             </View>

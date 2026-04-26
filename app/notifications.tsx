@@ -10,6 +10,7 @@ import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient"
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
+import { useTranslation } from "react-i18next";
 import { 
   Trophy, 
   MessageSquare, 
@@ -65,6 +66,7 @@ const MOCK_NOTIFICATIONS = [
 
 export default function NotificationsScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const renderItem = ({ item }: { item: typeof MOCK_NOTIFICATIONS[0] }) => {
@@ -97,7 +99,7 @@ export default function NotificationsScreen() {
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-      <LayoutHeader title="NOTIFICACIONES" showBackButton={true} />
+      <LayoutHeader title={t('common.notifications')} showBackButton={true} />
 
       <FlatList
         data={MOCK_NOTIFICATIONS}
@@ -107,7 +109,7 @@ export default function NotificationsScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No tienes notificaciones por ahora.</Text>
+            <Text style={styles.emptyText}>{t('common.no_notifications')}</Text>
           </View>
         }
       />

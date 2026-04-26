@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 
@@ -34,6 +35,7 @@ const getTeamLogo = (logo: string | null, index: number) =>
 
 export default function TeamsScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const [teams, setTeams] = useState<Team[]>([]);
@@ -90,18 +92,18 @@ export default function TeamsScreen() {
                     <View style={styles.teamInfo}>
                       <Text style={styles.teamNameText}>{team.name}</Text>
                       <Text style={styles.leagueNameText}>
-                        {team.league_name || "Free Agent Team"}
+                        {team.league_name || t('teams.free_agent')}
                       </Text>
                     </View>
                   </View>
 
                   <View style={styles.statsRow}>
                     <View style={styles.statColumn}>
-                      <Text style={styles.statLabel}>UBICACIÓN</Text>
+                      <Text style={styles.statLabel}>{t('teams.location')}</Text>
                       <Text style={styles.standingValue}>{team.city}</Text>
                     </View>
                     <View style={styles.statColumn}>
-                      <Text style={styles.statLabel}>DUEÑO</Text>
+                      <Text style={styles.statLabel}>{t('teams.owner')}</Text>
                       <View style={styles.nextMatchContainer}>
                         <Text style={styles.nextMatchValue}>
                           {team.owner_name}
@@ -115,11 +117,11 @@ export default function TeamsScreen() {
                       style={styles.viewButton}
                       onPress={() => router.push({ pathname: '/team-detail', params: { id: team.id } })}
                     >
-                      <Text style={styles.viewButtonText}>Ver Equipo</Text>
+                      <Text style={styles.viewButtonText}>{t('teams.view_team')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.manageButton}>
                       <Text style={styles.manageButtonText}>
-                        Gestionar Plantilla
+                        {t('teams.manage_roster')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -132,10 +134,9 @@ export default function TeamsScreen() {
                   color={theme.primary}
                   style={{ marginBottom: 15 }}
                 />
-                <Text style={styles.emptyTitle}>Sin equipos aún</Text>
+                <Text style={styles.emptyTitle}>{t('teams.no_teams')}</Text>
                 <Text style={styles.emptySubtitle}>
-                  Únete a una liga o crea tu propio equipo para empezar a
-                  competir.
+                  {t('teams.no_teams_subtitle')}
                 </Text>
               </View>
             )}

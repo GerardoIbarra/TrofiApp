@@ -12,6 +12,7 @@ import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient"
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
+import { useTranslation } from "react-i18next";
 import { router } from "expo-router";
 import api from "@/services/api";
 import { Player, PaginatedPlayers } from "@/features/players/types/player";
@@ -21,6 +22,7 @@ import { useState } from "react";
 
 export default function PlayersListScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -52,7 +54,7 @@ export default function PlayersListScreen() {
             {item.full_name}
           </Text>
           <Text style={styles.playerDetails}>
-            {item.position || "Jugador"} • Media {item.overall_rating || "S/N"}
+            {(item.position || t('players.player'))} • {t('players.rating')} {item.overall_rating || "S/N"}
           </Text>
         </View>
       </View>
@@ -63,14 +65,14 @@ export default function PlayersListScreen() {
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-      <LayoutHeader title="JUGADORES" showBackButton={true} />
+      <LayoutHeader title={t('players.title')} showBackButton={true} />
 
       <View style={styles.content}>
         {/* Search Bar - Placeholder for future functionality */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <Search size={18} color={theme.textSecondary} />
-            <Text style={styles.searchText}>Buscar jugador...</Text>
+            <Text style={styles.searchText}>{t('players.search_placeholder')}</Text>
           </View>
           <TouchableOpacity style={styles.filterButton}>
             <Filter size={18} color={theme.primary} />
@@ -83,7 +85,7 @@ export default function PlayersListScreen() {
           </View>
         ) : filteredPlayers.length === 0 ? (
           <View style={styles.centerContainer}>
-            <Text style={styles.emptyText}>No se encontraron jugadores</Text>
+            <Text style={styles.emptyText}>{t('players.no_players')}</Text>
           </View>
         ) : (
           <FlatList

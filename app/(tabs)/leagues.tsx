@@ -7,6 +7,7 @@ import api from "@/services/api";
 import { League, LeaguesResponse } from "@/features/leagues/types/league";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import {
   Trophy,
   Search,
@@ -18,7 +19,8 @@ import {
   Medal,
   Plus,
   Venus,
-  X
+  X,
+  Filter,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
@@ -56,6 +58,7 @@ const GAME_FORMATS = [
 
 export default function LeaguesExplorerScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const [leagues, setLeagues] = useState<League[]>([]);
@@ -64,7 +67,6 @@ export default function LeaguesExplorerScreen() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const scrollRef = useRef<ScrollView>(null);
-  const nearbySectionRef = useRef<View>(null);
 
   useEffect(() => {
     fetchLeagues();
@@ -104,22 +106,33 @@ export default function LeaguesExplorerScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.webContainer}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={[GlobalStyles.sectionTitle, { color: theme.text }]}>
+                {t('leagues.title')}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setIsModalVisible(true)}
+                style={styles.addButton}
+              >
+                <Plus color="#FFF" size={20} />
+              </TouchableOpacity>
+            </View>
+
             {/* Search Bar */}
             <View style={styles.searchContainer}>
               <View style={styles.searchBar}>
                 <Search size={20} color={theme.textSecondary} />
                 <TextInput
-                  placeholder="ENCUENTRA TU PRÓXIMA ARENA..."
+                  placeholder={t('leagues.search_placeholder')}
                   placeholderTextColor={theme.textSecondary}
                   style={styles.searchInput}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                 />
-                {searchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchQuery("")}>
-                    <X size={18} color={theme.textSecondary} />
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity style={styles.filterBtn}>
+                  <Filter color={theme.primary} size={20} />
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -181,14 +194,14 @@ export default function LeaguesExplorerScreen() {
                     <View style={styles.featuredContent}>
                       <View style={styles.statusBadge}>
                         <Text style={styles.statusText}>
-                          INSCRIPCIONES ABIERTAS
+                          {t('leagues.active_badge')}
                         </Text>
                       </View>
                       <Text style={styles.featuredName}>{league.name}</Text>
                       <View style={styles.featuredCategoryRow}>
                         <Trophy size={14} color={theme.primary} />
-                        <Text style={styles.featuredCategory}>
-                          {league.city}, {league.country}
+                        <Text style={styles.statText}>
+                          {(league as any).players_count || 0} {t('leagues.players_count')}
                         </Text>
                       </View>
                     </View>
@@ -204,7 +217,7 @@ export default function LeaguesExplorerScreen() {
                   }}
                 >
                   <Text style={{ color: theme.textSecondary }}>
-                    No se encontraron ligas destacadas
+                    {t('leagues.no_leagues')}
                   </Text>
                 </View>
               )}
@@ -274,8 +287,9 @@ export default function LeaguesExplorerScreen() {
                     <View style={styles.nearbyInfo}>
                       <View style={styles.nameStatusRow}>
                         <Text style={styles.nearbyName}>{item.name}</Text>
-                        <View style={styles.inlineStatusBadge}>
-                          <Text style={styles.inlineStatusText}>ACTIVA</Text>
+                        <View style={styles.activeBadge}>
+                          <View style={styles.activeDot} />
+                          <Text style={styles.activeText}>{t('leagues.active_badge')}</Text>
                         </View>
                       </View>
                       <View style={styles.nearbyMetaRow}>
@@ -348,27 +362,6 @@ const createStyles = (theme: any, isDark: boolean) =>
       alignSelf: "center",
       paddingHorizontal: 20,
     },
-    searchContainer: {
-      marginTop: 10,
-      marginBottom: 20,
-    },
-    searchBar: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.surface,
-      borderRadius: 14,
-      paddingHorizontal: 15,
-      height: 50,
-      borderWidth: 1,
-      borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
-    },
-    searchInput: {
-      flex: 1,
-      color: theme.text,
-      marginLeft: 10,
-      fontSize: 14,
-      fontWeight: "600",
-    },
     sectionHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -389,6 +382,53 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.text,
       fontStyle: "italic",
       letterSpacing: 0.5,
+    },
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    addButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: theme.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 4,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+    searchContainer: {
+      marginBottom: 25,
+    },
+    searchBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      paddingHorizontal: 15,
+      height: 54,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+    },
+    searchInput: {
+      flex: 1,
+      marginLeft: 12,
+      fontSize: 14,
+      color: theme.text,
+      fontWeight: "600",
+    },
+    filterBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: theme.primary + "15",
+      justifyContent: "center",
+      alignItems: "center",
     },
     viewAllText: {
       fontSize: 11,
@@ -536,16 +576,25 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "800",
       color: theme.text,
     },
-    inlineStatusBadge: {
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderRadius: 4,
+    activeBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 8,
       backgroundColor: theme.primary + "15",
       borderWidth: 0.5,
       borderColor: theme.primary + "30",
     },
-    inlineStatusText: {
-      fontSize: 8,
+    activeDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 2.5,
+      backgroundColor: theme.primary,
+    },
+    activeText: {
+      fontSize: 9,
       fontWeight: "900",
       color: theme.primary,
       letterSpacing: 0.5,
@@ -568,6 +617,11 @@ const createStyles = (theme: any, isDark: boolean) =>
     nearbyMeta: {
       fontSize: 12,
       color: theme.textSecondary,
+      fontWeight: "600",
+    },
+    statText: {
+      fontSize: 12,
+      color: "rgba(255,255,255,0.7)",
       fontWeight: "600",
     },
     nearbyStatusColumn: {

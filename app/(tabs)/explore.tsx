@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { Search as SearchIcon, SlidersHorizontal, X, Star, ChevronRight, User as UserIcon, CircleDot, Sun, Zap, Mountain } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
@@ -21,6 +22,7 @@ const POPULAR_TEAMS = [
 
 export default function ExploreScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   return (
@@ -37,7 +39,7 @@ export default function ExploreScreen() {
               <View style={styles.searchBar}>
                 <SearchIcon size={20} color={theme.textSecondary} />
                 <TextInput 
-                  placeholder="Ligas, equipos o jugadores..." 
+                  placeholder={t('explore.search_placeholder')}
                   placeholderTextColor={theme.textSecondary}
                   style={styles.searchInput}
                 />
@@ -49,9 +51,9 @@ export default function ExploreScreen() {
 
             {/* Recent Searches */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionLabel}>BÚSQUEDAS RECIENTES</Text>
+              <Text style={styles.sectionLabel}>{t('explore.recent_searches')}</Text>
               <TouchableOpacity>
-                <Text style={styles.clearAllText}>BORRAR TODO</Text>
+                <Text style={styles.clearAllText}>{t('explore.clear_all')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.recentView}>
@@ -66,7 +68,7 @@ export default function ExploreScreen() {
             </View>
 
             {/* Recommended for You */}
-            <Text style={styles.sectionTitle}>Recomendado para ti</Text>
+            <Text style={styles.sectionTitle}>{t('explore.recommended')}</Text>
             
             <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9}>
               <Image 
@@ -79,7 +81,7 @@ export default function ExploreScreen() {
               />
               <View style={styles.cardContent}>
                 <View style={styles.trendingBadge}>
-                  <Text style={styles.trendingText}>LIGA EN TENDENCIA</Text>
+                  <Text style={styles.trendingText}>{t('explore.trending_league')}</Text>
                 </View>
                 <Text style={styles.cardMainTitle}>METROPOLIS PREMIER</Text>
                 <Text style={styles.cardSubtitle}>Únete al inicio del 12º campeonato anual.</Text>
@@ -94,10 +96,10 @@ export default function ExploreScreen() {
                 </View>
               </View>
               <View style={styles.playerInfo}>
-                <Text style={styles.playerCardTitle}>Jugador del Mes</Text>
+                <Text style={styles.playerCardTitle}>{t('explore.player_of_month')}</Text>
                 <Text style={styles.playerName}>Marcus "Viper" Chen</Text>
                 <TouchableOpacity style={styles.viewProfileRow}>
-                   <Text style={styles.viewProfileText}>VER PERFIL</Text>
+                   <Text style={styles.viewProfileText}>{t('explore.view_profile')}</Text>
                    <ChevronRight size={14} color={theme.primary} />
                 </TouchableOpacity>
               </View>
@@ -108,9 +110,9 @@ export default function ExploreScreen() {
 
             {/* Popular Teams Grid */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Equipos Populares</Text>
+              <Text style={styles.sectionTitle}>{t('explore.popular_teams')}</Text>
               <TouchableOpacity>
-                <Text style={styles.seeAllText}>VER TODO</Text>
+                <Text style={styles.seeAllText}>{t('explore.see_all')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -131,14 +133,14 @@ export default function ExploreScreen() {
             </View>
 
             {/* Explore Sports */}
-            <Text style={styles.sectionTitle}>Explorar Deportes</Text>
+            <Text style={styles.sectionTitle}>{t('explore.explore_sports')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sportsScroll}>
               <SportCard 
-                title="Fútbol" 
+                title={t('explore.soccer')} 
                 image="https://images.pexels.com/photos/46734/pexels-photo-46734.jpeg?auto=compress&cs=tinysrgb&w=800"
               />
               <SportCard 
-                title="Básquetbol" 
+                title={t('explore.basketball')} 
                 image="https://images.pexels.com/photos/1752757/pexels-photo-1752757.jpeg?auto=compress&cs=tinysrgb&w=800"
               />
             </ScrollView>
