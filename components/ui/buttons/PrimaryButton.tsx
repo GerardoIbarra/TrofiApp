@@ -23,39 +23,53 @@ export function PrimaryButton({ title, onPress, style, fullWidth, disabled }: Pr
   };
 
   return (
-    <TouchableOpacity 
-      style={[
-        styles.button, 
-        { shadowColor: theme.primary },
-        fullWidth && { width: '100%' }, 
-        disabled && { opacity: 0.5 },
-        style
-      ]}
-      activeOpacity={0.8}
-      onPress={handlePress}
-      disabled={disabled}
-    >
-      <LinearGradient
-        colors={[theme.primary, theme.accent || '#00D1FF']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.buttonGradient}
+    <View style={[
+      styles.shadowContainer,
+      { shadowColor: theme.primary },
+      fullWidth && { width: '100%' },
+      style
+    ]}>
+      <TouchableOpacity 
+        style={[
+          styles.button, 
+          disabled && { opacity: 0.5 },
+        ]}
+        activeOpacity={0.8}
+        onPress={handlePress}
+        disabled={disabled}
       >
-        <Text style={styles.buttonText}>{title}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
+        <LinearGradient
+          colors={[theme.primary, theme.accent || '#00D1FF']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.buttonGradient}
+        >
+          <Text style={styles.buttonText}>{title}</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
+  shadowContainer: {
     height: 56,
     borderRadius: 16,
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  button: {
+    flex: 1,
+    borderRadius: 16,
     overflow: 'hidden',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
   },
   buttonGradient: {
     flex: 1,

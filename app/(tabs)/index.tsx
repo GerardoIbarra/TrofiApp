@@ -41,7 +41,66 @@ import {
 const { width } = Dimensions.get("window");
 const { height } = Dimensions.get("window");
 
-const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
+const MatchRow = React.memo(({ match, teamName, theme, styles, t, i18n }: any) => {
+  if (!match) return null;
+  const isLive = match.status === 'live';
+  const isFinished = match.status === 'finished';
+  
+  // Determinamos el oponente
+  const isHome = match.home_team_name.includes(teamName);
+  
+  return (
+    <TouchableOpacity 
+      style={styles.miniMatchRow}
+      activeOpacity={0.7}
+      delayPressIn={80}
+      onPress={() => router.push({
+        pathname: '/match-detail',
+        params: { id: match.id }
+      })}
+    >
+      <View style={styles.miniMatchTeams}>
+        <View style={styles.miniTeamCol}>
+           <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
+           <Text style={styles.miniTeamName} numberOfLines={1}>
+             {isHome ? match.home_team_name.substring(0, 3).toUpperCase() : match.away_team_name.substring(0, 3).toUpperCase()}
+           </Text>
+        </View>
+        
+        <View style={styles.miniScoreCol}>
+          {isLive || isFinished ? (
+            <>
+              <Text style={styles.miniScoreText}>
+                {match.result?.home_score ?? 0} - {match.result?.away_score ?? 0}
+              </Text>
+              <Text style={[styles.miniStatusText, isLive && { color: '#FF4B4B' }]}>
+                {isLive ? t('home.status_live') : t('home.status_finished')}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.miniDateText}>
+                {new Date(match.start_datetime).toLocaleDateString(i18n.language, { weekday: 'short' }).toUpperCase()}
+              </Text>
+              <Text style={styles.miniTimeText}>
+                {new Date(match.start_datetime).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
+              </Text>
+            </>
+          )}
+        </View>
+
+        <View style={styles.miniTeamCol}>
+           <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
+           <Text style={styles.miniTeamName} numberOfLines={1}>
+             {isHome ? match.away_team_name.substring(0, 3).toUpperCase() : match.home_team_name.substring(0, 3).toUpperCase()}
+           </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
+const FeaturedMatchCard = React.memo(({ team, isDark, theme, width, styles, t, i18n }: any) => {
   const matches = team.matches || [];
   
   // Encontramos el partido en curso o el último jugado
@@ -59,73 +118,12 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
           <View style={styles.emptyFeaturedCard}>
             <Trophy size={32} color={theme.textSecondary} opacity={0.3} />
             <Text style={styles.emptyFeaturedTitle}>{team.name.toUpperCase()}</Text>
-            <Text style={styles.emptyFeaturedSubtitle}>Sin partidos programados</Text>
+            <Text style={styles.emptyFeaturedSubtitle}>{t('home.no_matches')}</Text>
           </View>
         </LinearGradient>
       </View>
     );
   }
-
-  const MatchRow = ({ match, isNext }: { match: any, isNext?: boolean }) => {
-    if (!match) return null;
-    const isLive = match.status === 'live';
-    const isFinished = match.status === 'finished';
-    
-    // Determinamos el oponente
-    const isHome = match.home_team_name.includes(team.name);
-    const opponentName = isHome ? match.away_team_name : match.home_team_name;
-    const opponentLogo = isHome ? null : null; // Aquí iría el logo del rival si existiera en el match
-    
-    return (
-      <TouchableOpacity 
-        style={styles.miniMatchRow}
-        activeOpacity={0.7}
-        delayPressIn={80}
-        onPress={() => router.push({
-          pathname: '/match-detail',
-          params: { id: match.id }
-        })}
-      >
-        <View style={styles.miniMatchTeams}>
-          <View style={styles.miniTeamCol}>
-             <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
-             <Text style={styles.miniTeamName} numberOfLines={1}>
-               {isHome ? match.home_team_name.substring(0, 3).toUpperCase() : match.away_team_name.substring(0, 3).toUpperCase()}
-             </Text>
-          </View>
-          
-          <View style={styles.miniScoreCol}>
-            {isLive || isFinished ? (
-              <>
-                <Text style={styles.miniScoreText}>
-                  {match.result?.home_score ?? 0} - {match.result?.away_score ?? 0}
-                </Text>
-                <Text style={[styles.miniStatusText, isLive && { color: '#FF4B4B' }]}>
-                  {isLive ? 'EN VIVO' : 'TC'}
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.miniDateText}>
-                  {new Date(match.start_datetime).toLocaleDateString("es-ES", { weekday: 'short' }).toUpperCase()}
-                </Text>
-                <Text style={styles.miniTimeText}>
-                  {new Date(match.start_datetime).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
-                </Text>
-              </>
-            )}
-          </View>
-
-          <View style={styles.miniTeamCol}>
-             <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
-             <Text style={styles.miniTeamName} numberOfLines={1}>
-               {isHome ? match.away_team_name.substring(0, 3).toUpperCase() : match.home_team_name.substring(0, 3).toUpperCase()}
-             </Text>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
 
   return (
     <View style={[styles.featuredCard, { width: width - 40 }]}>
@@ -146,15 +144,29 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
 
         <View style={styles.groupedBody}>
           <View style={styles.matchesSectionFull}>
-            <MatchRow match={activeMatch} />
+            <MatchRow 
+              match={activeMatch} 
+              teamName={team.name} 
+              theme={theme} 
+              styles={styles} 
+              t={t} 
+              i18n={i18n} 
+            />
             <View style={styles.matchDivider} />
-            <MatchRow match={upMatch} isNext />
+            <MatchRow 
+              match={upMatch} 
+              teamName={team.name} 
+              theme={theme} 
+              styles={styles} 
+              t={t} 
+              i18n={i18n} 
+            />
           </View>
         </View>
       </LinearGradient>
     </View>
   );
-};
+});
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -238,6 +250,8 @@ export default function HomeScreen() {
                       theme={theme} 
                       width={width}
                       styles={styles}
+                      t={t}
+                      i18n={i18n}
                     />
                   ))}
                 </ScrollView>
@@ -772,9 +786,9 @@ const createStyles = (theme: any, isDark: boolean) =>
       gap: 15,
     },
     actionIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
       justifyContent: "center",
       alignItems: "center",

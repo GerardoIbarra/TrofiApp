@@ -14,7 +14,9 @@ import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 import "react-native-reanimated";
+import { useTheme } from "@/context/ThemeContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -91,9 +93,21 @@ export default function RootLayout() {
         client={queryClient}
         persistOptions={{ persister: asyncStoragePersister }}
       >
+        <ThemeAwareStatusBar />
         <InitialNavigation />
-        <StatusBar style="auto" />
       </PersistQueryClientProvider>
     </ThemeProvider>
+  );
+}
+
+function ThemeAwareStatusBar() {
+  const { isDark } = useTheme();
+  
+  return (
+    <StatusBar 
+      style={isDark ? "light" : "dark"} 
+      backgroundColor={Platform.OS === 'android' ? (isDark ? "#0A192F" : "#F1F5F9") : undefined}
+      translucent={true}
+    />
   );
 }

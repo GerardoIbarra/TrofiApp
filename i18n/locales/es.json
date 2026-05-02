@@ -263,6 +263,11 @@
     "profile_subtitle": "El servidor no respondió correctamente. Intenta de nuevo.",
     "retry": "Reintentar"
   },
+  "home": {
+    "no_matches": "Sin partidos programados",
+    "status_live": "EN VIVO",
+    "status_finished": "TC"
+  },
   "auth": {
     "welcome_subtitle": "TUS TORNEOS LOCALES",
     "welcome_tagline": "EN LA PALMA DE TU MANO",

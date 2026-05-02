@@ -117,6 +117,17 @@ function RoleCard({
         backgroundColor: selected
           ? isDark ? 'rgba(0,245,255,0.07)' : 'rgba(0,200,220,0.06)'
           : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.9)',
+        ...Platform.select({
+          ios: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: isDark ? 0.3 : 0.1,
+            shadowRadius: 10,
+          },
+          android: {
+            elevation: selected ? 8 : 2,
+          },
+        }),
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16 }}>
@@ -195,6 +206,17 @@ function PositionCard({
         backgroundColor: selected
           ? theme.primary + '15'
           : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.9)',
+        ...Platform.select({
+          ios: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: isDark ? 0.3 : 0.1,
+            shadowRadius: 8,
+          },
+          android: {
+            elevation: selected ? 6 : 2,
+          },
+        }),
       }}
     >
       <View style={{
@@ -518,11 +540,11 @@ const createStyles = (theme: any, isDark: boolean) =>
       height: 60,
     },
     backButton: {
-      width: 40,
-      height: 40,
+      width: 48,
+      height: 48,
       justifyContent: 'center',
       alignItems: 'center',
-      borderRadius: 20,
+      borderRadius: 24,
       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
     },
     headerTitle: {

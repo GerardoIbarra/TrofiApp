@@ -13,9 +13,16 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Inicializar basado en la preferencia del usuario o sistema
-  // El usuario pidió "default light o auto", usaremos light como base inicial manual
-  const [isDark, setIsDark] = useState(false); 
+  // Detectar la preferencia inicial del sistema
+  const [isDark, setIsDark] = useState(Appearance.getColorScheme() === 'dark'); 
+
+  useEffect(() => {
+    // Escuchar cambios en la preferencia del sistema
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      setIsDark(colorScheme === 'dark');
+    });
+    return () => subscription.remove();
+  }, []);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
