@@ -65,6 +65,7 @@ export default function ProfileScreen() {
   const [card, setCard] = useState<PlayerCard | null>(null);
   const [achievements, setAchievements] = useState<PlayerAchievement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
 
   const currentLanguage = i18n.language;
@@ -139,6 +140,7 @@ export default function ProfileScreen() {
       }
     } catch (err) {
       console.error("Error fetching profile data:", err);
+      setHasError(true);
     } finally {
       setIsLoading(false);
     }
@@ -159,6 +161,35 @@ export default function ProfileScreen() {
     ? profile.full_name || `${profile.first_name} ${profile.last_name}`
     : "Cargando...";
   const initials = getInitials();
+
+  if (hasError) {
+    return (
+      <View style={GlobalStyles.container}>
+        <BackgroundGradient />
+        <SafeAreaView style={[GlobalStyles.safeArea, { justifyContent: 'center', alignItems: 'center', gap: 16 }]}>
+          <User size={56} color={theme.textSecondary} opacity={0.4} />
+          <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}>
+            {t('errors.profile_title')}
+          </Text>
+          <Text style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center', paddingHorizontal: 40 }}>
+            {t('errors.profile_subtitle')}
+          </Text>
+          <TouchableOpacity
+            onPress={() => { setHasError(false); setIsLoading(true); fetchData(); }}
+            style={{
+              backgroundColor: theme.primary,
+              paddingHorizontal: 28,
+              paddingVertical: 14,
+              borderRadius: 16,
+              marginTop: 8,
+            }}
+          >
+            <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>{t('errors.retry')}</Text>
+          </TouchableOpacity>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   return (
     <View style={GlobalStyles.container}>

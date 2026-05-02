@@ -257,5 +257,10 @@
     "empty": "No matches scheduled for this tournament yet.",
     "scoreboard": "SCOREBOARD",
     "venue_placeholder": "Field to be defined"
+  },
+  "errors": {
+    "profile_title": "Could not load profile",
+    "profile_subtitle": "The server did not respond correctly. Please try again.",
+    "retry": "Retry"
   }
 }

@@ -257,5 +257,10 @@
     "empty": "No hay partidos programados para este torneo todavía.",
     "scoreboard": "MARCADOR",
     "venue_placeholder": "Campo por definir"
+  },
+  "errors": {
+    "profile_title": "No se pudo cargar el perfil",
+    "profile_subtitle": "El servidor no respondió correctamente. Intenta de nuevo.",
+    "retry": "Reintentar"
   }
 }
