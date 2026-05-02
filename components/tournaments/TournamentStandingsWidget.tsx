@@ -37,7 +37,6 @@ export function TournamentStandingsWidget({
       const response = await api.get<StandingItem[]>(
         `/v1/standings/by_tournament/?tournament_id=${tournamentId}`,
       );
-      console.log("Standings:", response);
       // Ordenamos por posición por si acaso el backend no lo entrega ordenado
       const sortedResult = [...response].sort(
         (a, b) => a.position - b.position,
@@ -70,9 +69,7 @@ export function TournamentStandingsWidget({
     return (
       <View style={styles.emptyBox}>
         <Trophy size={40} color={theme.textSecondary} opacity={0.2} />
-        <Text style={styles.emptyText}>
-          {t("standings.empty")}
-        </Text>
+        <Text style={styles.emptyText}>{t("standings.empty")}</Text>
       </View>
     );
   }
@@ -88,15 +85,36 @@ export function TournamentStandingsWidget({
           {/* Table Header */}
           <View style={styles.tableHeader}>
             <Text style={[styles.headerCell, styles.cellPos]}>#</Text>
-            <Text style={[styles.headerCell, styles.cellTeam]}>{t("standings.header_team")}</Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>{t("standings.header_played")}</Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>{t("standings.header_wins")}</Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>{t("standings.header_draws")}</Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>{t("standings.header_losses")}</Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>{t("standings.header_goals_for")}</Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>{t("standings.header_goals_against")}</Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>{t("standings.header_goal_diff")}</Text>
-            <Text style={[styles.headerCell, styles.cellPoints]}>{t("standings.header_points")}</Text>
+            <Text style={[styles.headerCell, styles.cellTeam]}>
+              {t("standings.header_team")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellGroup]}>
+              {t("standings.header_group")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellStat]}>
+              {t("standings.header_played")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellStat]}>
+              {t("standings.header_wins")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellStat]}>
+              {t("standings.header_draws")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellStat]}>
+              {t("standings.header_losses")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellStat]}>
+              {t("standings.header_goals_for")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellStat]}>
+              {t("standings.header_goals_against")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellStat]}>
+              {t("standings.header_goal_diff")}
+            </Text>
+            <Text style={[styles.headerCell, styles.cellPoints]}>
+              {t("standings.header_points")}
+            </Text>
           </View>
 
           {/* Table Body */}
@@ -115,6 +133,10 @@ export function TournamentStandingsWidget({
 
               <Text style={styles.teamName} numberOfLines={1}>
                 {item.team_name.toUpperCase()}
+              </Text>
+
+              <Text style={[styles.statCell, styles.cellGroup]}>
+                {item.group || "-"}
               </Text>
 
               <Text style={[styles.statCell, styles.cellStat]}>
@@ -160,9 +182,7 @@ export function TournamentStandingsWidget({
 
       <View style={styles.footerInfo}>
         <AlertCircle size={12} color={theme.textSecondary} />
-        <Text style={styles.footerText}>
-          {t("standings.footer_scroll")}
-        </Text>
+        <Text style={styles.footerText}>{t("standings.footer_scroll")}</Text>
       </View>
     </View>
   );
@@ -234,6 +254,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     cellPos: { width: 40 },
     cellTeam: { width: 140, textAlign: "left", paddingLeft: 10 },
+    cellGroup: { width: 35 },
     cellStat: { width: 40 },
     cellPoints: { width: 50 },
 

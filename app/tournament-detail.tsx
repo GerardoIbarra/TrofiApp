@@ -10,6 +10,7 @@ import { TournamentHeader } from '@/components/leagues/TournamentHeader';
 import { CreateTournamentModal } from '@/components/leagues/CreateTournamentModal';
 import { TournamentStandingsWidget } from '@/components/tournaments/TournamentStandingsWidget';
 import { TournamentMatchesWidget } from '@/components/tournaments/TournamentMatchesWidget';
+import { TournamentTeamsWidget } from '@/components/tournaments/TournamentTeamsWidget';
 import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -90,7 +91,7 @@ export default function TournamentDetailScreen() {
           />
 
           <View style={styles.tabContainer}>
-            {['STANDINGS', 'MATCHES', 'INFO'].map((tab) => (
+            {['STANDINGS', 'MATCHES', 'TEAMS', 'INFO'].map((tab) => (
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab)}
@@ -110,6 +111,10 @@ export default function TournamentDetailScreen() {
 
             {activeTab === 'MATCHES' && (
               <TournamentMatchesWidget tournamentId={tournament.id} isAdmin={true} />
+            )}
+
+            {activeTab === 'TEAMS' && (
+               <TournamentTeamsWidget tournamentId={tournament.id} />
             )}
 
             {activeTab === 'INFO' && (
