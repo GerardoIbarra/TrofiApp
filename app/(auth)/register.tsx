@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Animated,
   StyleSheet,
   View,
   Text,
@@ -7,11 +8,21 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, Info } from 'lucide-react-native';
+import {
+  ChevronLeft,
+  Info,
+  Users,
+  Eye,
+  Shield,
+  CheckCircle2,
+  Swords,
+  Star,
+  Trophy,
+} from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,12 +36,207 @@ import api from '@/services/api';
 import { RegisterResponse } from '@/features/auth/types/auth';
 import { useTranslation } from 'react-i18next';
 
+const { width } = Dimensions.get('window');
 
+type UserRole = 'player' | 'spectator' | 'admin' | null;
+type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | null;
 
+const TOTAL_STEPS = 3;
+
+// ─── Step Indicator ──────────────────────────────────────────────────────────
+function StepIndicator({
+  currentStep,
+  theme,
+  isDark,
+}: {
+  currentStep: number;
+  theme: any;
+  isDark: boolean;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 30, marginBottom: 24 }}>
+      {Array.from({ length: TOTAL_STEPS }).map((_, i) => {
+        const stepNum = i + 1;
+        const isActive = stepNum === currentStep;
+        const isDone = stepNum < currentStep;
+        return (
+          <React.Fragment key={i}>
+            <View
+              style={{
+                width: isActive ? 32 : 10,
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: isActive || isDone ? theme.primary : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+              }}
+            >
+              {isDone && (
+                <View style={{ flex: 1, backgroundColor: theme.primary, opacity: 0.6 }} />
+              )}
+            </View>
+            {i < TOTAL_STEPS - 1 && (
+              <View style={{ flex: 1, height: 2, backgroundColor: isDone ? theme.primary + '60' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', borderRadius: 1 }} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </View>
+  );
+}
+
+// ─── Role Card ───────────────────────────────────────────────────────────────
+function RoleCard({
+  icon,
+  title,
+  description,
+  perks,
+  selected,
+  onPress,
+  theme,
+  isDark,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  perks: string[];
+  selected: boolean;
+  onPress: () => void;
+  theme: any;
+  isDark: boolean;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.85}
+      style={{
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 14,
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.primary : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        backgroundColor: selected
+          ? isDark ? 'rgba(0,245,255,0.07)' : 'rgba(0,200,220,0.06)'
+          : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.9)',
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16 }}>
+        {/* Icon container */}
+        <View
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: selected
+              ? theme.primary + '20'
+              : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+          }}
+        >
+          {icon}
+        </View>
+
+        {/* Text content */}
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <Text style={{ fontSize: 17, fontWeight: '800', color: theme.text }}>{title}</Text>
+            {selected && <CheckCircle2 size={20} color={theme.primary} />}
+          </View>
+          <Text style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 18, marginBottom: 12 }}>
+            {description}
+          </Text>
+
+          {/* Perks */}
+          <View style={{ gap: 6 }}>
+            {perks.map((perk, i) => (
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: selected ? theme.primary : theme.textSecondary, opacity: selected ? 1 : 0.5 }} />
+                <Text style={{ fontSize: 11, color: selected ? theme.text : theme.textSecondary, fontWeight: '600' }}>
+                  {perk}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// ─── Position Card ────────────────────────────────────────────────────────────
+function PositionCard({
+  label,
+  sublabel,
+  icon,
+  selected,
+  onPress,
+  theme,
+  isDark,
+}: {
+  label: string;
+  sublabel: string;
+  icon: React.ReactNode;
+  selected: boolean;
+  onPress: () => void;
+  theme: any;
+  isDark: boolean;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      style={{
+        width: (width - 80) / 2,
+        borderRadius: 16,
+        padding: 18,
+        alignItems: 'center',
+        borderWidth: selected ? 2 : 1,
+        borderColor: selected ? theme.primary : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+        backgroundColor: selected
+          ? theme.primary + '15'
+          : isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.9)',
+      }}
+    >
+      <View style={{
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: selected ? theme.primary + '25' : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+        marginBottom: 10,
+      }}>
+        {icon}
+      </View>
+      <Text style={{ fontSize: 14, fontWeight: '800', color: theme.text, marginBottom: 2 }}>{label}</Text>
+      <Text style={{ fontSize: 10, color: theme.textSecondary, textAlign: 'center' }}>{sublabel}</Text>
+      {selected && (
+        <View style={{ position: 'absolute', top: 10, right: 10 }}>
+          <CheckCircle2 size={16} color={theme.primary} />
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+}
+
+// ─── Main Screen ─────────────────────────────────────────────────────────────
 export default function RegisterScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
+
+  const [step, setStep] = useState(1);
+  const [selectedRole, setSelectedRole] = useState<UserRole>(null);
+  const [selectedPosition, setSelectedPosition] = useState<PlayerPosition>(null);
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  const transitionTo = (nextStep: number) => {
+    Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => {
+      setStep(nextStep);
+      Animated.timing(fadeAnim, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+    });
+  };
 
   const {
     control,
@@ -51,18 +257,31 @@ export default function RegisterScreen() {
   const onSubmit = async (data: RegisterSchema) => {
     try {
       await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
-      Alert.alert(t('auth.register_success_title'), t('auth.register_success_msg'), [
-        { text: t('auth.register_success_btn'), onPress: () => router.push('/(auth)/auth-login' as any) },
-      ]);
+      // En lugar de Alert → transición al step 2
+      transitionTo(2);
     } catch (err: any) {
+      // Solo mostramos alerta en caso de error
+      const { Alert } = require('react-native');
       Alert.alert(t('auth.register_error_title'), err.message ?? t('auth.register_error_msg'));
     }
+  };
+
+  const handleFinish = () => {
+    // TODO: Enviar selectedRole y selectedPosition al backend cuando esté listo
+    // await api.post('/v1/user-profile/', { role: selectedRole, position: selectedPosition });
+    router.replace('/(auth)/auth-login' as any);
+  };
+
+  const getBackAction = () => {
+    if (step === 1) return () => router.replace('/(auth)' as any);
+    if (step === 2) return () => transitionTo(1);
+    if (step === 3) return () => transitionTo(2);
+    return () => {};
   };
 
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-
       <SafeAreaView style={GlobalStyles.safeArea}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -70,117 +289,218 @@ export default function RegisterScreen() {
         >
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.replace('/(auth)' as any)} style={styles.backButton}>
+            <TouchableOpacity onPress={getBackAction()} style={styles.backButton}>
               <ChevronLeft size={28} color={theme.text} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>TROFI</Text>
             <View style={{ width: 28 }} />
           </View>
 
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Title */}
-            <View style={styles.textSection}>
-              <Text style={[GlobalStyles.title, { color: theme.text }]}>{t('auth.register_title')}</Text>
-              <Text style={[GlobalStyles.subtitle, { color: theme.textSecondary }]}>
-                {t('auth.register_subtitle')}
-              </Text>
-            </View>
+          {/* Step Indicator */}
+          <StepIndicator currentStep={step} theme={theme} isDark={isDark} />
 
-            {/* Form Fields */}
-            <FormInput
-              control={control}
-              name="username"
-              label={t('auth.field_username')}
-              placeholder={t('auth.field_username_placeholder')}
-              required
-            />
-
-            <FormInput
-              control={control}
-              name="email"
-              label={t('auth.field_email')}
-              placeholder={t('auth.field_email_placeholder')}
-              keyboardType="email-address"
-              required
-            />
-
-            <View style={styles.row}>
-              <FormInput
-                control={control}
-                name="first_name"
-                label={t('auth.field_first_name')}
-                placeholder={t('auth.field_first_name_placeholder')}
-                required
-                containerStyle={styles.halfField}
-                autoCapitalize="words"
-              />
-              <FormInput
-                control={control}
-                name="last_name"
-                label={t('auth.field_last_name')}
-                placeholder={t('auth.field_last_name_placeholder')}
-                required
-                containerStyle={styles.halfField}
-                autoCapitalize="words"
-              />
-            </View>
-
-            <FormInput
-              control={control}
-              name="password"
-              label={t('auth.field_password')}
-              placeholder={t('auth.field_password_placeholder')}
-              required
-              isPassword
-            />
-
-            <FormInput
-              control={control}
-              name="password2"
-              label={t('auth.field_password2')}
-              placeholder={t('auth.field_password2_placeholder')}
-              required
-              isPassword
-            />
-
-            {/* Register Button */}
-            {isSubmitting ? (
-              <View style={styles.loadingWrapper}>
-                <ActivityIndicator color={theme.primary} size="large" />
-              </View>
-            ) : (
-              <PrimaryButton
-                title={t('auth.register_button')}
-                onPress={handleSubmit(onSubmit)}
-                fullWidth
-                style={{ marginTop: 10 }}
-              />
-            )}
-
-            {/* Divider */}
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>{t('auth.already_have_account')}</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Go to Login */}
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={() => router.push('/(auth)/auth-login' as any)}
+          <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={styles.secondaryButtonText}>{t('auth.go_to_login')}</Text>
-            </TouchableOpacity>
+              {/* ── STEP 1: Datos de la cuenta ── */}
+              {step === 1 && (
+                <>
+                  <View style={styles.textSection}>
+                    <Text style={styles.stepLabel}>{t('auth.step_indicator', { current: 1, total: TOTAL_STEPS })}</Text>
+                    <Text style={[GlobalStyles.title, { color: theme.text }]}>{t('auth.register_title')}</Text>
+                    <Text style={[GlobalStyles.subtitle, { color: theme.textSecondary }]}>
+                      {t('auth.register_subtitle')}
+                    </Text>
+                  </View>
 
-            <View style={styles.infoContainer}>
-              <Info size={16} color={theme.textSecondary} />
-              <Text style={styles.infoText}>TROFI ELITE SPORTS MANAGEMENT - 2024</Text>
-            </View>
-          </ScrollView>
+                  <FormInput control={control} name="username" label={t('auth.field_username')} placeholder={t('auth.field_username_placeholder')} required />
+                  <FormInput control={control} name="email" label={t('auth.field_email')} placeholder={t('auth.field_email_placeholder')} keyboardType="email-address" required />
+
+                  <View style={styles.row}>
+                    <FormInput control={control} name="first_name" label={t('auth.field_first_name')} placeholder={t('auth.field_first_name_placeholder')} required containerStyle={styles.halfField} autoCapitalize="words" />
+                    <FormInput control={control} name="last_name" label={t('auth.field_last_name')} placeholder={t('auth.field_last_name_placeholder')} required containerStyle={styles.halfField} autoCapitalize="words" />
+                  </View>
+
+                  <FormInput control={control} name="password" label={t('auth.field_password')} placeholder={t('auth.field_password_placeholder')} required isPassword />
+                  <FormInput control={control} name="password2" label={t('auth.field_password2')} placeholder={t('auth.field_password2_placeholder')} required isPassword />
+
+                  {isSubmitting ? (
+                    <View style={styles.loadingWrapper}><ActivityIndicator color={theme.primary} size="large" /></View>
+                  ) : (
+                    <PrimaryButton title={t('auth.register_button')} onPress={handleSubmit(onSubmit)} fullWidth style={{ marginTop: 10 }} />
+                  )}
+
+                  <View style={styles.divider}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>{t('auth.already_have_account')}</Text>
+                    <View style={styles.dividerLine} />
+                  </View>
+
+                  <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/(auth)/auth-login' as any)}>
+                    <Text style={styles.secondaryButtonText}>{t('auth.go_to_login')}</Text>
+                  </TouchableOpacity>
+
+                  <View style={styles.infoContainer}>
+                    <Info size={16} color={theme.textSecondary} />
+                    <Text style={styles.infoText}>TROFI ELITE SPORTS MANAGEMENT - 2024</Text>
+                  </View>
+                </>
+              )}
+
+              {/* ── STEP 2: Selección de rol ── */}
+              {step === 2 && (
+                <>
+                  <View style={styles.textSection}>
+                    <Text style={styles.stepLabel}>{t('auth.step_indicator', { current: 2, total: TOTAL_STEPS })}</Text>
+                    <Text style={[GlobalStyles.title, { color: theme.text }]}>{t('auth.role_title')}</Text>
+                    <Text style={[GlobalStyles.subtitle, { color: theme.textSecondary }]}>
+                      {t('auth.role_subtitle')}
+                    </Text>
+                  </View>
+
+                  <RoleCard
+                    icon={<Swords size={26} color={selectedRole === 'player' ? theme.primary : theme.textSecondary} />}
+                    title={t('auth.role_player')}
+                    description={t('auth.role_player_desc')}
+                    perks={[t('auth.role_player_perk_1'), t('auth.role_player_perk_2'), t('auth.role_player_perk_3')]}
+                    selected={selectedRole === 'player'}
+                    onPress={() => setSelectedRole('player')}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+
+                  <RoleCard
+                    icon={<Eye size={26} color={selectedRole === 'spectator' ? theme.primary : theme.textSecondary} />}
+                    title={t('auth.role_spectator')}
+                    description={t('auth.role_spectator_desc')}
+                    perks={[t('auth.role_spectator_perk_1'), t('auth.role_spectator_perk_2'), t('auth.role_spectator_perk_3')]}
+                    selected={selectedRole === 'spectator'}
+                    onPress={() => setSelectedRole('spectator')}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+
+                  <RoleCard
+                    icon={<Trophy size={26} color={selectedRole === 'admin' ? theme.primary : theme.textSecondary} />}
+                    title={t('auth.role_admin')}
+                    description={t('auth.role_admin_desc')}
+                    perks={[t('auth.role_admin_perk_1'), t('auth.role_admin_perk_2'), t('auth.role_admin_perk_3')]}
+                    selected={selectedRole === 'admin'}
+                    onPress={() => setSelectedRole('admin')}
+                    theme={theme}
+                    isDark={isDark}
+                  />
+
+                  <PrimaryButton
+                    title={t('auth.continue_btn')}
+                    onPress={() => {
+                      if (selectedRole === 'player') {
+                        transitionTo(3);
+                      } else {
+                        handleFinish();
+                      }
+                    }}
+                    fullWidth
+                    style={{ marginTop: 8, opacity: selectedRole ? 1 : 0.4 }}
+                    disabled={!selectedRole}
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.secondaryButton, { marginTop: 12 }]}
+                    onPress={handleFinish}
+                  >
+                    <Text style={styles.secondaryButtonText}>{t('auth.skip_for_now')}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+
+              {/* ── STEP 3: Posición del jugador ── */}
+              {step === 3 && (
+                <>
+                  <View style={styles.textSection}>
+                    <Text style={styles.stepLabel}>{t('auth.step_indicator', { current: 3, total: TOTAL_STEPS })}</Text>
+                    <Text style={[GlobalStyles.title, { color: theme.text }]}>{t('auth.position_title')}</Text>
+                    <Text style={[GlobalStyles.subtitle, { color: theme.textSecondary }]}>
+                      {t('auth.position_subtitle')}
+                    </Text>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+                    <PositionCard
+                      label={t('auth.pos_goalkeeper')}
+                      sublabel={t('auth.pos_goalkeeper_sub')}
+                      icon={<Shield size={22} color={selectedPosition === 'goalkeeper' ? theme.primary : theme.textSecondary} />}
+                      selected={selectedPosition === 'goalkeeper'}
+                      onPress={() => setSelectedPosition('goalkeeper')}
+                      theme={theme}
+                      isDark={isDark}
+                    />
+                    <PositionCard
+                      label={t('auth.pos_defender')}
+                      sublabel={t('auth.pos_defender_sub')}
+                      icon={<Users size={22} color={selectedPosition === 'defender' ? theme.primary : theme.textSecondary} />}
+                      selected={selectedPosition === 'defender'}
+                      onPress={() => setSelectedPosition('defender')}
+                      theme={theme}
+                      isDark={isDark}
+                    />
+                    <PositionCard
+                      label={t('auth.pos_midfielder')}
+                      sublabel={t('auth.pos_midfielder_sub')}
+                      icon={<Star size={22} color={selectedPosition === 'midfielder' ? theme.primary : theme.textSecondary} />}
+                      selected={selectedPosition === 'midfielder'}
+                      onPress={() => setSelectedPosition('midfielder')}
+                      theme={theme}
+                      isDark={isDark}
+                    />
+                    <PositionCard
+                      label={t('auth.pos_forward')}
+                      sublabel={t('auth.pos_forward_sub')}
+                      icon={<Swords size={22} color={selectedPosition === 'forward' ? theme.primary : theme.textSecondary} />}
+                      selected={selectedPosition === 'forward'}
+                      onPress={() => setSelectedPosition('forward')}
+                      theme={theme}
+                      isDark={isDark}
+                    />
+                  </View>
+
+                  {/* ¿Tienes equipo? (solo UI, no backend aún) */}
+                  <View style={{
+                    borderRadius: 16,
+                    padding: 18,
+                    backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                    borderWidth: 1,
+                    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+                    marginBottom: 24,
+                  }}>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: theme.textSecondary, marginBottom: 4 }}>
+                      {t('auth.coming_soon')}
+                    </Text>
+                    <Text style={{ fontSize: 14, color: theme.text, fontWeight: '600' }}>
+                      {t('auth.team_coming_soon_text')}
+                    </Text>
+                  </View>
+
+                  <PrimaryButton
+                    title={t('auth.finish_btn')}
+                    onPress={handleFinish}
+                    fullWidth
+                    style={{ marginTop: 0 }}
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.secondaryButton, { marginTop: 12 }]}
+                    onPress={handleFinish}
+                  >
+                    <Text style={styles.secondaryButtonText}>{t('auth.skip_for_now')}</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </ScrollView>
+          </Animated.View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
@@ -213,18 +533,23 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     scrollContent: {
       paddingHorizontal: 30,
-      paddingTop: 20,
-      paddingBottom: 40,
+      paddingTop: 10,
+      paddingBottom: 50,
     },
-    textSection: { marginBottom: 32 },
+    textSection: { marginBottom: 28 },
+    stepLabel: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: theme.primary,
+      letterSpacing: 1.5,
+      marginBottom: 8,
+    },
     row: {
       flexDirection: 'row',
       gap: 12,
       marginBottom: 0,
     },
-    halfField: {
-      flex: 1,
-    },
+    halfField: { flex: 1 },
     loadingWrapper: {
       height: 56,
       justifyContent: 'center',
@@ -248,7 +573,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     secondaryButton: {
       width: '100%',
-      height: 56,
+      height: 52,
       borderRadius: 12,
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
@@ -257,8 +582,8 @@ const createStyles = (theme: any, isDark: boolean) =>
       backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
     },
     secondaryButtonText: {
-      color: theme.text,
-      fontSize: 16,
+      color: theme.textSecondary,
+      fontSize: 14,
       fontWeight: '600',
     },
     infoContainer: {
