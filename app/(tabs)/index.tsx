@@ -112,7 +112,7 @@ const FeaturedMatchCard = React.memo(({ team, isDark, theme, width, styles, t, i
     return (
       <View style={[styles.featuredCard, { width: width - 40 }]}>
         <LinearGradient
-          colors={isDark ? [theme.surface, "#0A1525"] : ["#FFFFFF", "#F3F4F6"]}
+          colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
           style={styles.cardGradient}
         >
           <View style={styles.emptyFeaturedCard}>
@@ -171,7 +171,7 @@ const FeaturedMatchCard = React.memo(({ team, isDark, theme, width, styles, t, i
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = createStyles(theme, isDark);
   const router = useRouter();
 
@@ -258,7 +258,7 @@ export default function HomeScreen() {
               ) : (
                 <View style={[styles.featuredCard, { marginHorizontal: 20 }]}>
                   <LinearGradient
-                    colors={isDark ? ["#1A1A1A", "#0D0D0D"] : ["#FFFFFF", "#F9FAFB"]}
+                    colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
                     style={[styles.cardGradient, { justifyContent: 'center', alignItems: 'center' }]}
                   >
                     <View style={styles.emptyStateDecoration}>
