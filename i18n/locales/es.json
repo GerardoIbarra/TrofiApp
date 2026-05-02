@@ -18,7 +18,7 @@
   "home": {
     "weekly_summary": "RESUMEN SEMANAL",
     "my_teams": "MIS EQUIPOS",
-    "no_matches": "NO HAY PARTIDOS",
+    "no_matches": "Sin partidos programados",
     "join_team_subtitle": "Únete a un equipo para ver tu feed.",
     "explore_leagues": "EXPLORAR LIGAS",
     "live_match": "Partido en Curso",
@@ -26,7 +26,9 @@
     "next_match": "Próximo Partido",
     "players": "JUGADORES",
     "goals": "GOLES",
-    "victories": "VICTORIAS"
+    "victories": "VICTORIAS",
+    "status_live": "EN VIVO",
+    "status_finished": "TC"
   },
   "profile": {
     "position": "POSICIÓN",
@@ -262,11 +264,6 @@
     "profile_title": "No se pudo cargar el perfil",
     "profile_subtitle": "El servidor no respondió correctamente. Intenta de nuevo.",
     "retry": "Reintentar"
-  },
-  "home": {
-    "no_matches": "Sin partidos programados",
-    "status_live": "EN VIVO",
-    "status_finished": "TC"
   },
   "auth": {
     "welcome_subtitle": "TUS TORNEOS LOCALES",
