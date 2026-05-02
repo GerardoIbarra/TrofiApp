@@ -23,11 +23,13 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
 import { RegisterResponse } from '@/features/auth/types/auth';
+import { useTranslation } from 'react-i18next';
 
 
 
 export default function RegisterScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const {
@@ -49,11 +51,11 @@ export default function RegisterScreen() {
   const onSubmit = async (data: RegisterSchema) => {
     try {
       await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
-      Alert.alert('¡Registro exitoso!', 'Tu cuenta ha sido creada. Inicia sesión para continuar.', [
-        { text: 'Iniciar sesión', onPress: () => router.push('/(auth)/login' as any) },
+      Alert.alert(t('auth.register_success_title'), t('auth.register_success_msg'), [
+        { text: t('auth.register_success_btn'), onPress: () => router.push('/(auth)/auth-login' as any) },
       ]);
     } catch (err: any) {
-      Alert.alert('Error de registro', err.message ?? 'Ocurrió un error. Intenta de nuevo.');
+      Alert.alert(t('auth.register_error_title'), err.message ?? t('auth.register_error_msg'));
     }
   };
 
@@ -82,9 +84,9 @@ export default function RegisterScreen() {
           >
             {/* Title */}
             <View style={styles.textSection}>
-              <Text style={[GlobalStyles.title, { color: theme.text }]}>Crea tu cuenta</Text>
+              <Text style={[GlobalStyles.title, { color: theme.text }]}>{t('auth.register_title')}</Text>
               <Text style={[GlobalStyles.subtitle, { color: theme.textSecondary }]}>
-                Completa tus datos para unirte a la liga.
+                {t('auth.register_subtitle')}
               </Text>
             </View>
 
@@ -92,16 +94,16 @@ export default function RegisterScreen() {
             <FormInput
               control={control}
               name="username"
-              label="NOMBRE DE USUARIO"
-              placeholder="jugador99"
+              label={t('auth.field_username')}
+              placeholder={t('auth.field_username_placeholder')}
               required
             />
 
             <FormInput
               control={control}
               name="email"
-              label="CORREO ELECTRÓNICO"
-              placeholder="correo@ejemplo.com"
+              label={t('auth.field_email')}
+              placeholder={t('auth.field_email_placeholder')}
               keyboardType="email-address"
               required
             />
@@ -110,8 +112,8 @@ export default function RegisterScreen() {
               <FormInput
                 control={control}
                 name="first_name"
-                label="NOMBRE"
-                placeholder="Carlos"
+                label={t('auth.field_first_name')}
+                placeholder={t('auth.field_first_name_placeholder')}
                 required
                 containerStyle={styles.halfField}
                 autoCapitalize="words"
@@ -119,8 +121,8 @@ export default function RegisterScreen() {
               <FormInput
                 control={control}
                 name="last_name"
-                label="APELLIDO"
-                placeholder="García"
+                label={t('auth.field_last_name')}
+                placeholder={t('auth.field_last_name_placeholder')}
                 required
                 containerStyle={styles.halfField}
                 autoCapitalize="words"
@@ -130,8 +132,8 @@ export default function RegisterScreen() {
             <FormInput
               control={control}
               name="password"
-              label="CONTRASEÑA"
-              placeholder="Mínimo 6 caracteres"
+              label={t('auth.field_password')}
+              placeholder={t('auth.field_password_placeholder')}
               required
               isPassword
             />
@@ -139,8 +141,8 @@ export default function RegisterScreen() {
             <FormInput
               control={control}
               name="password2"
-              label="CONFIRMAR CONTRASEÑA"
-              placeholder="Repite tu contraseña"
+              label={t('auth.field_password2')}
+              placeholder={t('auth.field_password2_placeholder')}
               required
               isPassword
             />
@@ -152,7 +154,7 @@ export default function RegisterScreen() {
               </View>
             ) : (
               <PrimaryButton
-                title="Crear cuenta"
+                title={t('auth.register_button')}
                 onPress={handleSubmit(onSubmit)}
                 fullWidth
                 style={{ marginTop: 10 }}
@@ -162,16 +164,16 @@ export default function RegisterScreen() {
             {/* Divider */}
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>¿Ya tienes cuenta?</Text>
+              <Text style={styles.dividerText}>{t('auth.already_have_account')}</Text>
               <View style={styles.dividerLine} />
             </View>
 
             {/* Go to Login */}
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => router.push('/(auth)/login' as any)}
+              onPress={() => router.push('/(auth)/auth-login' as any)}
             >
-              <Text style={styles.secondaryButtonText}>Iniciar sesión</Text>
+              <Text style={styles.secondaryButtonText}>{t('auth.go_to_login')}</Text>
             </TouchableOpacity>
 
             <View style={styles.infoContainer}>

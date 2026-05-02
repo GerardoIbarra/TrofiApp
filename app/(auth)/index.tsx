@@ -20,11 +20,13 @@ import { SecondaryButton } from '@/components/ui/buttons/SecondaryButton';
 import { TrofiLogo } from '@/components/ui/branding/TrofiLogo';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const logoScale = useSharedValue(1);
 
@@ -62,29 +64,29 @@ export default function WelcomeScreen() {
 
           <Animated.View entering={FadeInDown.delay(800).duration(800)} style={{ alignItems: 'center' }}>
             <Text style={styles.title}>TROFI</Text>
-            <Text style={styles.subtitle}>TUS TORNEOS LOCALES</Text>
-            <Text style={styles.tagline}>EN LA PALMA DE TU MANO</Text>
+            <Text style={styles.subtitle}>{t('auth.welcome_subtitle')}</Text>
+            <Text style={styles.tagline}>{t('auth.welcome_tagline')}</Text>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(1200).duration(800)} style={styles.grid}>
-            <FeatureIcon icon={<Calendar size={24} color={theme.text} />} label="Programación" theme={theme} isDark={isDark} />
-            <FeatureIcon icon={<ResultsIcon size={24} color={theme.text} />} label="Resultados" theme={theme} isDark={isDark} />
-            <FeatureIcon icon={<GalleryIcon size={24} color={theme.text} />} label="Galería" theme={theme} isDark={isDark} />
-            <FeatureIcon icon={<BarChart3 size={24} color={theme.text} />} label="Estadísticas" theme={theme} isDark={isDark} />
+            <FeatureIcon icon={<Calendar size={24} color={theme.text} />} label={t('auth.feature_schedule')} theme={theme} isDark={isDark} />
+            <FeatureIcon icon={<ResultsIcon size={24} color={theme.text} />} label={t('auth.feature_results')} theme={theme} isDark={isDark} />
+            <FeatureIcon icon={<GalleryIcon size={24} color={theme.text} />} label={t('auth.feature_gallery')} theme={theme} isDark={isDark} />
+            <FeatureIcon icon={<BarChart3 size={24} color={theme.text} />} label={t('auth.feature_stats')} theme={theme} isDark={isDark} />
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(1600).duration(800)} style={styles.actions}>
             <PrimaryButton 
-              title="CREAR CUENTA" 
+              title={t('auth.create_account')}
               onPress={() => router.push('/(auth)/register' as any)} 
               style={{ width: '100%', borderRadius: 28 }} 
             />
             <SecondaryButton 
-              title="INICIAR SESIÓN" 
+              title={t('auth.sign_in')}
               onPress={() => router.push('/(auth)/auth-login' as any)} 
               style={{ width: '100%', borderRadius: 28 }} 
             />
-            <Text style={styles.footerText}>PROXIMO EVENTO: LIGA ZAPOPAN NORTE</Text>
+            <Text style={styles.footerText}>{t('auth.footer_event')}</Text>
           </Animated.View>
         </View>
       </SafeAreaView>
