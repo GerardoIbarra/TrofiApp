@@ -9,9 +9,9 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scale, verticalScale, moderateScale, Layout } from '@/constants/layout';
 import {
   ChevronLeft,
   Info,
@@ -36,7 +36,7 @@ import api from '@/services/api';
 import { RegisterResponse } from '@/features/auth/types/auth';
 import { useTranslation } from 'react-i18next';
 
-const { width } = Dimensions.get('window');
+const { width } = Layout.window;
 
 type UserRole = 'player' | 'spectator' | 'admin' | null;
 type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward' | null;
@@ -54,7 +54,7 @@ function StepIndicator({
   isDark: boolean;
 }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 30, marginBottom: 24 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: scale(30), marginBottom: verticalScale(24) }}>
       {Array.from({ length: TOTAL_STEPS }).map((_, i) => {
         const stepNum = i + 1;
         const isActive = stepNum === currentStep;
@@ -63,9 +63,9 @@ function StepIndicator({
           <React.Fragment key={i}>
             <View
               style={{
-                width: isActive ? 32 : 10,
-                height: 10,
-                borderRadius: 5,
+                width: isActive ? scale(32) : scale(10),
+                height: verticalScale(10),
+                borderRadius: moderateScale(5),
                 backgroundColor: isActive || isDone ? theme.primary : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                 overflow: 'hidden',
               }}
@@ -75,7 +75,7 @@ function StepIndicator({
               )}
             </View>
             {i < TOTAL_STEPS - 1 && (
-              <View style={{ flex: 1, height: 2, backgroundColor: isDone ? theme.primary + '60' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', borderRadius: 1 }} />
+              <View style={{ flex: 1, height: verticalScale(2), backgroundColor: isDone ? theme.primary + '60' : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', borderRadius: 1 }} />
             )}
           </React.Fragment>
         );
@@ -109,9 +109,9 @@ function RoleCard({
       onPress={onPress}
       activeOpacity={0.85}
       style={{
-        borderRadius: 20,
-        padding: 20,
-        marginBottom: 14,
+        borderRadius: moderateScale(20),
+        padding: moderateScale(20),
+        marginBottom: verticalScale(14),
         borderWidth: selected ? 2 : 1,
         borderColor: selected ? theme.primary : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
         backgroundColor: selected
@@ -130,13 +130,12 @@ function RoleCard({
         }),
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 16 }}>
-        {/* Icon container */}
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: scale(16) }}>
         <View
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: 16,
+            width: scale(52),
+            height: scale(52),
+            borderRadius: moderateScale(16),
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: selected
@@ -147,22 +146,20 @@ function RoleCard({
           {icon}
         </View>
 
-        {/* Text content */}
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-            <Text style={{ fontSize: 17, fontWeight: '800', color: theme.text }}>{title}</Text>
-            {selected && <CheckCircle2 size={20} color={theme.primary} />}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: verticalScale(4) }}>
+            <Text style={{ fontSize: moderateScale(17), fontWeight: '800', color: theme.text }}>{title}</Text>
+            {selected && <CheckCircle2 size={moderateScale(20)} color={theme.primary} />}
           </View>
-          <Text style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 18, marginBottom: 12 }}>
+          <Text style={{ fontSize: moderateScale(12), color: theme.textSecondary, lineHeight: moderateScale(18), marginBottom: verticalScale(12) }}>
             {description}
           </Text>
 
-          {/* Perks */}
-          <View style={{ gap: 6 }}>
+          <View style={{ gap: verticalScale(6) }}>
             {perks.map((perk, i) => (
-              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: selected ? theme.primary : theme.textSecondary, opacity: selected ? 1 : 0.5 }} />
-                <Text style={{ fontSize: 11, color: selected ? theme.text : theme.textSecondary, fontWeight: '600' }}>
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: scale(8) }}>
+                <View style={{ width: scale(5), height: scale(5), borderRadius: 3, backgroundColor: selected ? theme.primary : theme.textSecondary, opacity: selected ? 1 : 0.5 }} />
+                <Text style={{ fontSize: moderateScale(11), color: selected ? theme.text : theme.textSecondary, fontWeight: '600' }}>
                   {perk}
                 </Text>
               </View>
@@ -197,9 +194,9 @@ function PositionCard({
       onPress={onPress}
       activeOpacity={0.8}
       style={{
-        width: (width - 80) / 2,
-        borderRadius: 16,
-        padding: 18,
+        width: (width - scale(80)) / 2,
+        borderRadius: moderateScale(16),
+        padding: moderateScale(18),
         alignItems: 'center',
         borderWidth: selected ? 2 : 1,
         borderColor: selected ? theme.primary : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
@@ -220,21 +217,21 @@ function PositionCard({
       }}
     >
       <View style={{
-        width: 48,
-        height: 48,
-        borderRadius: 24,
+        width: scale(48),
+        height: scale(48),
+        borderRadius: moderateScale(24),
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: selected ? theme.primary + '25' : isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
-        marginBottom: 10,
+        marginBottom: verticalScale(10),
       }}>
         {icon}
       </View>
-      <Text style={{ fontSize: 14, fontWeight: '800', color: theme.text, marginBottom: 2 }}>{label}</Text>
-      <Text style={{ fontSize: 10, color: theme.textSecondary, textAlign: 'center' }}>{sublabel}</Text>
+      <Text style={{ fontSize: moderateScale(14), fontWeight: '800', color: theme.text, marginBottom: verticalScale(2) }}>{label}</Text>
+      <Text style={{ fontSize: moderateScale(10), color: theme.textSecondary, textAlign: 'center' }}>{sublabel}</Text>
       {selected && (
-        <View style={{ position: 'absolute', top: 10, right: 10 }}>
-          <CheckCircle2 size={16} color={theme.primary} />
+        <View style={{ position: 'absolute', top: moderateScale(10), right: moderateScale(10) }}>
+          <CheckCircle2 size={moderateScale(16)} color={theme.primary} />
         </View>
       )}
     </TouchableOpacity>
@@ -245,7 +242,8 @@ function PositionCard({
 export default function RegisterScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme, isDark);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, isDark, insets);
 
   const [step, setStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState<UserRole>(null);
@@ -279,18 +277,14 @@ export default function RegisterScreen() {
   const onSubmit = async (data: RegisterSchema) => {
     try {
       await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
-      // En lugar de Alert → transición al step 2
       transitionTo(2);
     } catch (err: any) {
-      // Solo mostramos alerta en caso de error
       const { Alert } = require('react-native');
       Alert.alert(t('auth.register_error_title'), err.message ?? t('auth.register_error_msg'));
     }
   };
 
   const handleFinish = () => {
-    // TODO: Enviar selectedRole y selectedPosition al backend cuando esté listo
-    // await api.post('/v1/user-profile/', { role: selectedRole, position: selectedPosition });
     router.replace('/(auth)/auth-login' as any);
   };
 
@@ -304,21 +298,19 @@ export default function RegisterScreen() {
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-      <SafeAreaView style={GlobalStyles.safeArea}>
+      <SafeAreaView style={GlobalStyles.safeArea} edges={['top']}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={getBackAction()} style={styles.backButton}>
-              <ChevronLeft size={28} color={theme.text} />
+              <ChevronLeft size={moderateScale(28)} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>TROFI</Text>
-            <View style={{ width: 28 }} />
+            <Text style={styles.logoHeader}>TROFI</Text>
+            <View style={{ width: scale(48) }} />
           </View>
 
-          {/* Step Indicator */}
           <StepIndicator currentStep={step} theme={theme} isDark={isDark} />
 
           <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
@@ -327,7 +319,6 @@ export default function RegisterScreen() {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {/* ── STEP 1: Datos de la cuenta ── */}
               {step === 1 && (
                 <>
                   <View style={styles.textSection}>
@@ -352,7 +343,7 @@ export default function RegisterScreen() {
                   {isSubmitting ? (
                     <View style={styles.loadingWrapper}><ActivityIndicator color={theme.primary} size="large" /></View>
                   ) : (
-                    <PrimaryButton title={t('auth.register_button')} onPress={handleSubmit(onSubmit)} fullWidth style={{ marginTop: 10 }} />
+                    <PrimaryButton title={t('auth.register_button')} onPress={handleSubmit(onSubmit)} fullWidth style={{ marginTop: verticalScale(10) }} />
                   )}
 
                   <View style={styles.divider}>
@@ -366,13 +357,12 @@ export default function RegisterScreen() {
                   </TouchableOpacity>
 
                   <View style={styles.infoContainer}>
-                    <Info size={16} color={theme.textSecondary} />
+                    <Info size={moderateScale(16)} color={theme.textSecondary} />
                     <Text style={styles.infoText}>TROFI ELITE SPORTS MANAGEMENT - 2024</Text>
                   </View>
                 </>
               )}
 
-              {/* ── STEP 2: Selección de rol ── */}
               {step === 2 && (
                 <>
                   <View style={styles.textSection}>
@@ -384,7 +374,7 @@ export default function RegisterScreen() {
                   </View>
 
                   <RoleCard
-                    icon={<Swords size={26} color={selectedRole === 'player' ? theme.primary : theme.textSecondary} />}
+                    icon={<Swords size={moderateScale(26)} color={selectedRole === 'player' ? theme.primary : theme.textSecondary} />}
                     title={t('auth.role_player')}
                     description={t('auth.role_player_desc')}
                     perks={[t('auth.role_player_perk_1'), t('auth.role_player_perk_2'), t('auth.role_player_perk_3')]}
@@ -395,7 +385,7 @@ export default function RegisterScreen() {
                   />
 
                   <RoleCard
-                    icon={<Eye size={26} color={selectedRole === 'spectator' ? theme.primary : theme.textSecondary} />}
+                    icon={<Eye size={moderateScale(26)} color={selectedRole === 'spectator' ? theme.primary : theme.textSecondary} />}
                     title={t('auth.role_spectator')}
                     description={t('auth.role_spectator_desc')}
                     perks={[t('auth.role_spectator_perk_1'), t('auth.role_spectator_perk_2'), t('auth.role_spectator_perk_3')]}
@@ -406,7 +396,7 @@ export default function RegisterScreen() {
                   />
 
                   <RoleCard
-                    icon={<Trophy size={26} color={selectedRole === 'admin' ? theme.primary : theme.textSecondary} />}
+                    icon={<Trophy size={moderateScale(26)} color={selectedRole === 'admin' ? theme.primary : theme.textSecondary} />}
                     title={t('auth.role_admin')}
                     description={t('auth.role_admin_desc')}
                     perks={[t('auth.role_admin_perk_1'), t('auth.role_admin_perk_2'), t('auth.role_admin_perk_3')]}
@@ -426,12 +416,12 @@ export default function RegisterScreen() {
                       }
                     }}
                     fullWidth
-                    style={{ marginTop: 8, opacity: selectedRole ? 1 : 0.4 }}
+                    style={{ marginTop: verticalScale(8), opacity: selectedRole ? 1 : 0.4 }}
                     disabled={!selectedRole}
                   />
 
                   <TouchableOpacity
-                    style={[styles.secondaryButton, { marginTop: 12 }]}
+                    style={[styles.secondaryButton, { marginTop: verticalScale(12) }]}
                     onPress={handleFinish}
                   >
                     <Text style={styles.secondaryButtonText}>{t('auth.skip_for_now')}</Text>
@@ -439,7 +429,6 @@ export default function RegisterScreen() {
                 </>
               )}
 
-              {/* ── STEP 3: Posición del jugador ── */}
               {step === 3 && (
                 <>
                   <View style={styles.textSection}>
@@ -450,11 +439,11 @@ export default function RegisterScreen() {
                     </Text>
                   </View>
 
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale(12), marginBottom: verticalScale(24) }}>
                     <PositionCard
                       label={t('auth.pos_goalkeeper')}
                       sublabel={t('auth.pos_goalkeeper_sub')}
-                      icon={<Shield size={22} color={selectedPosition === 'goalkeeper' ? theme.primary : theme.textSecondary} />}
+                      icon={<Shield size={moderateScale(22)} color={selectedPosition === 'goalkeeper' ? theme.primary : theme.textSecondary} />}
                       selected={selectedPosition === 'goalkeeper'}
                       onPress={() => setSelectedPosition('goalkeeper')}
                       theme={theme}
@@ -463,7 +452,7 @@ export default function RegisterScreen() {
                     <PositionCard
                       label={t('auth.pos_defender')}
                       sublabel={t('auth.pos_defender_sub')}
-                      icon={<Users size={22} color={selectedPosition === 'defender' ? theme.primary : theme.textSecondary} />}
+                      icon={<Users size={moderateScale(22)} color={selectedPosition === 'defender' ? theme.primary : theme.textSecondary} />}
                       selected={selectedPosition === 'defender'}
                       onPress={() => setSelectedPosition('defender')}
                       theme={theme}
@@ -472,7 +461,7 @@ export default function RegisterScreen() {
                     <PositionCard
                       label={t('auth.pos_midfielder')}
                       sublabel={t('auth.pos_midfielder_sub')}
-                      icon={<Star size={22} color={selectedPosition === 'midfielder' ? theme.primary : theme.textSecondary} />}
+                      icon={<Star size={moderateScale(22)} color={selectedPosition === 'midfielder' ? theme.primary : theme.textSecondary} />}
                       selected={selectedPosition === 'midfielder'}
                       onPress={() => setSelectedPosition('midfielder')}
                       theme={theme}
@@ -481,7 +470,7 @@ export default function RegisterScreen() {
                     <PositionCard
                       label={t('auth.pos_forward')}
                       sublabel={t('auth.pos_forward_sub')}
-                      icon={<Swords size={22} color={selectedPosition === 'forward' ? theme.primary : theme.textSecondary} />}
+                      icon={<Swords size={moderateScale(22)} color={selectedPosition === 'forward' ? theme.primary : theme.textSecondary} />}
                       selected={selectedPosition === 'forward'}
                       onPress={() => setSelectedPosition('forward')}
                       theme={theme}
@@ -489,19 +478,18 @@ export default function RegisterScreen() {
                     />
                   </View>
 
-                  {/* ¿Tienes equipo? (solo UI, no backend aún) */}
                   <View style={{
-                    borderRadius: 16,
-                    padding: 18,
+                    borderRadius: moderateScale(16),
+                    padding: moderateScale(18),
                     backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                     borderWidth: 1,
                     borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
-                    marginBottom: 24,
+                    marginBottom: verticalScale(24),
                   }}>
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: theme.textSecondary, marginBottom: 4 }}>
+                    <Text style={{ fontSize: moderateScale(13), fontWeight: '700', color: theme.textSecondary, marginBottom: verticalScale(4) }}>
                       {t('auth.coming_soon')}
                     </Text>
-                    <Text style={{ fontSize: 14, color: theme.text, fontWeight: '600' }}>
+                    <Text style={{ fontSize: moderateScale(14), color: theme.text, fontWeight: '600' }}>
                       {t('auth.team_coming_soon_text')}
                     </Text>
                   </View>
@@ -514,7 +502,7 @@ export default function RegisterScreen() {
                   />
 
                   <TouchableOpacity
-                    style={[styles.secondaryButton, { marginTop: 12 }]}
+                    style={[styles.secondaryButton, { marginTop: verticalScale(12) }]}
                     onPress={handleFinish}
                   >
                     <Text style={styles.secondaryButtonText}>{t('auth.skip_for_now')}</Text>
@@ -529,36 +517,37 @@ export default function RegisterScreen() {
   );
 }
 
-const createStyles = (theme: any, isDark: boolean) =>
+const createStyles = (theme: any, isDark: boolean, insets: any) =>
   StyleSheet.create({
     keyboardView: { flex: 1 },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      paddingHorizontal: 20,
-      height: 60,
+      paddingHorizontal: scale(20),
+      height: verticalScale(60),
     },
     backButton: {
-      width: 48,
-      height: 48,
+      width: scale(48),
+      height: scale(48),
       justifyContent: 'center',
       alignItems: 'center',
-      borderRadius: 24,
+      borderRadius: moderateScale(24),
       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
     },
-    headerTitle: {
-      fontSize: 24,
-      fontWeight: '900',
+    logoHeader: {
+      fontSize: moderateScale(22),
+      fontWeight: "900",
       color: theme.primary,
       letterSpacing: 2,
+      fontStyle: "italic",
     },
     scrollContent: {
-      paddingHorizontal: 30,
-      paddingTop: 10,
-      paddingBottom: 50,
+      paddingHorizontal: scale(30),
+      paddingTop: verticalScale(10),
+      paddingBottom: verticalScale(50),
     },
-    textSection: { marginBottom: 28 },
+    textSection: { marginBottom: verticalScale(28) },
     stepLabel: {
       fontSize: 10,
       fontWeight: '800',

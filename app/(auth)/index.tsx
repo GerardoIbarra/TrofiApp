@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Dimensions, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image } from 'react-native';
+import { scale, verticalScale, moderateScale, Layout } from '@/constants/layout';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Trophy, Calendar, Trophy as ResultsIcon, Image as GalleryIcon, BarChart3 } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -22,7 +23,7 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
-const { width } = Dimensions.get('window');
+const { width } = Layout.window;
 
 export default function WelcomeScreen() {
   const { theme, isDark } = useTheme();
@@ -110,9 +111,9 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   content: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 50,
-    paddingHorizontal: 20,
+    justifyContent: 'center', // Changed from space-between to avoid over-stretching
+    paddingVertical: verticalScale(50),
+    paddingHorizontal: scale(20),
   },
   logoContainer: {
     alignItems: 'center',
@@ -130,7 +131,7 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 48,
+    fontSize: moderateScale(48),
     fontWeight: '900',
     color: theme.text,
     letterSpacing: 4,

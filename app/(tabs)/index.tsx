@@ -37,9 +37,9 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { scale, verticalScale, moderateScale, Layout } from "@/constants/layout";
 
-const { width } = Dimensions.get("window");
-const { height } = Dimensions.get("window");
+const { width, height } = Layout.window;
 
 const MatchRow = React.memo(({ match, teamName, theme, styles, t, i18n }: any) => {
   if (!match) return null;
@@ -428,11 +428,11 @@ const createStyles = (theme: any, isDark: boolean) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginTop: 20,
-      marginBottom: 15,
+      marginTop: verticalScale(20),
+      marginBottom: verticalScale(15),
     },
     sectionOverline: {
-      fontSize: 10,
+      fontSize: moderateScale(10),
       fontWeight: "700",
       color: theme.textSecondary,
       letterSpacing: 1,
@@ -449,15 +449,15 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     carouselContainer: {
       width: "100%",
-      height: 280,
-      marginBottom: 30,
+      height: verticalScale(280),
+      marginBottom: verticalScale(30),
     },
     carouselContent: {
       gap: 0,
     },
     featuredCard: {
-      height: 280,
-      borderRadius: 30,
+      height: verticalScale(280),
+      borderRadius: scale(30),
       overflow: "hidden",
       elevation: 10,
       shadowColor: "#000",
@@ -634,7 +634,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     team: {
       alignItems: "center",
-      width: "40%",
+      width: scale(100),
     },
     teamBadgePlaceholder: {
       width: 50,
@@ -657,10 +657,10 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.textSecondary,
     },
     scoreText: {
-      fontSize: 32,
+      fontSize: moderateScale(32),
       fontWeight: "900",
       color: theme.primary,
-      marginTop: 5,
+      marginTop: verticalScale(5),
     },
     matchFooter: {
       flexDirection: "row",
