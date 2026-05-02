@@ -2,15 +2,14 @@ import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient"
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
-import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { User as UserType } from "@/features/auth/types/auth";
 import { CardHistory, PlayerStats } from "@/features/players/types/player";
+import { LANGUAGE_KEY } from "@/i18n";
+import api from "@/services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
-import { useTranslation } from "react-i18next";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LANGUAGE_KEY } from "@/i18n";
 import {
   Award,
   ChevronRight,
@@ -23,6 +22,7 @@ import {
   User,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Dimensions,
@@ -67,7 +67,7 @@ export default function ProfileScreen() {
   const currentLanguage = i18n.language;
 
   const toggleLanguage = async () => {
-    const newLang = currentLanguage === 'es' ? 'en' : 'es';
+    const newLang = currentLanguage === "es" ? "en" : "es";
     await i18n.changeLanguage(newLang);
     await AsyncStorage.setItem(LANGUAGE_KEY, newLang);
   };
@@ -91,6 +91,7 @@ export default function ProfileScreen() {
       } else {
         // Fetch current user
         const userRes = await api.get<UserType>("/v1/me/");
+        console.log("userRes", userRes);
         setProfile(userRes);
         userId = userRes.id;
       }
@@ -100,7 +101,7 @@ export default function ProfileScreen() {
         try {
           const statsRes = await api.get<PlayerStats>(
             `/v1/player-stats/${userId}/`,
-            { silent: true }
+            { silent: true },
           );
           setStats(statsRes);
         } catch (err: any) {
@@ -115,7 +116,7 @@ export default function ProfileScreen() {
         try {
           const cardRes = await api.get<CardHistory>(
             `/v1/card-history/${userId}/`,
-            { silent: true }
+            { silent: true },
           );
           setCard(cardRes);
         } catch (err: any) {
@@ -198,17 +199,23 @@ export default function ProfileScreen() {
 
                     <View style={styles.infoRow}>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>{t('profile.position')}</Text>
+                        <Text style={styles.infoLabel}>
+                          {t("profile.position")}
+                        </Text>
                         <Text style={styles.infoValue}>
                           {profile?.position || "--"}
                         </Text>
                       </View>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>{t('profile.dorsal')}</Text>
+                        <Text style={styles.infoLabel}>
+                          {t("profile.dorsal")}
+                        </Text>
                         <Text style={styles.infoValue}>--</Text>
                       </View>
                       <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>{t('profile.height')}</Text>
+                        <Text style={styles.infoLabel}>
+                          {t("profile.height")}
+                        </Text>
                         <Text style={styles.infoValue}>--</Text>
                       </View>
                     </View>
@@ -220,19 +227,19 @@ export default function ProfileScreen() {
             {/* Core Stats */}
             <View style={styles.kpiRow}>
               <KPIBox
-                label={t('profile.goals')}
+                label={t("profile.goals")}
                 value={stats?.goals?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
               />
               <KPIBox
-                label={t('profile.assists')}
+                label={t("profile.assists")}
                 value={stats?.assists?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
               />
               <KPIBox
-                label={t('profile.matches')}
+                label={t("profile.matches")}
                 value={stats?.matches_played?.toString() || "0"}
                 theme={theme}
                 isDark={isDark}
@@ -241,7 +248,9 @@ export default function ProfileScreen() {
 
             {/* Current Team Section */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionOverline}>{t('profile.current_team')}</Text>
+              <Text style={styles.sectionOverline}>
+                {t("profile.current_team")}
+              </Text>
             </View>
             <View style={styles.teamCard}>
               <View style={styles.teamBrandBox}>
@@ -249,17 +258,19 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.teamCoreInfo}>
                 <Text style={styles.teamNameTitle}>
-                  {profile?.memberships?.[0]?.team_name || t('profile.no_team')}
+                  {profile?.memberships?.[0]?.team_name || t("profile.no_team")}
                 </Text>
                 <Text style={styles.teamSubtitle}>
                   {profile?.memberships?.[0]
-                    ? t('profile.active_member')
-                    : t('profile.no_team')}
+                    ? t("profile.active_member")
+                    : t("profile.no_team")}
                 </Text>
               </View>
               {profile?.memberships?.[0] && (
                 <TouchableOpacity style={styles.viewTeamBtn}>
-                  <Text style={styles.viewTeamBtnText}>{t('profile.view_team')}</Text>
+                  <Text style={styles.viewTeamBtnText}>
+                    {t("profile.view_team")}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -268,7 +279,7 @@ export default function ProfileScreen() {
             <View style={styles.trendSection}>
               <View style={styles.trendHeader}>
                 <View>
-                  <Text style={styles.trendTitle}>{t('profile.trend')}</Text>
+                  <Text style={styles.trendTitle}>{t("profile.trend")}</Text>
                   <Text style={styles.trendSubtitle}>
                     Calificación Promedio:{" "}
                     <Text style={{ color: theme.primary }}>0.0</Text>
@@ -297,7 +308,9 @@ export default function ProfileScreen() {
             </View>
 
             {/* Recent Matches */}
-            <Text style={styles.mainSectionTitle}>{t('profile.recent_matches')}</Text>
+            <Text style={styles.mainSectionTitle}>
+              {t("profile.recent_matches")}
+            </Text>
             {MATCHES.length > 0 ? (
               MATCHES.map((match) => (
                 <TouchableOpacity key={match.id} style={styles.matchCard}>
@@ -345,21 +358,23 @@ export default function ProfileScreen() {
                   style={{ marginBottom: 12 }}
                 />
                 <Text style={styles.emptyMatchesText}>
-                  {t('profile.no_recent_matches')}
+                  {t("profile.no_recent_matches")}
                 </Text>
               </View>
             )}
 
             {/* CONFIGURATION */}
             <View style={[styles.sectionHeader, { marginTop: 25 }]}>
-              <Text style={styles.mainSectionTitle}>{t('profile.configuration')}</Text>
+              <Text style={styles.mainSectionTitle}>
+                {t("profile.configuration")}
+              </Text>
             </View>
 
             {/* Theme Toggle Switch */}
             <View style={styles.menuItem}>
               <View style={styles.menuIconText}>
                 <Moon size={20} color={theme.primary} />
-                <Text style={styles.menuLabel}>{t('profile.dark_mode')}</Text>
+                <Text style={styles.menuLabel}>{t("profile.dark_mode")}</Text>
               </View>
               <Switch
                 value={isDark}
@@ -373,11 +388,13 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.menuItem} onPress={toggleLanguage}>
               <View style={styles.menuIconText}>
                 <Globe size={20} color={theme.primary} />
-                <Text style={styles.menuLabel}>{t('profile.language')}</Text>
+                <Text style={styles.menuLabel}>{t("profile.language")}</Text>
               </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={{ color: theme.primary, fontWeight: '700' }}>
-                  {currentLanguage === 'es' ? 'Español' : 'English'}
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
+                <Text style={{ color: theme.primary, fontWeight: "700" }}>
+                  {currentLanguage === "es" ? "Español" : "English"}
                 </Text>
                 <ChevronRight size={18} color={theme.textSecondary} />
               </View>
@@ -385,32 +402,32 @@ export default function ProfileScreen() {
 
             <MenuItem
               icon={<User size={20} color={theme.primary} />}
-              label={t('profile.my_account')}
+              label={t("profile.my_account")}
               theme={theme}
               isDark={isDark}
             />
             <MenuItem
               icon={<Award size={20} color={theme.primary} />}
-              label={t('profile.achievements')}
+              label={t("profile.achievements")}
               theme={theme}
               isDark={isDark}
             />
             <MenuItem
               icon={<Shield size={20} color={theme.primary} />}
-              label={t('profile.privacy')}
+              label={t("profile.privacy")}
               theme={theme}
               isDark={isDark}
             />
             <MenuItem
               icon={<Settings size={20} color={theme.primary} />}
-              label={t('profile.app_settings')}
+              label={t("profile.app_settings")}
               theme={theme}
               isDark={isDark}
             />
 
             <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
               <LogOut size={20} color={theme.error} />
-              <Text style={styles.logoutText}>{t('profile.logout')}</Text>
+              <Text style={styles.logoutText}>{t("profile.logout")}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
