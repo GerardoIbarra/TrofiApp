@@ -67,3 +67,23 @@ export interface MatchHeadToHeadResponse {
   home_season_stats: SeasonStats;
   away_season_stats: SeasonStats;
 }
+
+export interface MatchEvent {
+  id: string;
+  match: string;
+  team: string;
+  team_name: string;
+  roster_membership: string;
+  player_name: string;
+  event_type: 'goal' | 'yellow_card' | 'red_card' | 'substitution' | 'var' | 'period_start' | 'period_end' | 'other';
+  minute: number;
+  metadata: string | null;
+  created_at: string;
+}
+
+export interface MatchTimelineResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: MatchEvent[];
+}

@@ -49,6 +49,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     await AuthStorage.clearSession();
     set({ user: null, isAuthenticated: false });
-    router.replace('/(auth)/signin' as any);
+    router.replace('/(auth)' as any);
   },
 }));

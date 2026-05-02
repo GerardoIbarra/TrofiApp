@@ -66,9 +66,9 @@ function InitialNavigation() {
 
       // Auto-navigation based on auth state
       if (!isAuthenticated) {
-        router.replace("/(auth)" as any);
+        router.replace("/(auth)");
       } else {
-        router.replace("/(tabs)" as any);
+        router.replace("/(tabs)");
       }
     }
   }, [isLoading, isAuthenticated]);
@@ -86,14 +86,14 @@ function InitialNavigation() {
 
 export default function RootLayout() {
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister: asyncStoragePersister }}
-    >
-      <ThemeProvider>
+    <ThemeProvider>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{ persister: asyncStoragePersister }}
+      >
         <InitialNavigation />
         <StatusBar style="auto" />
-      </ThemeProvider>
-    </PersistQueryClientProvider>
+      </PersistQueryClientProvider>
+    </ThemeProvider>
   );
 }

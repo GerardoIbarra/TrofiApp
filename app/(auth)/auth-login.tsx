@@ -124,7 +124,7 @@ export default function SignInScreen() {
             {/* Go to Register */}
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => router.push('/(auth)/login' as any)}
+              onPress={() => router.push('/(auth)/register' as any)}
             >
               <Text style={styles.secondaryButtonText}>Crear cuenta</Text>
             </TouchableOpacity>

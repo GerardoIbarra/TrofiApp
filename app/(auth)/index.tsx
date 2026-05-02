@@ -81,7 +81,7 @@ export default function WelcomeScreen() {
             />
             <SecondaryButton 
               title="INICIAR SESIÓN" 
-              onPress={() => router.push('/(auth)/login' as any)} 
+              onPress={() => router.push('/(auth)/auth-login' as any)} 
               style={{ width: '100%', borderRadius: 28 }} 
             />
             <Text style={styles.footerText}>PROXIMO EVENTO: LIGA ZAPOPAN NORTE</Text>

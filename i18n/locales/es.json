@@ -243,7 +243,14 @@
     "stat_clean_sheets": "Portería a Cero",
     "stat_wins": "Victorias",
     "tomorrow": "MAÑANA",
-    "today": "HOY"
+    "today": "HOY",
+    "tab_timeline": "CRONOLOGÍA",
+    "timeline_empty": "No hay eventos registrados en este partido.",
+    "event_goal": "Gol",
+    "event_yellow": "Tarjeta Amarilla",
+    "event_red": "Tarjeta Roja",
+    "event_sub": "Cambio",
+    "event_var": "VAR"
   },
   "match_list": {
     "loading": "Cargando calendario...",

@@ -15,7 +15,7 @@ import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient'
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import api from '@/services/api';
 import { Match } from '@/features/tournaments/types/match';
-import { MatchLineupResponse, MatchHeadToHeadResponse } from '@/features/tournaments/types/matchDetail';
+import { MatchLineupResponse, MatchHeadToHeadResponse, MatchTimelineResponse, MatchEvent } from '@/features/tournaments/types/matchDetail';
 import { 
   ChevronLeft, 
   Calendar, 
@@ -26,7 +26,10 @@ import {
   Info,
   Clock,
   Shield,
-  User
+  User,
+  ArrowRightLeft,
+  AlertCircle,
+  Video
 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -41,10 +44,11 @@ export default function MatchDetailScreen() {
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   
-  const [activeTab, setActiveTab] = useState<'RESUMEN' | 'ALINEACION' | 'ESTADISTICAS'>('RESUMEN');
+  const [activeTab, setActiveTab] = useState<'RESUMEN' | 'TIMELINE' | 'ALINEACION' | 'ESTADISTICAS'>('RESUMEN');
   const [match, setMatch] = useState<Match | null>(null);
   const [lineup, setLineup] = useState<MatchLineupResponse | null>(null);
   const [h2h, setH2h] = useState<MatchHeadToHeadResponse | null>(null);
+  const [timeline, setTimeline] = useState<MatchTimelineResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -71,6 +75,12 @@ export default function MatchDetailScreen() {
         const h2hData = await api.get<MatchHeadToHeadResponse>(`/v1/matches/${id}/head-to-head/`);
         setH2h(h2hData);
       } catch (e) { console.log('Estadísticas no disponibles'); }
+
+      // 4. Cargar Timeline
+      try {
+        const timelineData = await api.get<MatchTimelineResponse>(`/v1/matches/${id}/timeline/`);
+        setTimeline(timelineData);
+      } catch (e) { console.log('Timeline no disponible'); }
 
     } catch (error) {
       console.error('Error fetching match data:', error);
@@ -150,6 +160,60 @@ export default function MatchDetailScreen() {
       )}
     </ScrollView>
   );
+
+  const TimelineTab = () => {
+    const events = timeline?.results || [];
+    if (events.length === 0) return (
+      <View style={styles.emptyContainer}>
+        <Clock size={48} color={theme.textSecondary} opacity={0.3} />
+        <Text style={styles.emptyText}>{t("match_detail.timeline_empty")}</Text>
+      </View>
+    );
+
+    return (
+      <ScrollView style={styles.tabContent}>
+        <View style={styles.timelineContainer}>
+          <View style={styles.timelineLine} />
+          {events.map((event, index) => {
+            const isHome = event.team_name === match?.home_team_name;
+            return (
+              <View key={event.id} style={[styles.timelineItem, isHome ? styles.timelineHome : styles.timelineAway]}>
+                <View style={[styles.eventContent, isHome ? styles.eventContentHome : styles.eventContentAway]}>
+                  <View style={styles.eventMainInfo}>
+                    {event.event_type === 'goal' && <Text style={styles.eventTitle}>{t("match_detail.event_goal")}</Text>}
+                    {event.event_type === 'substitution' && <Text style={styles.eventTitle}>{t("match_detail.event_sub")}</Text>}
+                    {event.event_type === 'yellow_card' && <Text style={styles.eventTitle}>{t("match_detail.event_yellow")}</Text>}
+                    {event.event_type === 'red_card' && <Text style={styles.eventTitle}>{t("match_detail.event_red")}</Text>}
+                    {event.event_type === 'var' && <Text style={styles.eventTitle}>{t("match_detail.event_var")}</Text>}
+                    
+                    <Text style={styles.eventPlayer}>{event.player_name}</Text>
+                    {event.metadata && (
+                      <Text style={styles.eventSubPlayer}>{event.metadata}</Text>
+                    )}
+                  </View>
+                </View>
+
+                <View style={styles.minuteBadgeContainer}>
+                  <View style={styles.minuteBadge}>
+                    <Text style={styles.minuteText}>{event.minute}'</Text>
+                  </View>
+                  <View style={styles.eventIconCircle}>
+                    {event.event_type === 'goal' && <Shield size={14} color={theme.primary} />}
+                    {event.event_type === 'substitution' && <ArrowRightLeft size={14} color={theme.primary} />}
+                    {event.event_type === 'yellow_card' && <AlertCircle size={14} color="#FFD700" />}
+                    {event.event_type === 'red_card' && <AlertCircle size={14} color="#FF4444" />}
+                    {event.event_type === 'var' && <Video size={14} color={theme.primary} />}
+                  </View>
+                </View>
+                
+                <View style={{ flex: 1 }} />
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+    );
+  };
 
   const LineupTab = () => {
     if (!lineup) return (
@@ -330,7 +394,7 @@ export default function MatchDetailScreen() {
 
       {/* Tabs */}
       <View style={styles.tabsWrapper}>
-        {(['RESUMEN', 'ALINEACION', 'ESTADISTICAS'] as const).map((tab) => (
+        {(['RESUMEN', 'TIMELINE', 'ALINEACION', 'ESTADISTICAS'] as const).map((tab) => (
           <TouchableOpacity 
             key={tab} 
             onPress={() => setActiveTab(tab)}
@@ -338,6 +402,7 @@ export default function MatchDetailScreen() {
           >
             <Text style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]}>
               {tab === 'RESUMEN' ? t("match_detail.tab_summary") : 
+               tab === 'TIMELINE' ? t("match_detail.tab_timeline") :
                tab === 'ALINEACION' ? t("match_detail.tab_lineup") : 
                t("match_detail.tab_stats")}
             </Text>
@@ -348,6 +413,7 @@ export default function MatchDetailScreen() {
       {/* Tab Content */}
       <View style={{ flex: 1 }}>
         {activeTab === 'RESUMEN' && <SummaryTab />}
+        {activeTab === 'TIMELINE' && <TimelineTab />}
         {activeTab === 'ALINEACION' && <LineupTab />}
         {activeTab === 'ESTADISTICAS' && <StatsTab />}
       </View>
@@ -716,5 +782,95 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontWeight: '600',
     flex: 1,
     textAlign: 'center',
+  },
+  timelineContainer: {
+    paddingVertical: 20,
+    position: 'relative',
+  },
+  timelineLine: {
+    position: 'absolute',
+    left: '50%',
+    top: 0,
+    bottom: 0,
+    width: 2,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+    marginLeft: -1,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 25,
+    width: '100%',
+  },
+  timelineHome: {
+    flexDirection: 'row',
+  },
+  timelineAway: {
+    flexDirection: 'row-reverse',
+  },
+  minuteBadgeContainer: {
+    width: 60,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  minuteBadge: {
+    backgroundColor: theme.surface,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+    marginBottom: 4,
+  },
+  minuteText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: theme.text,
+  },
+  eventIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: theme.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+  },
+  eventContent: {
+    flex: 1,
+  },
+  eventContentHome: {
+    alignItems: 'flex-end',
+    paddingRight: 15,
+  },
+  eventContentAway: {
+    alignItems: 'flex-start',
+    paddingLeft: 15,
+  },
+  eventMainInfo: {
+    backgroundColor: theme.surface,
+    padding: 12,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+    minWidth: 120,
+  },
+  eventTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: theme.primary,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+  },
+  eventPlayer: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: theme.text,
+  },
+  eventSubPlayer: {
+    fontSize: 10,
+    color: theme.textSecondary,
+    marginTop: 2,
   }
 });

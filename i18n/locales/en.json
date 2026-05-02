@@ -243,7 +243,14 @@
     "stat_clean_sheets": "Clean Sheets",
     "stat_wins": "Wins",
     "tomorrow": "TOMORROW",
-    "today": "TODAY"
+    "today": "TODAY",
+    "tab_timeline": "TIMELINE",
+    "timeline_empty": "No events recorded for this match.",
+    "event_goal": "Goal",
+    "event_yellow": "Yellow Card",
+    "event_red": "Red Card",
+    "event_sub": "Substitution",
+    "event_var": "VAR"
   },
   "match_list": {
     "loading": "Loading matches...",
