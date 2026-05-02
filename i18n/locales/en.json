@@ -3,7 +3,7 @@
     "loading": "Loading...",
     "save": "Save",
     "cancel": "Cancel",
-    "see_all": "SEE ALL",
+    "see_all": "ALL",
     "details": "DETAILS",
     "notifications": "NOTIFICATIONS",
     "no_notifications": "You have no notifications for now."
@@ -55,7 +55,13 @@
     "search_placeholder": "Search leagues by name...",
     "active_badge": "ACTIVE",
     "no_leagues": "No leagues found",
-    "players_count": "Players"
+    "players_count": "Players",
+    "elite_competitions": "ELITE COMPETITIONS",
+    "featured_leagues": "FEATURED LEAGUES",
+    "view_all": "ALL",
+    "game_formats": "GAME FORMATS",
+    "nearby_competitions": "NEARBY COMPETITIONS",
+    "all_distances": "All distances"
   },
   "teams": {
     "location": "LOCATION",
@@ -128,7 +134,7 @@
     "view_profile": "VIEW PROFILE",
     "popular_teams": "Popular Teams",
     "explore_sports": "Explore Sports",
-    "see_all": "SEE ALL",
+    "see_all": "ALL",
     "soccer": "Soccer",
     "basketball": "Basketball"
   }

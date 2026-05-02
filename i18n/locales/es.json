@@ -55,7 +55,13 @@
     "search_placeholder": "Buscar ligas por nombre...",
     "active_badge": "ACTIVA",
     "no_leagues": "No se encontraron ligas",
-    "players_count": "Jugadores"
+    "players_count": "Jugadores",
+    "elite_competitions": "COMPETICIONES ELITE",
+    "featured_leagues": "LIGAS DESTACADAS",
+    "view_all": "VER TODO",
+    "game_formats": "FORMATOS DE JUEGO",
+    "nearby_competitions": "COMPETICIONES CERCANAS",
+    "all_distances": "Todas las distancias"
   },
   "teams": {
     "location": "UBICACIÓN",

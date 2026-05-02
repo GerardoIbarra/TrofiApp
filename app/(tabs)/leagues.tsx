@@ -1,28 +1,28 @@
+import { CreateLeagueModal } from "@/components/leagues/CreateLeagueModal";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
-import { CreateLeagueModal } from "@/components/leagues/CreateLeagueModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
-import api from "@/services/api";
 import { League, LeaguesResponse } from "@/features/leagues/types/league";
+import api from "@/services/api";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useTranslation } from "react-i18next";
 import {
-  Trophy,
-  Search,
-  MapPin,
   Calendar,
   ChevronRight,
   CircleDot,
+  Filter,
   Layout,
+  MapPin,
   Medal,
   Plus,
+  Search,
+  Trophy,
   Venus,
-  X,
-  Filter,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Dimensions,
@@ -33,7 +33,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
@@ -106,25 +105,12 @@ export default function LeaguesExplorerScreen() {
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.webContainer}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={[GlobalStyles.sectionTitle, { color: theme.text }]}>
-                {t('leagues.title')}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setIsModalVisible(true)}
-                style={styles.addButton}
-              >
-                <Plus color="#FFF" size={20} />
-              </TouchableOpacity>
-            </View>
-
             {/* Search Bar */}
             <View style={styles.searchContainer}>
               <View style={styles.searchBar}>
                 <Search size={20} color={theme.textSecondary} />
                 <TextInput
-                  placeholder={t('leagues.search_placeholder')}
+                  placeholder={t("leagues.search_placeholder")}
                   placeholderTextColor={theme.textSecondary}
                   style={styles.searchInput}
                   value={searchQuery}
@@ -139,11 +125,11 @@ export default function LeaguesExplorerScreen() {
             {/* Featured Leagues */}
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionOverline}>COMPETICIONES ELITE</Text>
-                <Text style={styles.sectionTitle}>LIGAS DESTACADAS</Text>
+                <Text style={styles.sectionOverline}>{t("leagues.elite_competitions")}</Text>
+                <Text style={styles.sectionTitle}>{t("leagues.featured_leagues")}</Text>
               </View>
               <TouchableOpacity onPress={scrollToNearby}>
-                <Text style={styles.viewAllText}>VER TODO</Text>
+                <Text style={styles.viewAllText}>{t("leagues.view_all")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -179,7 +165,9 @@ export default function LeaguesExplorerScreen() {
                     activeOpacity={0.9}
                   >
                     <Image
-                      source={{ uri: league.background_image || getLeagueImage(index) }}
+                      source={{
+                        uri: league.background_image || getLeagueImage(index),
+                      }}
                       style={styles.featuredImage}
                       contentFit="cover"
                     />
@@ -194,14 +182,15 @@ export default function LeaguesExplorerScreen() {
                     <View style={styles.featuredContent}>
                       <View style={styles.statusBadge}>
                         <Text style={styles.statusText}>
-                          {t('leagues.active_badge')}
+                          {t("leagues.active_badge")}
                         </Text>
                       </View>
                       <Text style={styles.featuredName}>{league.name}</Text>
                       <View style={styles.featuredCategoryRow}>
                         <Trophy size={14} color={theme.primary} />
                         <Text style={styles.statText}>
-                          {(league as any).players_count || 0} {t('leagues.players_count')}
+                          {(league as any).players_count || 0}{" "}
+                          {t("leagues.players_count")}
                         </Text>
                       </View>
                     </View>
@@ -217,7 +206,7 @@ export default function LeaguesExplorerScreen() {
                   }}
                 >
                   <Text style={{ color: theme.textSecondary }}>
-                    {t('leagues.no_leagues')}
+                    {t("leagues.no_leagues")}
                   </Text>
                 </View>
               )}
@@ -225,7 +214,7 @@ export default function LeaguesExplorerScreen() {
 
             {/* Game Formats */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>FORMATOS DE JUEGO</Text>
+              <Text style={styles.sectionTitle}>{t("leagues.game_formats")}</Text>
             </View>
 
             <View style={styles.formatsGrid}>
@@ -247,10 +236,10 @@ export default function LeaguesExplorerScreen() {
             {/* Nearby Competitions */}
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionTitle}>COMPETICIONES CERCANAS</Text>
+                <Text style={styles.sectionTitle}>{t("leagues.nearby_competitions")}</Text>
               </View>
               <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterText}>Todas las distancias</Text>
+                <Text style={styles.filterText}>{t("leagues.all_distances")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -269,16 +258,18 @@ export default function LeaguesExplorerScreen() {
                     <View style={styles.nearbyLogo}>
                       <View style={styles.logoCircle}>
                         {item.logo ? (
-                          <Image 
-                            source={{ uri: item.logo }} 
-                            style={styles.logoImage} 
+                          <Image
+                            source={{ uri: item.logo }}
+                            style={styles.logoImage}
                             contentFit="contain"
                           />
                         ) : (
                           <Trophy
                             size={20}
                             color={
-                              isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.4)"
+                              isDark
+                                ? "rgba(255,255,255,0.6)"
+                                : "rgba(0,0,0,0.4)"
                             }
                           />
                         )}
@@ -289,7 +280,9 @@ export default function LeaguesExplorerScreen() {
                         <Text style={styles.nearbyName}>{item.name}</Text>
                         <View style={styles.activeBadge}>
                           <View style={styles.activeDot} />
-                          <Text style={styles.activeText}>{t('leagues.active_badge')}</Text>
+                          <Text style={styles.activeText}>
+                            {t("leagues.active_badge")}
+                          </Text>
                         </View>
                       </View>
                       <View style={styles.nearbyMetaRow}>

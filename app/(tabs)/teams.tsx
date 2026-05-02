@@ -1,12 +1,14 @@
+import { CreateTeamModal } from "@/components/teams/CreateTeamModal";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
-import { CreateTeamModal } from "@/components/teams/CreateTeamModal";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
-import api from "@/services/api";
 import { Team, TeamsResponse } from "@/features/teams/types/team";
+import api from "@/services/api";
+import { router } from "expo-router";
 import { AlertCircle, Plus } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Dimensions,
@@ -18,8 +20,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 
@@ -78,11 +78,16 @@ export default function TeamsScreen() {
               </View>
             ) : teams.length > 0 ? (
               teams.map((team, index) => (
-                <TouchableOpacity 
-                  key={team.id} 
+                <TouchableOpacity
+                  key={team.id}
                   style={styles.teamCard}
                   activeOpacity={0.9}
-                  onPress={() => router.push({ pathname: '/team-detail', params: { id: team.id } })}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/team-detail",
+                      params: { id: team.id },
+                    })
+                  }
                 >
                   <View style={styles.teamHeader}>
                     <Image
@@ -92,18 +97,20 @@ export default function TeamsScreen() {
                     <View style={styles.teamInfo}>
                       <Text style={styles.teamNameText}>{team.name}</Text>
                       <Text style={styles.leagueNameText}>
-                        {team.league_name || t('teams.free_agent')}
+                        {team.league_name || t("teams.free_agent")}
                       </Text>
                     </View>
                   </View>
 
                   <View style={styles.statsRow}>
                     <View style={styles.statColumn}>
-                      <Text style={styles.statLabel}>{t('teams.location')}</Text>
+                      <Text style={styles.statLabel}>
+                        {t("teams.location")}
+                      </Text>
                       <Text style={styles.standingValue}>{team.city}</Text>
                     </View>
                     <View style={styles.statColumn}>
-                      <Text style={styles.statLabel}>{t('teams.owner')}</Text>
+                      <Text style={styles.statLabel}>{t("teams.owner")}</Text>
                       <View style={styles.nextMatchContainer}>
                         <Text style={styles.nextMatchValue}>
                           {team.owner_name}
@@ -113,15 +120,17 @@ export default function TeamsScreen() {
                   </View>
 
                   <View style={styles.buttonRow}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.viewButton}
-                      onPress={() => router.push({ pathname: '/team-detail', params: { id: team.id } })}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/team-detail",
+                          params: { id: team.id },
+                        })
+                      }
                     >
-                      <Text style={styles.viewButtonText}>{t('teams.view_team')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.manageButton}>
-                      <Text style={styles.manageButtonText}>
-                        {t('teams.manage_roster')}
+                      <Text style={styles.viewButtonText}>
+                        {t("teams.view_team")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -134,9 +143,9 @@ export default function TeamsScreen() {
                   color={theme.primary}
                   style={{ marginBottom: 15 }}
                 />
-                <Text style={styles.emptyTitle}>{t('teams.no_teams')}</Text>
+                <Text style={styles.emptyTitle}>{t("teams.no_teams")}</Text>
                 <Text style={styles.emptySubtitle}>
-                  {t('teams.no_teams_subtitle')}
+                  {t("teams.no_teams_subtitle")}
                 </Text>
               </View>
             )}

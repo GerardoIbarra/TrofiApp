@@ -33,6 +33,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -63,13 +64,14 @@ export default function ProfileScreen() {
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [card, setCard] = useState<CardHistory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showLangModal, setShowLangModal] = useState(false);
 
   const currentLanguage = i18n.language;
 
-  const toggleLanguage = async () => {
-    const newLang = currentLanguage === "es" ? "en" : "es";
-    await i18n.changeLanguage(newLang);
-    await AsyncStorage.setItem(LANGUAGE_KEY, newLang);
+  const handleLanguageSelect = async (lang: string) => {
+    await i18n.changeLanguage(lang);
+    await AsyncStorage.setItem(LANGUAGE_KEY, lang);
+    setShowLangModal(false);
   };
 
   useEffect(() => {
@@ -385,7 +387,7 @@ export default function ProfileScreen() {
             </View>
 
             {/* Language Selector */}
-            <TouchableOpacity style={styles.menuItem} onPress={toggleLanguage}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => setShowLangModal(true)}>
               <View style={styles.menuIconText}>
                 <Globe size={20} color={theme.primary} />
                 <Text style={styles.menuLabel}>{t("profile.language")}</Text>
@@ -432,6 +434,58 @@ export default function ProfileScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLangModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLangModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowLangModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t("profile.language")}</Text>
+            
+            <TouchableOpacity
+              style={[
+                styles.langOption,
+                currentLanguage === "es" && styles.langOptionSelected,
+              ]}
+              onPress={() => handleLanguageSelect("es")}
+            >
+              <Text
+                style={[
+                  styles.langOptionText,
+                  currentLanguage === "es" && styles.langOptionTextSelected,
+                ]}
+              >
+                Español
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.langOption,
+                currentLanguage === "en" && styles.langOptionSelected,
+              ]}
+              onPress={() => handleLanguageSelect("en")}
+            >
+              <Text
+                style={[
+                  styles.langOptionText,
+                  currentLanguage === "en" && styles.langOptionTextSelected,
+                ]}
+              >
+                English
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -985,5 +1039,46 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "800",
       color: theme.error,
       letterSpacing: 1,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      justifyContent: "flex-end",
+    },
+    modalContent: {
+      backgroundColor: theme.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      paddingBottom: 40,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: theme.text,
+      marginBottom: 20,
+      textAlign: "center",
+    },
+    langOption: {
+      padding: 16,
+      borderRadius: 12,
+      marginBottom: 10,
+      backgroundColor: theme.background,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+      alignItems: "center",
+    },
+    langOptionSelected: {
+      borderColor: theme.primary,
+      backgroundColor: theme.primary + "1A", // 10% opacity
+    },
+    langOptionText: {
+      fontSize: 16,
+      fontWeight: "600",
+      color: theme.text,
+    },
+    langOptionTextSelected: {
+      color: theme.primary,
+      fontWeight: "800",
     },
   });
