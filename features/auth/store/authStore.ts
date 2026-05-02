@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { User, AuthResponse } from '@/features/auth/types/auth';
 import { AuthStorage } from '@/features/auth/services/authStorage';
 import { router } from 'expo-router';
+import { unregisterDeviceToken } from '@/services/notifications';
 
 interface AuthState {
   user: User | null;
@@ -41,6 +42,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
+    try {
+      await unregisterDeviceToken();
+    } catch (e) {
+      console.warn('Notification unregistration failed during sign out:', e);
+    }
     await AuthStorage.clearSession();
     set({ user: null, isAuthenticated: false });
     router.replace('/(auth)/signin' as any);
