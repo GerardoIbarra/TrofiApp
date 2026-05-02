@@ -42,13 +42,14 @@ const { width } = Dimensions.get("window");
 const { height } = Dimensions.get("window");
 
 const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
-  const initialMatch = team.matches[0];
-  const { liveMatch } = useMatchLiveUpdate(initialMatch?.id, initialMatch?.status === 'live');
+  const matches = team.matches || [];
   
-  // Usamos los datos en vivo si existen, si no los iniciales
-  const match = liveMatch || initialMatch;
+  // Encontramos el partido en curso o el último jugado
+  const activeMatch = matches.find((m: any) => m.status === 'live' || m.status === 'finished') || matches[0];
+  // Encontramos el próximo partido
+  const upMatch = matches.find((m: any) => m.status === 'scheduled' && m.id !== activeMatch?.id);
 
-  if (!match) {
+  if (matches.length === 0) {
     return (
       <View style={[styles.featuredCard, { width: width - 40 }]}>
         <LinearGradient
@@ -65,84 +66,82 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
     );
   }
 
-  const isLive = match.status === 'live';
+  const MatchRow = ({ match, isNext }: { match: any, isNext?: boolean }) => {
+    if (!match) return null;
+    const isLive = match.status === 'live';
+    const isFinished = match.status === 'finished';
+    
+    // Determinamos el oponente
+    const isHome = match.home_team_name.includes(team.name);
+    const opponentName = isHome ? match.away_team_name : match.home_team_name;
+    const opponentLogo = isHome ? null : null; // Aquí iría el logo del rival si existiera en el match
+    
+    return (
+      <View style={styles.miniMatchRow}>
+        <View style={styles.miniMatchTeams}>
+          <View style={styles.miniTeamCol}>
+             <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
+             <Text style={styles.miniTeamName} numberOfLines={1}>
+               {isHome ? match.home_team_name.substring(0, 3).toUpperCase() : match.away_team_name.substring(0, 3).toUpperCase()}
+             </Text>
+          </View>
+          
+          <View style={styles.miniScoreCol}>
+            {isLive || isFinished ? (
+              <>
+                <Text style={styles.miniScoreText}>
+                  {match.result?.home_score ?? 0} - {match.result?.away_score ?? 0}
+                </Text>
+                <Text style={[styles.miniStatusText, isLive && { color: '#FF4B4B' }]}>
+                  {isLive ? 'EN VIVO' : 'TC'}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.miniDateText}>
+                  {new Date(match.start_datetime).toLocaleDateString("es-ES", { weekday: 'short' }).toUpperCase()}
+                </Text>
+                <Text style={styles.miniTimeText}>
+                  {new Date(match.start_datetime).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                </Text>
+              </>
+            )}
+          </View>
+
+          <View style={styles.miniTeamCol}>
+             <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
+             <Text style={styles.miniTeamName} numberOfLines={1}>
+               {isHome ? match.away_team_name.substring(0, 3).toUpperCase() : match.home_team_name.substring(0, 3).toUpperCase()}
+             </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={[styles.featuredCard, { width: width - 40 }]}>
       <LinearGradient
-        colors={isDark ? [theme.surface, "#0A1525"] : ["#FFFFFF", "#F3F4F6"]}
+        colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
         style={styles.cardGradient}
       >
-        <View style={styles.userHighlight} />
-        <View style={styles.cardHeader}>
-          <View style={[styles.leagueTag, isLive && { backgroundColor: '#FF4B4B20' }]}>
-            <Text style={[styles.leagueTagText, isLive && { color: '#FF4B4B' }]}>
-              {isLive ? `• EN VIVO ${match.current_minute}'` : match.tournament_name.toUpperCase()}
-            </Text>
-          </View>
-          <Text style={styles.matchTime}>
-            {new Date(match.start_datetime)
-              .toLocaleDateString("es-ES", {
-                day: "numeric",
-                month: "short",
-              })
-              .toUpperCase()}{" "}
-            •{" "}
-            {new Date(match.start_datetime).toLocaleTimeString(
-              "es-ES",
-              { hour: "2-digit", minute: "2-digit" },
-            )}
-          </Text>
-        </View>
-
-        <Text style={styles.matchdayText}>
-          {isLive
-            ? "Partido en Curso"
-            : match.status === "finished"
-            ? "Resultado Final"
-            : "Próximo Partido"}
-        </Text>
-        <Text style={styles.matchPhase}>{team.name}</Text>
-
-        <View style={styles.matchTeams}>
-          <View style={styles.team}>
+        <View style={styles.groupedHeader}>
+          <View style={styles.groupedTeamInfo}>
             {team.logo ? (
-              <Image source={{ uri: team.logo }} style={styles.teamLogo} />
+              <Image source={{ uri: team.logo }} style={styles.headerTeamLogo} />
             ) : (
-              <View style={[styles.teamBadgePlaceholder, { backgroundColor: theme.primary + "10" }]} />
+              <View style={[styles.headerTeamLogo, { backgroundColor: theme.primary + '20' }]} />
             )}
-            <Text style={styles.teamName}>{match.home_team_name}</Text>
-            {(match.result || isLive) && (
-              <Text style={styles.scoreText}>{match.result?.home_score ?? 0}</Text>
-            )}
-          </View>
-          <Text style={styles.vsText}>{(match.result || isLive) ? "-" : "VS"}</Text>
-          <View style={styles.team}>
-            <View style={[styles.teamBadgePlaceholder, { backgroundColor: theme.primary + "10" }]} />
-            <Text style={styles.teamName}>{match.away_team_name}</Text>
-            {(match.result || isLive) && (
-              <Text style={styles.scoreText}>{match.result?.away_score ?? 0}</Text>
-            )}
+            <Text style={styles.headerTeamName}>{team.name}</Text>
           </View>
         </View>
 
-        <View style={styles.matchFooter}>
-          <View style={styles.locationContainer}>
-            <Text style={styles.locationText}>
-              📍 {match.venue_name || "Sede por definir"}
-            </Text>
+        <View style={styles.groupedBody}>
+          <View style={styles.matchesSectionFull}>
+            <MatchRow match={activeMatch} />
+            <View style={styles.matchDivider} />
+            <MatchRow match={upMatch} isNext />
           </View>
-          <TouchableOpacity
-            style={styles.viewDetailsButton}
-            onPress={() =>
-              router.push({
-                pathname: "/tournament-detail",
-                params: { id: match.tournament },
-              })
-            }
-          >
-            <Text style={styles.viewDetailsText}>DETALLES</Text>
-          </TouchableOpacity>
         </View>
       </LinearGradient>
     </View>
@@ -235,15 +234,31 @@ export default function HomeScreen() {
                   ))}
                 </ScrollView>
               ) : (
-                <View style={styles.featuredCard}>
+                <View style={[styles.featuredCard, { marginHorizontal: 20 }]}>
                   <LinearGradient
-                    colors={isDark ? [theme.surface, "#0A1525"] : ["#FFFFFF", "#F3F4F6"]}
-                    style={styles.cardGradient}
+                    colors={isDark ? ["#1A1A1A", "#0D0D0D"] : ["#FFFFFF", "#F9FAFB"]}
+                    style={[styles.cardGradient, { justifyContent: 'center', alignItems: 'center' }]}
                   >
+                    <View style={styles.emptyStateDecoration}>
+                      <View style={[styles.decoCircle, { top: -20, left: -20, width: 100, height: 100 }]} />
+                      <View style={[styles.decoCircle, { bottom: -30, right: -40, width: 140, height: 140 }]} />
+                    </View>
+                    
                     <View style={styles.emptyFeaturedCard}>
-                      <Calendar size={32} color={theme.textSecondary} opacity={0.3} />
-                      <Text style={styles.emptyFeaturedTitle}>{t('home.no_matches')}</Text>
-                      <Text style={styles.emptyFeaturedSubtitle}>{t('home.join_team_subtitle')}</Text>
+                      <View style={styles.emptyIconContainer}>
+                        <Calendar size={40} color={theme.primary} opacity={0.6} />
+                      </View>
+                      <Text style={styles.emptyFeaturedTitle}>{t('home.no_matches') || "NO MATCHES"}</Text>
+                      <Text style={styles.emptyFeaturedSubtitle}>
+                        {t('home.join_team_subtitle') || "Join a team to see your feed."}
+                      </Text>
+                      
+                      <TouchableOpacity 
+                        style={styles.emptyStateButton}
+                        onPress={() => router.push('/leagues')}
+                      >
+                        <Text style={styles.emptyStateButtonText}>{t('home.explore_leagues') || "EXPLORE LEAGUES"}</Text>
+                      </TouchableOpacity>
                     </View>
                   </LinearGradient>
                 </View>
@@ -442,6 +457,124 @@ const createStyles = (theme: any, isDark: boolean) =>
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 15,
+    },
+    groupedHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+    groupedTeamInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    headerTeamLogo: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+    },
+    headerTeamName: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: '#FFF',
+    },
+    headerRefresh: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+    },
+    headerTimeText: {
+      fontSize: 12,
+      color: 'rgba(255,255,255,0.7)',
+      fontWeight: '600',
+    },
+    groupedBody: {
+      flex: 1,
+      flexDirection: 'row',
+      gap: 12,
+    },
+    matchesSectionFull: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.15)',
+      borderRadius: 20,
+      padding: 15,
+      justifyContent: 'center',
+    },
+    miniMatchRow: {
+      paddingVertical: 10,
+    },
+    miniMatchTeams: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    miniTeamCol: {
+      alignItems: 'center',
+      width: 70,
+    },
+    miniBadge: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      marginBottom: 6,
+    },
+    miniTeamName: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: 'rgba(255,255,255,0.8)',
+    },
+    miniScoreCol: {
+      alignItems: 'center',
+      flex: 1,
+    },
+    miniScoreText: {
+      fontSize: 24,
+      fontWeight: '900',
+      color: '#FFF',
+    },
+    miniStatusText: {
+      fontSize: 9,
+      fontWeight: '900',
+      color: 'rgba(255,255,255,0.4)',
+      letterSpacing: 1,
+    },
+    miniDateText: {
+      fontSize: 14,
+      fontWeight: '800',
+      color: '#FFF',
+    },
+    miniTimeText: {
+      fontSize: 10,
+      color: 'rgba(255,255,255,0.5)',
+      marginTop: 2,
+    },
+    matchDivider: {
+      height: 1,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      marginVertical: 15,
+    },
+    newsImage: {
+      width: '100%',
+      height: '100%',
+    },
+    newsOverlay: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      padding: 10,
+    },
+    newsTitle: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: '#FFF',
+      lineHeight: 14,
+      marginBottom: 4,
+    },
+    newsTime: {
+      fontSize: 8,
+      color: 'rgba(255,255,255,0.5)',
     },
     leagueTag: {
       backgroundColor: isDark ? "rgba(0, 245, 255, 0.2)" : theme.primary + "26", // opacity 0.15
@@ -668,20 +801,59 @@ const createStyles = (theme: any, isDark: boolean) =>
       alignItems: "center",
       justifyContent: "center",
       paddingVertical: 30,
-      gap: 12,
+      zIndex: 1,
+    },
+    emptyIconContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: theme.primary + '10',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: theme.primary + '20',
     },
     emptyFeaturedTitle: {
-      fontSize: 14,
+      fontSize: 20,
       fontWeight: "900",
       color: theme.text,
       letterSpacing: 1,
+      marginBottom: 8,
     },
     emptyFeaturedSubtitle: {
-      fontSize: 11,
+      fontSize: 13,
       color: theme.textSecondary,
       textAlign: "center",
+      paddingHorizontal: 40,
+      lineHeight: 20,
+      marginBottom: 25,
+    },
+    emptyStateDecoration: {
+      ...StyleSheet.absoluteFillObject,
+      overflow: 'hidden',
+    },
+    decoCircle: {
+      position: 'absolute',
+      borderRadius: 100,
+      backgroundColor: theme.primary + '05',
+    },
+    emptyStateButton: {
+      backgroundColor: theme.primary,
       paddingHorizontal: 20,
-      lineHeight: 16,
+      paddingVertical: 12,
+      borderRadius: 12,
+      elevation: 4,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+    },
+    emptyStateButtonText: {
+      fontSize: 12,
+      fontWeight: '800',
+      color: '#001A2C',
+      letterSpacing: 0.5,
     },
     playerSection: {
         marginTop: 10,
