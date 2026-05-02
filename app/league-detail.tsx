@@ -31,11 +31,12 @@ import {
   Zap,
 } from "lucide-react-native";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator } from "react-native";
 
 export default function LeagueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState("POSICIONES");
+  const [activeTab, setActiveTab] = useState("STANDINGS");
   const [league, setLeague] = useState<League | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -46,6 +47,7 @@ export default function LeagueDetailScreen() {
   const isOwner = user?.id === league?.created_by;
 
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   useEffect(() => {
@@ -67,13 +69,13 @@ export default function LeagueDetailScreen() {
   };
 
   const FEATURE_CONFIG = [
-    { key: "payments_enabled", label: "Pagos", icon: CreditCard },
-    { key: "qr_checkin_enabled", label: "QR", icon: QrCode },
-    { key: "comms_enabled", label: "Chat", icon: MessageSquare },
-    { key: "discipline_enabled", label: "Disciplina", icon: ShieldCheck },
-    { key: "player_market_enabled", label: "Mercado", icon: ShoppingBag },
-    { key: "sponsors_enabled", label: "Sponsors", icon: Award },
-    { key: "white_label_enabled", label: "Premium", icon: Zap },
+    { key: "payments_enabled", label: t("league_detail.feature_payments"), icon: CreditCard },
+    { key: "qr_checkin_enabled", label: t("league_detail.feature_qr"), icon: QrCode },
+    { key: "comms_enabled", label: t("league_detail.feature_chat"), icon: MessageSquare },
+    { key: "discipline_enabled", label: t("league_detail.feature_discipline"), icon: ShieldCheck },
+    { key: "player_market_enabled", label: t("league_detail.feature_market"), icon: ShoppingBag },
+    { key: "sponsors_enabled", label: t("league_detail.feature_sponsors"), icon: Award },
+    { key: "white_label_enabled", label: t("league_detail.feature_premium"), icon: Zap },
   ];
 
   const activeFeatures = FEATURE_CONFIG.filter(
@@ -81,10 +83,10 @@ export default function LeagueDetailScreen() {
   );
 
   // Generate Dynamic Tabs
-  const dynamicTabs = ["POSICIONES", "PARTIDOS"];
-  if (league?.features?.comms_enabled) dynamicTabs.push("NOTICIAS");
-  dynamicTabs.push("JUGADORES");
-  if (league?.features?.payments_enabled) dynamicTabs.push("PAGOS");
+  const dynamicTabs = ["STANDINGS", "MATCHES"];
+  if (league?.features?.comms_enabled) dynamicTabs.push("NEWS");
+  dynamicTabs.push("PLAYERS");
+  if (league?.features?.payments_enabled) dynamicTabs.push("PAYMENTS");
 
   // Fallback to first tab if activeTab is not in dynamicTabs
   useEffect(() => {
@@ -111,25 +113,23 @@ export default function LeagueDetailScreen() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case "JUGADORES":
+      case "PLAYERS":
         return <LeagueMembersWidget leagueId={league.id} />;
-      case "PAGOS":
+      case "PAYMENTS":
         return (
           <View style={styles.comingSoonBox}>
             <Text style={styles.comingSoonText}>
-              El módulo de pagos seguros está siendo configurado por el
-              administrador de la liga.
+              {t("league_detail.payments_coming_soon")}
             </Text>
           </View>
         );
-      case "POSICIONES":
+      case "STANDINGS":
         return <LeagueTournamentsWidget leagueId={league.id} />;
       default:
         return (
           <View style={styles.comingSoonBox}>
             <Text style={styles.comingSoonText}>
-              Las estadísticas y resultados de {activeTab.toLowerCase()} estarán
-              disponibles una vez que inicie el torneo.
+              {t("league_detail.stats_available_soon", { tab: activeTab.toLowerCase() })}
             </Text>
           </View>
         );

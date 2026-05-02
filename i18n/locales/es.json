@@ -137,5 +137,38 @@
     "see_all": "VER TODO",
     "soccer": "Fútbol",
     "basketball": "Básquetbol"
+  },
+  "tournament": {
+    "not_found": "No se encontró la información del torneo.",
+    "tab_standings": "POSICIONES",
+    "tab_matches": "PARTIDOS",
+    "tab_info": "INFO",
+    "about": "SOBRE EL TORNEO",
+    "no_description": "Esta competición aún no tiene una descripción detallada.",
+    "league_services": "SERVICIOS DE LA LIGA",
+    "service_payments": "Pagos",
+    "service_qr": "Check-in QR",
+    "service_comms": "Mensajería",
+    "service_discipline": "Control Disciplinario",
+    "view_rules": "Ver Reglamento del Torneo"
+  },
+  "league_detail": {
+    "stats_available_soon": "Las estadísticas y resultados de {{tab}} estarán disponibles una vez que inicie el torneo.",
+    "payments_coming_soon": "El módulo de pagos seguros está siendo configurado por el administrador de la liga.",
+    "competitions": "COMPETICIONES",
+    "tournaments_count": "{{count}} TORNEOS",
+    "no_tournaments": "Aún no hay torneos registrados en esta liga.",
+    "feature_payments": "Pagos",
+    "feature_qr": "QR",
+    "feature_chat": "Chat",
+    "feature_discipline": "Disciplina",
+    "feature_market": "Mercado",
+    "feature_sponsors": "Sponsors",
+    "feature_premium": "Premium",
+    "tab_standings": "POSICIONES",
+    "tab_matches": "PARTIDOS",
+    "tab_news": "NOTICIAS",
+    "tab_players": "JUGADORES",
+    "tab_payments": "PAGOS"
   }
 }

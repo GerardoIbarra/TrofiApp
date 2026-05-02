@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 interface LeagueTabsListProps {
   tabs: string[];
@@ -10,6 +11,7 @@ interface LeagueTabsListProps {
 
 export function LeagueTabsList({ tabs, activeTab, onTabChange }: LeagueTabsListProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   return (
@@ -28,7 +30,7 @@ export function LeagueTabsList({ tabs, activeTab, onTabChange }: LeagueTabsListP
               onPress={() => onTabChange(tab)}
             >
               <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                {tab}
+                {t(`league_detail.tab_${tab.toLowerCase()}`)}
               </Text>
             </TouchableOpacity>
           );

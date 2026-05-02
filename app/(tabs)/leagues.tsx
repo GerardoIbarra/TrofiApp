@@ -125,8 +125,12 @@ export default function LeaguesExplorerScreen() {
             {/* Featured Leagues */}
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionOverline}>{t("leagues.elite_competitions")}</Text>
-                <Text style={styles.sectionTitle}>{t("leagues.featured_leagues")}</Text>
+                <Text style={styles.sectionOverline}>
+                  {t("leagues.elite_competitions")}
+                </Text>
+                <Text style={styles.sectionTitle}>
+                  {t("leagues.featured_leagues")}
+                </Text>
               </View>
               <TouchableOpacity onPress={scrollToNearby}>
                 <Text style={styles.viewAllText}>{t("leagues.view_all")}</Text>
@@ -214,7 +218,9 @@ export default function LeaguesExplorerScreen() {
 
             {/* Game Formats */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t("leagues.game_formats")}</Text>
+              <Text style={styles.sectionTitle}>
+                {t("leagues.game_formats")}
+              </Text>
             </View>
 
             <View style={styles.formatsGrid}>
@@ -236,11 +242,10 @@ export default function LeaguesExplorerScreen() {
             {/* Nearby Competitions */}
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionTitle}>{t("leagues.nearby_competitions")}</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("leagues.nearby_competitions")}
+                </Text>
               </View>
-              <TouchableOpacity style={styles.filterButton}>
-                <Text style={styles.filterText}>{t("leagues.all_distances")}</Text>
-              </TouchableOpacity>
             </View>
 
             {filteredLeagues.length > 0

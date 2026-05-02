@@ -137,5 +137,38 @@
     "see_all": "ALL",
     "soccer": "Soccer",
     "basketball": "Basketball"
+  },
+  "tournament": {
+    "not_found": "Tournament information not found.",
+    "tab_standings": "STANDINGS",
+    "tab_matches": "MATCHES",
+    "tab_info": "INFO",
+    "about": "ABOUT THE TOURNAMENT",
+    "no_description": "This competition doesn't have a detailed description yet.",
+    "league_services": "LEAGUE SERVICES",
+    "service_payments": "Payments",
+    "service_qr": "QR Check-in",
+    "service_comms": "Messaging",
+    "service_discipline": "Disciplinary Control",
+    "view_rules": "View Tournament Rules"
+  },
+  "league_detail": {
+    "stats_available_soon": "The statistics and results of {{tab}} will be available once the tournament starts.",
+    "payments_coming_soon": "The secure payments module is being configured by the league administrator.",
+    "competitions": "COMPETITIONS",
+    "tournaments_count": "{{count}} TOURNAMENTS",
+    "no_tournaments": "No tournaments registered in this league yet.",
+    "feature_payments": "Payments",
+    "feature_qr": "QR",
+    "feature_chat": "Chat",
+    "feature_discipline": "Discipline",
+    "feature_market": "Market",
+    "feature_sponsors": "Sponsors",
+    "feature_premium": "Premium",
+    "tab_standings": "STANDINGS",
+    "tab_matches": "MATCHES",
+    "tab_news": "NEWS",
+    "tab_players": "PLAYERS",
+    "tab_payments": "PAYMENTS"
   }
 }

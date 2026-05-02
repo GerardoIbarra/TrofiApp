@@ -5,6 +5,7 @@ import { Tournament, TournamentsResponse } from '@/features/tournaments/types/to
 import api from '@/services/api';
 import { Trophy, Calendar, ChevronRight, CircleDot } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 interface LeagueTournamentsWidgetProps {
   leagueId: string;
@@ -12,6 +13,7 @@ interface LeagueTournamentsWidgetProps {
 
 export function LeagueTournamentsWidget({ leagueId }: LeagueTournamentsWidgetProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -54,8 +56,8 @@ export function LeagueTournamentsWidget({ leagueId }: LeagueTournamentsWidgetPro
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>COMPETICIONES</Text>
-        <Text style={styles.count}>{tournaments.length} TORNEOS</Text>
+        <Text style={styles.title}>{t("league_detail.competitions")}</Text>
+        <Text style={styles.count}>{t("league_detail.tournaments_count", { count: tournaments.length })}</Text>
       </View>
 
       {tournaments.length > 0 ? (
@@ -104,7 +106,7 @@ export function LeagueTournamentsWidget({ leagueId }: LeagueTournamentsWidgetPro
       ) : (
         <View style={styles.emptyState}>
           <Trophy size={32} color={theme.textSecondary} opacity={0.2} style={{ marginBottom: 12 }} />
-          <Text style={styles.emptyText}>Aún no hay torneos registrados en esta liga.</Text>
+          <Text style={styles.emptyText}>{t("league_detail.no_tournaments")}</Text>
         </View>
       )}
     </View>

@@ -11,10 +11,12 @@ import { CreateTournamentModal } from '@/components/leagues/CreateTournamentModa
 import { TournamentStandingsWidget } from '@/components/tournaments/TournamentStandingsWidget';
 import { TournamentMatchesWidget } from '@/components/tournaments/TournamentMatchesWidget';
 import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 
 export default function TournamentDetailScreen() {
   const { id } = useLocalSearchParams();
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const ServiceItem = ({ icon: Icon, label, active }: { icon: any, label: string, active: boolean }) => {
@@ -31,7 +33,7 @@ export default function TournamentDetailScreen() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState('POSICIONES');
+  const [activeTab, setActiveTab] = useState('STANDINGS');
 
   useEffect(() => {
     if (id) {
@@ -64,16 +66,16 @@ export default function TournamentDetailScreen() {
     return (
       <View style={[GlobalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <BackgroundGradient />
-        <Text style={{ color: theme.textSecondary }}>No se encontró la información del torneo.</Text>
+        <Text style={{ color: theme.textSecondary }}>{t("tournament.not_found")}</Text>
       </View>
     );
   }
 
   const FEATURE_LIST = [
-    { key: 'payments_enabled', label: 'Pagos', icon: CreditCard },
-    { key: 'qr_checkin_enabled', label: 'Check-in QR', icon: QrCode },
-    { key: 'comms_enabled', label: 'Mensajería', icon: MessageSquare },
-    { key: 'discipline_enabled', label: 'Control Disciplinario', icon: ShieldCheck },
+    { key: 'payments_enabled', label: t("tournament.service_payments"), icon: CreditCard },
+    { key: 'qr_checkin_enabled', label: t("tournament.service_qr"), icon: QrCode },
+    { key: 'comms_enabled', label: t("tournament.service_comms"), icon: MessageSquare },
+    { key: 'discipline_enabled', label: t("tournament.service_discipline"), icon: ShieldCheck },
   ];
 
   return (
@@ -88,25 +90,25 @@ export default function TournamentDetailScreen() {
           />
 
           <View style={styles.tabContainer}>
-            {['POSICIONES', 'PARTIDOS', 'INFO'].map((tab) => (
+            {['STANDINGS', 'MATCHES', 'INFO'].map((tab) => (
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab)}
                 style={[styles.tabButton, activeTab === tab && styles.tabActive]}
               >
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {tab}
+                  {t(`tournament.tab_${tab.toLowerCase()}`)}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
           <View style={styles.tabContentArea}>
-            {activeTab === 'POSICIONES' && (
+            {activeTab === 'STANDINGS' && (
               <TournamentStandingsWidget tournamentId={tournament.id} />
             )}
 
-            {activeTab === 'PARTIDOS' && (
+            {activeTab === 'MATCHES' && (
               <TournamentMatchesWidget tournamentId={tournament.id} isAdmin={true} />
             )}
 
@@ -118,29 +120,29 @@ export default function TournamentDetailScreen() {
                 <View style={styles.infoSection}>
                   <View style={styles.sectionHeader}>
                     <Info size={16} color={theme.primary} />
-                    <Text style={styles.sectionTitle}>SOBRE EL TORNEO</Text>
+                    <Text style={styles.sectionTitle}>{t("tournament.about")}</Text>
                   </View>
                   <Text style={styles.description}>
-                    {tournament.description || 'Esta competición aún no tiene una descripción detallada.'}
+                    {tournament.description || t("tournament.no_description")}
                   </Text>
                 </View>
 
                 <View style={styles.infoSection}>
                   <View style={styles.sectionHeader}>
                     <ShieldCheck size={16} color={theme.primary} />
-                    <Text style={styles.sectionTitle}>SERVICIOS DE LA LIGA</Text>
+                    <Text style={styles.sectionTitle}>{t("tournament.league_services")}</Text>
                   </View>
                   <View style={styles.featuresGrid}>
-                    <ServiceItem icon={CreditCard} label="Pagos" active={!!tournament.features?.payments_enabled} />
-                    <ServiceItem icon={QrCode} label="Check-in QR" active={!!tournament.features?.qr_checkin_enabled} />
-                    <ServiceItem icon={MessageSquare} label="Comms" active={!!tournament.features?.comms_enabled} />
-                    <ServiceItem icon={ShieldCheck} label="Disciplina" active={!!tournament.features?.discipline_enabled} />
+                    <ServiceItem icon={CreditCard} label={t("tournament.service_payments")} active={!!tournament.features?.payments_enabled} />
+                    <ServiceItem icon={QrCode} label={t("tournament.service_qr")} active={!!tournament.features?.qr_checkin_enabled} />
+                    <ServiceItem icon={MessageSquare} label={t("tournament.service_comms")} active={!!tournament.features?.comms_enabled} />
+                    <ServiceItem icon={ShieldCheck} label={t("tournament.service_discipline")} active={!!tournament.features?.discipline_enabled} />
                   </View>
                 </View>
 
                 <TouchableOpacity style={styles.rulesButton} activeOpacity={0.7}>
                   <Info size={18} color={theme.primary} />
-                  <Text style={styles.rulesText}>Ver Reglamento del Torneo</Text>
+                  <Text style={styles.rulesText}>{t("tournament.view_rules")}</Text>
                 </TouchableOpacity>
               </ScrollView>
             )}
