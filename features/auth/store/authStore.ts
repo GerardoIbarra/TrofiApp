@@ -49,6 +49,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     await AuthStorage.clearSession();
     set({ user: null, isAuthenticated: false });
+    // Limpiar todo el historial de navegación antes de ir a auth
+    // Esto evita que el botón "atrás" de Android lleve al usuario
+    // de vuelta a pantallas autenticadas después de cerrar sesión
+    if (router.canDismiss()) {
+      router.dismissAll();
+    }
     router.replace('/(auth)' as any);
   },
 }));
