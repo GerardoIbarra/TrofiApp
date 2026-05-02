@@ -4,6 +4,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Settings, Calendar, Trophy } from "lucide-react-native";
@@ -16,12 +17,27 @@ interface TournamentHeaderProps {
 export function TournamentHeader({ tournament, onEditPress }: TournamentHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   // Split name for visual impact
   const nameParts = tournament.name.split(" ");
   const firstPart = nameParts[0];
   const secondPart = nameParts.slice(1).join(" ");
+
+  const getDaysRemaining = (dateString: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(dateString);
+    startDate.setHours(0, 0, 0, 0);
+
+    const diffTime = startDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  };
+
+  const daysRemaining = getDaysRemaining(tournament.start_date);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -65,6 +81,15 @@ export function TournamentHeader({ tournament, onEditPress }: TournamentHeaderPr
           <Text style={styles.seasonText}>
             {tournament.season_label.toUpperCase()}
           </Text>
+          
+          {daysRemaining > 0 && tournament.status === 'draft' && (
+            <View style={styles.countdownBadge}>
+              <Text style={styles.countdownText}>
+                {t("tournament.starts_in", { count: daysRemaining })}
+              </Text>
+            </View>
+          )}
+
           <TouchableOpacity 
             style={styles.editButton} 
             onPress={onEditPress}
@@ -87,14 +112,14 @@ export function TournamentHeader({ tournament, onEditPress }: TournamentHeaderPr
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statLine}>
-            <Text style={styles.statLabel}>EQUIPOS</Text>
+            <Text style={styles.statLabel}>{t("tournament.label_teams")}</Text>
             <View style={styles.kpiBox}>
                <Trophy size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
                <Text style={styles.statKpi}>{tournament.team_count || "0"}</Text>
             </View>
           </View>
           <View style={styles.statLine}>
-            <Text style={styles.statLabel}>DURACIÓN</Text>
+            <Text style={styles.statLabel}>{t("tournament.label_duration")}</Text>
             <View style={styles.kpiBox}>
                <Calendar size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
                <Text style={styles.statKpi}>
@@ -145,11 +170,30 @@ const createStyles = (theme: any, isDark: boolean) =>
       letterSpacing: 0.5,
     },
     seasonText: {
-      color: theme.textSecondary,
       fontSize: 10,
-      fontWeight: "700",
-      letterSpacing: 1,
+      fontWeight: "900",
+      color: theme.primary,
+      backgroundColor: theme.primary + "15",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      letterSpacing: 0.5,
+      marginRight: 10,
+    },
+    countdownBadge: {
+      backgroundColor: "#FF4444",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
       flex: 1,
+      alignSelf: 'flex-start',
+    },
+    countdownText: {
+      fontSize: 10,
+      fontWeight: "900",
+      color: "#FFF",
+      letterSpacing: 0.5,
+      textAlign: 'center',
     },
     editButton: {
       width: 32,

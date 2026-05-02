@@ -16,7 +16,11 @@ export interface Tournament {
   league_name: string;
   name: string;
   season_label: string;
+  format: string;
+  gender: 'mens' | 'womens' | 'mixed';
   status: TournamentStatus;
+  registration_open: boolean;
+  max_teams: number;
   description?: string;
   start_date: string;
   end_date: string;

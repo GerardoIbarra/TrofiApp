@@ -10,7 +10,7 @@ import { TournamentHeader } from '@/components/leagues/TournamentHeader';
 import { CreateTournamentModal } from '@/components/leagues/CreateTournamentModal';
 import { TournamentStandingsWidget } from '@/components/tournaments/TournamentStandingsWidget';
 import { TournamentMatchesWidget } from '@/components/tournaments/TournamentMatchesWidget';
-import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode } from 'lucide-react-native';
+import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function TournamentDetailScreen() {
@@ -127,6 +127,63 @@ export default function TournamentDetailScreen() {
                   </Text>
                 </View>
 
+                {/* Technical Details */}
+                <View style={styles.infoSection}>
+                  <View style={styles.sectionHeader}>
+                    <Layers size={16} color={theme.primary} />
+                    <Text style={styles.sectionTitle}>{t("tournament.technical_details")}</Text>
+                  </View>
+                  <View style={styles.detailsGrid}>
+                    <View style={styles.detailItem}>
+                      <Users size={14} color={theme.textSecondary} />
+                      <View>
+                        <Text style={styles.detailLabel}>{t("tournament.gender")}</Text>
+                        <Text style={styles.detailValue}>
+                          {tournament.gender ? t(`tournament.gender_${tournament.gender}`) : 'N/A'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <Trophy size={14} color={theme.textSecondary} />
+                      <View>
+                        <Text style={styles.detailLabel}>{t("tournament.format")}</Text>
+                        <Text style={styles.detailValue}>
+                          {tournament.format ? t(`tournament.format_${tournament.format}`) : 'N/A'}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.detailItem}>
+                      {tournament.registration_open ? (
+                        <CheckCircle2 size={14} color="#4ADE80" />
+                      ) : (
+                        <XCircle size={14} color="#FF4444" />
+                      )}
+                      <View>
+                        <Text style={styles.detailLabel}>{t("tournament.registration")}</Text>
+                        <Text style={[styles.detailValue, { color: tournament.registration_open ? "#4ADE80" : "#FF4444" }]}>
+                          {tournament.registration_open ? t("tournament.registration_open") : t("tournament.registration_closed")}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <ShieldCheck size={14} color={theme.textSecondary} />
+                      <View>
+                        <Text style={styles.detailLabel}>{t("tournament.max_teams_label")}</Text>
+                        <Text style={styles.detailValue}>{tournament.team_count || '0'} / {tournament.max_teams || '∞'}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.detailItem}>
+                      <Calendar size={14} color={theme.textSecondary} />
+                      <View>
+                        <Text style={styles.detailLabel}>{t("tournament.dates")}</Text>
+                        <Text style={styles.detailValue}>
+                          {new Date(tournament.start_date).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
                 <View style={styles.infoSection}>
                   <View style={styles.sectionHeader}>
                     <ShieldCheck size={16} color={theme.primary} />
@@ -205,6 +262,35 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontSize: 14,
     color: theme.textSecondary,
     lineHeight: 22,
+  },
+  detailsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 15,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+  },
+  detailItem: {
+    width: '45%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  detailLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: theme.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: theme.text,
+    marginTop: 2,
   },
   featuresGrid: {
     flexDirection: 'row',
