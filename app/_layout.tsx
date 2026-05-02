@@ -18,6 +18,8 @@ import { Platform } from "react-native";
 import "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
 
+import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
+
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
@@ -88,15 +90,17 @@ function InitialNavigation() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <PersistQueryClientProvider
-        client={queryClient}
-        persistOptions={{ persister: asyncStoragePersister }}
-      >
-        <ThemeAwareStatusBar />
-        <InitialNavigation />
-      </PersistQueryClientProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister: asyncStoragePersister }}
+        >
+          <ThemeAwareStatusBar />
+          <InitialNavigation />
+        </PersistQueryClientProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
