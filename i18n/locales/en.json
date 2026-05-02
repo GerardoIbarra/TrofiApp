@@ -218,5 +218,37 @@
     "header_goal_diff": "GD",
     "header_points": "PTS",
     "footer_scroll": "Swipe horizontally to see detailed statistics."
+  },
+  "match_detail": {
+    "tab_summary": "SUMMARY",
+    "tab_lineup": "LINEUP",
+    "tab_stats": "STATISTICS",
+    "section_encounter": "Match Details",
+    "label_datetime": "Date & Time",
+    "label_venue": "Venue / Pitch",
+    "label_referee": "Main Referee",
+    "section_form": "Recent Form",
+    "lineup_empty": "Lineup not available for this match.",
+    "players_list": "Players List",
+    "unavailable_players": "Absences / Injured",
+    "stats_empty": "Statistics not available yet.",
+    "h2h_history": "Head to Head (History)",
+    "wins_local": "Home Win",
+    "draws": "Draws",
+    "wins_visitor": "Away Win",
+    "current_season": "Current Season",
+    "stat_position": "Position",
+    "stat_goals_pg": "Goals per Game",
+    "stat_goals_conceded": "Goals Conceded",
+    "stat_clean_sheets": "Clean Sheets",
+    "stat_wins": "Wins",
+    "tomorrow": "TOMORROW",
+    "today": "TODAY"
+  },
+  "match_list": {
+    "loading": "Loading matches...",
+    "empty": "No matches scheduled for this tournament yet.",
+    "scoreboard": "SCOREBOARD",
+    "venue_placeholder": "Field to be defined"
   }
 }

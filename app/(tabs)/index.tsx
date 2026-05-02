@@ -120,7 +120,14 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
   };
 
   return (
-    <View style={[styles.featuredCard, { width: width - 40 }]}>
+    <TouchableOpacity 
+      style={[styles.featuredCard, { width: width - 40 }]}
+      activeOpacity={0.9}
+      onPress={() => router.push({
+        pathname: '/match-detail',
+        params: { id: activeMatch?.id }
+      })}
+    >
       <LinearGradient
         colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
         style={styles.cardGradient}
@@ -144,7 +151,7 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
           </View>
         </View>
       </LinearGradient>
-    </View>
+    </TouchableOpacity>
   );
 };
 

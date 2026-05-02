@@ -218,5 +218,37 @@
     "header_goal_diff": "DG",
     "header_points": "PTS",
     "footer_scroll": "Desliza lateralmente para ver estadísticas detalladas."
+  },
+  "match_detail": {
+    "tab_summary": "RESUMEN",
+    "tab_lineup": "ALINEACIÓN",
+    "tab_stats": "ESTADÍSTICAS",
+    "section_encounter": "Detalles del Encuentro",
+    "label_datetime": "Fecha y Hora",
+    "label_venue": "Sede / Campo",
+    "label_referee": "Árbitro Principal",
+    "section_form": "Forma Reciente",
+    "lineup_empty": "Alineación no disponible para este partido.",
+    "players_list": "Lista de Jugadores",
+    "unavailable_players": "Bajas / Lesionados",
+    "stats_empty": "Estadísticas no disponibles todavía.",
+    "h2h_history": "Cara a Cara (Historial)",
+    "wins_local": "Victoria Local",
+    "draws": "Empates",
+    "wins_visitor": "Victoria Visitante",
+    "current_season": "Temporada Actual",
+    "stat_position": "Posición",
+    "stat_goals_pg": "Goles por Partido",
+    "stat_goals_conceded": "Goles Recibidos",
+    "stat_clean_sheets": "Portería a Cero",
+    "stat_wins": "Victorias",
+    "tomorrow": "MAÑANA",
+    "today": "HOY"
+  },
+  "match_list": {
+    "loading": "Cargando calendario...",
+    "empty": "No hay partidos programados para este torneo todavía.",
+    "scoreboard": "MARCADOR",
+    "venue_placeholder": "Campo por definir"
   }
 }
