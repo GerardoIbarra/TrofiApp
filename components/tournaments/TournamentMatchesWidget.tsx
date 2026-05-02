@@ -85,6 +85,7 @@ export function TournamentMatchesWidget({
       <TouchableOpacity
         style={styles.matchCard}
         activeOpacity={0.7}
+        delayPressIn={80}
         onPress={() =>
           router.push({
             pathname: "/match-detail",

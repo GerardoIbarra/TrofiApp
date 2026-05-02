@@ -77,7 +77,15 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
     const opponentLogo = isHome ? null : null; // Aquí iría el logo del rival si existiera en el match
     
     return (
-      <View style={styles.miniMatchRow}>
+      <TouchableOpacity 
+        style={styles.miniMatchRow}
+        activeOpacity={0.7}
+        delayPressIn={80}
+        onPress={() => router.push({
+          pathname: '/match-detail',
+          params: { id: match.id }
+        })}
+      >
         <View style={styles.miniMatchTeams}>
           <View style={styles.miniTeamCol}>
              <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
@@ -115,19 +123,12 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
              </Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
-    <TouchableOpacity 
-      style={[styles.featuredCard, { width: width - 40 }]}
-      activeOpacity={0.9}
-      onPress={() => router.push({
-        pathname: '/match-detail',
-        params: { id: activeMatch?.id }
-      })}
-    >
+    <View style={[styles.featuredCard, { width: width - 40 }]}>
       <LinearGradient
         colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
         style={styles.cardGradient}
@@ -151,7 +152,7 @@ const FeaturedMatchCard = ({ team, isDark, theme, width, styles }: any) => {
           </View>
         </View>
       </LinearGradient>
-    </TouchableOpacity>
+    </View>
   );
 };
 
