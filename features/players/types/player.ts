@@ -58,8 +58,22 @@ export interface PlayerStats {
   updated_at: string;
 }
 
-export interface CardHistory {
+export interface PlayerAchievement {
   id: string;
+  achievement_type: string;
+  title: string;
+  description: string;
+  image: string | null;
+  earned_at: string;
+  player: string;
+  tournament: string | null;
+}
+
+export interface PlayerCard {
+  id: string;
+  generated_image: string | null;
+  card_type: string;
+  position: string;
   overall: number;
   pace: number;
   shooting: number;
@@ -68,8 +82,10 @@ export interface CardHistory {
   defense: number;
   physical: number;
   rarity: string;
-  captured_at: string;
-  card: string;
+  theme: string;
+  is_active: boolean;
+  player: string;
+  tournament: string | null;
   created_at: string;
   updated_at: string;
 }

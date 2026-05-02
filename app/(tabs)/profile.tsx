@@ -4,7 +4,7 @@ import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { User as UserType } from "@/features/auth/types/auth";
-import { CardHistory, PlayerStats } from "@/features/players/types/player";
+import { PlayerCard, PlayerStats, PlayerAchievement } from "@/features/players/types/player";
 import { LANGUAGE_KEY } from "@/i18n";
 import api from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -27,13 +27,13 @@ import {
   ActivityIndicator,
   Dimensions,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
   TouchableOpacity,
   View,
-  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -62,7 +62,8 @@ export default function ProfileScreen() {
 
   const [profile, setProfile] = useState<any | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
-  const [card, setCard] = useState<CardHistory | null>(null);
+  const [card, setCard] = useState<PlayerCard | null>(null);
+  const [achievements, setAchievements] = useState<PlayerAchievement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLangModal, setShowLangModal] = useState(false);
 
@@ -93,38 +94,46 @@ export default function ProfileScreen() {
       } else {
         // Fetch current user
         const userRes = await api.get<UserType>("/v1/me/");
-        console.log("userRes", userRes);
         setProfile(userRes);
         userId = userRes.id;
       }
 
-      // Fetch Stats
+      // Fetch Stats, Achievements and Cards
       if (userId) {
+        // 1. Stats
         try {
           const statsRes = await api.get<PlayerStats>(
-            `/v1/player-stats/${userId}/`,
+            `/v1/player-stats/?player=${userId}`,
             { silent: true },
           );
-          setStats(statsRes);
+          // Assuming the endpoint returns a list or we pick the first one if multiple
+          setStats(Array.isArray(statsRes) ? statsRes[0] : (statsRes as any).results?.[0] || statsRes);
         } catch (err: any) {
-          // Si es 404 es normal para usuarios nuevos, no lo tratamos como error crítico
-          if (err?.status !== 404) {
-            console.warn("Player stats fetch issue:", err);
-          }
+          if (err?.status !== 404) console.warn("Player stats fetch issue:", err);
           setStats(null);
         }
 
-        // 3. Fetch Card History
+        // 2. Achievements
         try {
-          const cardRes = await api.get<CardHistory>(
-            `/v1/card-history/${userId}/`,
+          const achRes = await api.get<any>(
+            `/v1/player-achievements/?player=${userId}`,
             { silent: true },
           );
-          setCard(cardRes);
+          setAchievements(Array.isArray(achRes) ? achRes : achRes.results || []);
         } catch (err: any) {
-          if (err?.status !== 404) {
-            console.warn("Card history fetch issue:", err);
-          }
+          if (err?.status !== 404) console.warn("Achievements fetch issue:", err);
+        }
+
+        // 3. Active Card
+        try {
+          const cardRes = await api.get<any>(
+            `/v1/player-cards/?player=${userId}&is_active=true`,
+            { silent: true },
+          );
+          const activeCard = Array.isArray(cardRes) ? cardRes[0] : cardRes.results?.[0] || cardRes;
+          setCard(activeCard);
+        } catch (err: any) {
+          if (err?.status !== 404) console.warn("Card fetch issue:", err);
           setCard(null);
         }
       }
@@ -277,6 +286,46 @@ export default function ProfileScreen() {
               )}
             </View>
 
+            {/* Achievements Section */}
+            {achievements.length > 0 && (
+              <View style={styles.achievementsSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionOverline}>{t("profile.achievements")}</Text>
+                </View>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.achievementsList}
+                >
+                  {achievements.map((ach) => (
+                    <View key={ach.id} style={styles.achievementBadge}>
+                      <View style={styles.achievementIconWrapper}>
+                        {ach.image ? (
+                          <Image source={{ uri: ach.image }} style={styles.achievementIcon} />
+                        ) : (
+                          <Award size={32} color={theme.primary} />
+                        )}
+                      </View>
+                      <Text style={styles.achievementTitle} numberOfLines={1}>{ach.title}</Text>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Detailed Stats Summary */}
+            <View style={styles.statsSummaryCard}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionOverline}>ESTADÍSTICAS DE TEMPORADA</Text>
+              </View>
+              <View style={styles.statsDetailGrid}>
+                 <DetailStatBox label="LIMPIAS" value={stats?.clean_sheets?.toString() || "0"} theme={theme} />
+                 <DetailStatBox label="ROJAS" value={stats?.red_cards?.toString() || "0"} theme={theme} color="#FF4B4B" />
+                 <DetailStatBox label="AMARILLAS" value={stats?.yellow_cards?.toString() || "0"} theme={theme} color="#FFD700" />
+                 <DetailStatBox label="MVP" value={stats?.mvp_count?.toString() || "0"} theme={theme} color={theme.primary} />
+              </View>
+            </View>
+
             {/* Performance Trend Chart */}
             <View style={styles.trendSection}>
               <View style={styles.trendHeader}>
@@ -365,72 +414,87 @@ export default function ProfileScreen() {
               </View>
             )}
 
-            {/* CONFIGURATION */}
-            <View style={[styles.sectionHeader, { marginTop: 25 }]}>
-              <Text style={styles.mainSectionTitle}>
-                {t("profile.configuration")}
-              </Text>
-            </View>
+            {/* CONFIGURATION - Only visible on my profile */}
+            {!id && (
+              <>
+                <View style={[styles.sectionHeader, { marginTop: 25 }]}>
+                  <Text style={styles.mainSectionTitle}>
+                    {t("profile.configuration")}
+                  </Text>
+                </View>
 
-            {/* Theme Toggle Switch */}
-            <View style={styles.menuItem}>
-              <View style={styles.menuIconText}>
-                <Moon size={20} color={theme.primary} />
-                <Text style={styles.menuLabel}>{t("profile.dark_mode")}</Text>
-              </View>
-              <Switch
-                value={isDark}
-                onValueChange={toggleTheme}
-                trackColor={{ false: "#767577", true: theme.primary }}
-                thumbColor={isDark ? "#FFF" : "#f4f3f4"}
-              />
-            </View>
+                {/* Theme Toggle Switch */}
+                <View style={styles.menuItem}>
+                  <View style={styles.menuIconText}>
+                    <Moon size={20} color={theme.primary} />
+                    <Text style={styles.menuLabel}>
+                      {t("profile.dark_mode")}
+                    </Text>
+                  </View>
+                  <Switch
+                    value={isDark}
+                    onValueChange={toggleTheme}
+                    trackColor={{ false: "#767577", true: theme.primary }}
+                    thumbColor={isDark ? "#FFF" : "#f4f3f4"}
+                  />
+                </View>
 
-            {/* Language Selector */}
-            <TouchableOpacity style={styles.menuItem} onPress={() => setShowLangModal(true)}>
-              <View style={styles.menuIconText}>
-                <Globe size={20} color={theme.primary} />
-                <Text style={styles.menuLabel}>{t("profile.language")}</Text>
-              </View>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-              >
-                <Text style={{ color: theme.primary, fontWeight: "700" }}>
-                  {currentLanguage === "es" ? "Español" : "English"}
-                </Text>
-                <ChevronRight size={18} color={theme.textSecondary} />
-              </View>
-            </TouchableOpacity>
+                {/* Language Selector */}
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => setShowLangModal(true)}
+                >
+                  <View style={styles.menuIconText}>
+                    <Globe size={20} color={theme.primary} />
+                    <Text style={styles.menuLabel}>
+                      {t("profile.language")}
+                    </Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Text style={{ color: theme.primary, fontWeight: "700" }}>
+                      {currentLanguage === "es" ? "Español" : "English"}
+                    </Text>
+                    <ChevronRight size={18} color={theme.textSecondary} />
+                  </View>
+                </TouchableOpacity>
 
-            <MenuItem
-              icon={<User size={20} color={theme.primary} />}
-              label={t("profile.my_account")}
-              theme={theme}
-              isDark={isDark}
-            />
-            <MenuItem
-              icon={<Award size={20} color={theme.primary} />}
-              label={t("profile.achievements")}
-              theme={theme}
-              isDark={isDark}
-            />
-            <MenuItem
-              icon={<Shield size={20} color={theme.primary} />}
-              label={t("profile.privacy")}
-              theme={theme}
-              isDark={isDark}
-            />
-            <MenuItem
-              icon={<Settings size={20} color={theme.primary} />}
-              label={t("profile.app_settings")}
-              theme={theme}
-              isDark={isDark}
-            />
+                <MenuItem
+                  icon={<User size={20} color={theme.primary} />}
+                  label={t("profile.my_account")}
+                  theme={theme}
+                  isDark={isDark}
+                />
+                <MenuItem
+                  icon={<Award size={20} color={theme.primary} />}
+                  label={t("profile.achievements")}
+                  theme={theme}
+                  isDark={isDark}
+                />
+                <MenuItem
+                  icon={<Shield size={20} color={theme.primary} />}
+                  label={t("profile.privacy")}
+                  theme={theme}
+                  isDark={isDark}
+                />
+                <MenuItem
+                  icon={<Settings size={20} color={theme.primary} />}
+                  label={t("profile.app_settings")}
+                  theme={theme}
+                  isDark={isDark}
+                />
 
-            <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
-              <LogOut size={20} color={theme.error} />
-              <Text style={styles.logoutText}>{t("profile.logout")}</Text>
-            </TouchableOpacity>
+                <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
+                  <LogOut size={20} color={theme.error} />
+                  <Text style={styles.logoutText}>{t("profile.logout")}</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -449,7 +513,7 @@ export default function ProfileScreen() {
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t("profile.language")}</Text>
-            
+
             <TouchableOpacity
               style={[
                 styles.langOption,
@@ -519,7 +583,7 @@ function UltimateCard({
   theme: any;
   isDark: boolean;
   name: string;
-  card: CardHistory | null;
+  card: PlayerCard | null;
 }) {
   const styles = createStyles(theme, isDark);
   return (
@@ -1081,4 +1145,86 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.primary,
       fontWeight: "800",
     },
+    achievementsSection: {
+      marginBottom: 30,
+    },
+    achievementsList: {
+      paddingRight: 20,
+      gap: 15,
+    },
+    achievementBadge: {
+      alignItems: "center",
+      width: 80,
+    },
+    achievementIconWrapper: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: theme.surface,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+      marginBottom: 8,
+      elevation: 2,
+    },
+    achievementIcon: {
+      width: 40,
+      height: 40,
+      resizeMode: "contain",
+    },
+    achievementTitle: {
+      fontSize: 10,
+      fontWeight: "700",
+      color: theme.textSecondary,
+      textAlign: "center",
+    },
+    statsSummaryCard: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 20,
+      marginBottom: 30,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+    },
+    statsDetailGrid: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 10,
+    },
+    detailStatItem: {
+      flex: 1,
+      alignItems: "center",
+      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+      paddingVertical: 12,
+      borderRadius: 12,
+    },
+    detailStatValue: {
+      fontSize: 18,
+      fontWeight: "900",
+      color: theme.text,
+    },
+    detailStatLabel: {
+      fontSize: 8,
+      fontWeight: "800",
+      color: theme.textSecondary,
+      marginTop: 2,
+    },
   });
+
+function DetailStatBox({ label, value, theme, color }: { label: string, value: string, theme: any, color?: string }) {
+  return (
+    <View style={{
+      flex: 1,
+      alignItems: "center",
+      backgroundColor: theme.isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+      paddingVertical: 12,
+      borderRadius: 12,
+      borderWidth: color ? 1 : 0,
+      borderColor: color ? color + '40' : 'transparent'
+    }}>
+      <Text style={[{ fontSize: 18, fontWeight: "900", color: theme.text }, color && { color }]}>{value}</Text>
+      <Text style={{ fontSize: 8, fontWeight: "800", color: theme.textSecondary, marginTop: 2 }}>{label}</Text>
+    </View>
+  );
+}
