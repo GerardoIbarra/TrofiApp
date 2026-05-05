@@ -4,7 +4,11 @@ import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { User as UserType } from "@/features/auth/types/auth";
-import { PlayerCard, PlayerStats, PlayerAchievement } from "@/features/players/types/player";
+import {
+  PlayerAchievement,
+  PlayerCard,
+  PlayerStats,
+} from "@/features/players/types/player";
 import { LANGUAGE_KEY } from "@/i18n";
 import api from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -108,9 +112,14 @@ export default function ProfileScreen() {
             { silent: true },
           );
           // Assuming the endpoint returns a list or we pick the first one if multiple
-          setStats(Array.isArray(statsRes) ? statsRes[0] : (statsRes as any).results?.[0] || statsRes);
+          setStats(
+            Array.isArray(statsRes)
+              ? statsRes[0]
+              : (statsRes as any).results?.[0] || statsRes,
+          );
         } catch (err: any) {
-          if (err?.status !== 404) console.warn("Player stats fetch issue:", err);
+          if (err?.status !== 404)
+            console.warn("Player stats fetch issue:", err);
           setStats(null);
         }
 
@@ -120,9 +129,12 @@ export default function ProfileScreen() {
             `/v1/player-achievements/?player=${userId}`,
             { silent: true },
           );
-          setAchievements(Array.isArray(achRes) ? achRes : achRes.results || []);
+          setAchievements(
+            Array.isArray(achRes) ? achRes : achRes.results || [],
+          );
         } catch (err: any) {
-          if (err?.status !== 404) console.warn("Achievements fetch issue:", err);
+          if (err?.status !== 404)
+            console.warn("Achievements fetch issue:", err);
         }
 
         // 3. Active Card
@@ -131,7 +143,9 @@ export default function ProfileScreen() {
             `/v1/player-cards/?player=${userId}&is_active=true`,
             { silent: true },
           );
-          const activeCard = Array.isArray(cardRes) ? cardRes[0] : cardRes.results?.[0] || cardRes;
+          const activeCard = Array.isArray(cardRes)
+            ? cardRes[0]
+            : cardRes.results?.[0] || cardRes;
           setCard(activeCard);
         } catch (err: any) {
           if (err?.status !== 404) console.warn("Card fetch issue:", err);
@@ -166,16 +180,32 @@ export default function ProfileScreen() {
     return (
       <View style={GlobalStyles.container}>
         <BackgroundGradient />
-        <SafeAreaView style={[GlobalStyles.safeArea, { justifyContent: 'center', alignItems: 'center', gap: 16 }]}>
+        <SafeAreaView
+          style={[
+            GlobalStyles.safeArea,
+            { justifyContent: "center", alignItems: "center", gap: 16 },
+          ]}
+        >
           <User size={56} color={theme.textSecondary} opacity={0.4} />
-          <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}>
-            {t('errors.profile_title')}
+          <Text style={{ color: theme.text, fontSize: 18, fontWeight: "800" }}>
+            {t("errors.profile_title")}
           </Text>
-          <Text style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center', paddingHorizontal: 40 }}>
-            {t('errors.profile_subtitle')}
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              textAlign: "center",
+              paddingHorizontal: 40,
+            }}
+          >
+            {t("errors.profile_subtitle")}
           </Text>
           <TouchableOpacity
-            onPress={() => { setHasError(false); setIsLoading(true); fetchData(); }}
+            onPress={() => {
+              setHasError(false);
+              setIsLoading(true);
+              fetchData();
+            }}
             style={{
               backgroundColor: theme.primary,
               paddingHorizontal: 28,
@@ -184,7 +214,9 @@ export default function ProfileScreen() {
               marginTop: 8,
             }}
           >
-            <Text style={{ color: '#FFF', fontWeight: '800', fontSize: 14 }}>{t('errors.retry')}</Text>
+            <Text style={{ color: "#FFF", fontWeight: "800", fontSize: 14 }}>
+              {t("errors.retry")}
+            </Text>
           </TouchableOpacity>
         </SafeAreaView>
       </View>
@@ -321,10 +353,12 @@ export default function ProfileScreen() {
             {achievements.length > 0 && (
               <View style={styles.achievementsSection}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionOverline}>{t("profile.achievements")}</Text>
+                  <Text style={styles.sectionOverline}>
+                    {t("profile.achievements")}
+                  </Text>
                 </View>
-                <ScrollView 
-                  horizontal 
+                <ScrollView
+                  horizontal
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.achievementsList}
                 >
@@ -332,12 +366,17 @@ export default function ProfileScreen() {
                     <View key={ach.id} style={styles.achievementBadge}>
                       <View style={styles.achievementIconWrapper}>
                         {ach.image ? (
-                          <Image source={{ uri: ach.image }} style={styles.achievementIcon} />
+                          <Image
+                            source={{ uri: ach.image }}
+                            style={styles.achievementIcon}
+                          />
                         ) : (
                           <Award size={32} color={theme.primary} />
                         )}
                       </View>
-                      <Text style={styles.achievementTitle} numberOfLines={1}>{ach.title}</Text>
+                      <Text style={styles.achievementTitle} numberOfLines={1}>
+                        {ach.title}
+                      </Text>
                     </View>
                   ))}
                 </ScrollView>
@@ -347,13 +386,34 @@ export default function ProfileScreen() {
             {/* Detailed Stats Summary */}
             <View style={styles.statsSummaryCard}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionOverline}>ESTADÍSTICAS DE TEMPORADA</Text>
+                <Text style={styles.sectionOverline}>
+                  ESTADÍSTICAS DE TEMPORADA
+                </Text>
               </View>
               <View style={styles.statsDetailGrid}>
-                 <DetailStatBox label="LIMPIAS" value={stats?.clean_sheets?.toString() || "0"} theme={theme} />
-                 <DetailStatBox label="ROJAS" value={stats?.red_cards?.toString() || "0"} theme={theme} color="#FF4B4B" />
-                 <DetailStatBox label="AMARILLAS" value={stats?.yellow_cards?.toString() || "0"} theme={theme} color="#FFD700" />
-                 <DetailStatBox label="MVP" value={stats?.mvp_count?.toString() || "0"} theme={theme} color={theme.primary} />
+                <DetailStatBox
+                  label="LIMPIAS"
+                  value={stats?.clean_sheets?.toString() || "0"}
+                  theme={theme}
+                />
+                <DetailStatBox
+                  label="ROJAS"
+                  value={stats?.red_cards?.toString() || "0"}
+                  theme={theme}
+                  color="#FF4B4B"
+                />
+                <DetailStatBox
+                  label="AMARILLAS"
+                  value={stats?.yellow_cards?.toString() || "0"}
+                  theme={theme}
+                  color="#FFD700"
+                />
+                <DetailStatBox
+                  label="MVP"
+                  value={stats?.mvp_count?.toString() || "0"}
+                  theme={theme}
+                  color={theme.primary}
+                />
               </View>
             </View>
 
@@ -446,7 +506,7 @@ export default function ProfileScreen() {
             )}
 
             {/* CONFIGURATION - Only visible on my profile */}
-            {!id && (
+            {id && (
               <>
                 <View style={[styles.sectionHeader, { marginTop: 25 }]}>
                   <Text style={styles.mainSectionTitle}>
@@ -1243,19 +1303,49 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
   });
 
-function DetailStatBox({ label, value, theme, color }: { label: string, value: string, theme: any, color?: string }) {
+function DetailStatBox({
+  label,
+  value,
+  theme,
+  color,
+}: {
+  label: string;
+  value: string;
+  theme: any;
+  color?: string;
+}) {
   return (
-    <View style={{
-      flex: 1,
-      alignItems: "center",
-      backgroundColor: theme.isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-      paddingVertical: 12,
-      borderRadius: 12,
-      borderWidth: color ? 1 : 0,
-      borderColor: color ? color + '40' : 'transparent'
-    }}>
-      <Text style={[{ fontSize: 18, fontWeight: "900", color: theme.text }, color && { color }]}>{value}</Text>
-      <Text style={{ fontSize: 8, fontWeight: "800", color: theme.textSecondary, marginTop: 2 }}>{label}</Text>
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        backgroundColor: theme.isDark
+          ? "rgba(255,255,255,0.03)"
+          : "rgba(0,0,0,0.02)",
+        paddingVertical: 12,
+        borderRadius: 12,
+        borderWidth: color ? 1 : 0,
+        borderColor: color ? color + "40" : "transparent",
+      }}
+    >
+      <Text
+        style={[
+          { fontSize: 18, fontWeight: "900", color: theme.text },
+          color && { color },
+        ]}
+      >
+        {value}
+      </Text>
+      <Text
+        style={{
+          fontSize: 8,
+          fontWeight: "800",
+          color: theme.textSecondary,
+          marginTop: 2,
+        }}
+      >
+        {label}
+      </Text>
     </View>
   );
 }

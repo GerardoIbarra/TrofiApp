@@ -1,172 +1,376 @@
-import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
-import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { CreatePlayerModal } from "@/components/players/CreatePlayerModal";
+import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
+import {
+  Layout,
+  moderateScale,
+  scale,
+  verticalScale,
+} from "@/constants/layout";
 import { useTheme } from "@/context/ThemeContext";
-import api from "@/services/api";
 import { AuthStorage } from "@/features/auth/services/authStorage";
-import { Match, PaginatedMatches, TeamFeedResponse } from "@/features/tournaments/types/match";
 import { PaginatedPlayers, Player } from "@/features/players/types/player";
+import { TeamFeedResponse } from "@/features/tournaments/types/match";
+import api from "@/services/api";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter, router } from "expo-router";
-import { useTranslation } from "react-i18next";
+import { router, useRouter } from "expo-router";
 import {
   ArrowUpRight,
   Calendar,
-  ChevronRight,
   Plus,
-  Search,
   TrendingUp,
   Trophy,
 } from "lucide-react-native";
-import { Image } from "expo-image";
-import { useMatchLiveUpdate } from "@/hooks/useMatchLiveUpdate";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  Dimensions,
-  FlatList,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { scale, verticalScale, moderateScale, Layout } from "@/constants/layout";
 
 const { width, height } = Layout.window;
 
-const MatchRow = React.memo(({ match, teamName, theme, styles, t, i18n }: any) => {
-  if (!match) return null;
-  const isLive = match.status === 'live';
-  const isFinished = match.status === 'finished';
-  
-  // Determinamos el oponente
-  const isHome = match.home_team_name.includes(teamName);
-  
-  return (
-    <TouchableOpacity 
-      style={styles.miniMatchRow}
-      activeOpacity={0.7}
-      delayPressIn={80}
-      onPress={() => router.push({
-        pathname: '/match-detail',
-        params: { id: match.id }
-      })}
-    >
-      <View style={styles.miniMatchTeams}>
-        <View style={styles.miniTeamCol}>
-           <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
-           <Text style={styles.miniTeamName} numberOfLines={1}>
-             {isHome ? match.home_team_name.substring(0, 3).toUpperCase() : match.away_team_name.substring(0, 3).toUpperCase()}
-           </Text>
-        </View>
-        
-        <View style={styles.miniScoreCol}>
-          {isLive || isFinished ? (
-            <>
-              <Text style={styles.miniScoreText}>
-                {match.result?.home_score ?? 0} - {match.result?.away_score ?? 0}
-              </Text>
-              <Text style={[styles.miniStatusText, isLive && { color: '#FF4B4B' }]}>
-                {isLive ? t('home.status_live') : t('home.status_finished')}
-              </Text>
-            </>
-          ) : (
-            <>
-              <Text style={styles.miniDateText}>
-                {new Date(match.start_datetime).toLocaleDateString(i18n.language, { weekday: 'short' }).toUpperCase()}
-              </Text>
-              <Text style={styles.miniTimeText}>
-                {new Date(match.start_datetime).toLocaleTimeString(i18n.language, { hour: "2-digit", minute: "2-digit" })}
-              </Text>
-            </>
-          )}
-        </View>
+const MatchRow = React.memo(
+  ({ match, teamName, theme, styles, t, i18n }: any) => {
+    if (!match) return null;
+    const isLive = match.status === "live";
+    const isFinished = match.status === "finished";
 
-        <View style={styles.miniTeamCol}>
-           <View style={[styles.miniBadge, { backgroundColor: theme.primary + '10' }]} />
-           <Text style={styles.miniTeamName} numberOfLines={1}>
-             {isHome ? match.away_team_name.substring(0, 3).toUpperCase() : match.home_team_name.substring(0, 3).toUpperCase()}
-           </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-});
+    // Determinamos el oponente
+    const isHome = match.home_team_name.includes(teamName);
+    const myLogo = isHome ? match.home_team_logo : match.away_team_logo;
+    const oppLogo = isHome ? match.away_team_logo : match.home_team_logo;
+    const myName = isHome ? match.home_team_name : match.away_team_name;
+    const oppName = isHome ? match.away_team_name : match.home_team_name;
 
-const FeaturedMatchCard = React.memo(({ team, isDark, theme, width, styles, t, i18n }: any) => {
-  const matches = team.matches || [];
-  
-  // Encontramos el partido en curso o el último jugado
-  const activeMatch = matches.find((m: any) => m.status === 'live' || m.status === 'finished') || matches[0];
-  // Encontramos el próximo partido
-  const upMatch = matches.find((m: any) => m.status === 'scheduled' && m.id !== activeMatch?.id);
-
-  if (matches.length === 0) {
     return (
-      <View style={[styles.featuredCard, { width: width - 40 }]}>
+      <TouchableOpacity
+        style={styles.miniMatchRow}
+        activeOpacity={0.7}
+        delayPressIn={80}
+        onPress={() =>
+          router.push({
+            pathname: "/match-detail",
+            params: { id: match.id },
+          })
+        }
+      >
+        {match.tournament_name && (
+          <Text
+            style={[
+              styles.matchTournamentText,
+              {
+                color: theme.isDark
+                  ? "rgba(255,255,255,0.4)"
+                  : theme.textSecondary,
+              },
+            ]}
+          >
+            {match.tournament_name.toUpperCase()}
+          </Text>
+        )}
+
+        <View style={styles.miniMatchTeams}>
+          <View style={styles.miniTeamCol}>
+            <View style={styles.badgeWrapper}>
+              {myLogo ? (
+                <Image source={{ uri: myLogo }} style={styles.miniBadge} />
+              ) : (
+                <View
+                  style={[
+                    styles.miniBadge,
+                    {
+                      backgroundColor: theme.isDark
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.05)",
+                    },
+                  ]}
+                />
+              )}
+            </View>
+            <Text
+              style={[
+                styles.miniTeamName,
+                {
+                  color: theme.isDark
+                    ? "rgba(255,255,255,0.8)"
+                    : theme.textSecondary,
+                },
+              ]}
+              numberOfLines={2}
+            >
+              {myName}
+            </Text>
+          </View>
+
+          <View style={styles.miniScoreCol}>
+            {isLive || isFinished ? (
+              <>
+                <Text
+                  style={[
+                    styles.miniScoreText,
+                    { color: theme.isDark ? "#FFF" : theme.text },
+                  ]}
+                >
+                  {match.result?.home_score ?? 0} -{" "}
+                  {match.result?.away_score ?? 0}
+                </Text>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    isLive
+                      ? { backgroundColor: "#FF4B4B" }
+                      : {
+                          backgroundColor: theme.isDark
+                            ? "rgba(255,255,255,0.1)"
+                            : "rgba(0,0,0,0.05)",
+                        },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.miniStatusText,
+                      {
+                        color: isLive
+                          ? "#FFF"
+                          : theme.isDark
+                            ? "#FFF"
+                            : theme.textSecondary,
+                      },
+                    ]}
+                  >
+                    {isLive
+                      ? match.current_minute
+                        ? `${match.current_minute}'`
+                        : t("home.status_live")
+                      : t("home.status_finished")}
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text
+                  style={[
+                    styles.miniDateText,
+                    { color: theme.isDark ? "#FFF" : theme.text },
+                  ]}
+                >
+                  {new Date(match.start_datetime)
+                    .toLocaleDateString(i18n.language, { weekday: "short" })
+                    .toUpperCase()}
+                </Text>
+                <Text
+                  style={[
+                    styles.miniTimeText,
+                    {
+                      color: theme.isDark
+                        ? "rgba(255,255,255,0.5)"
+                        : theme.textSecondary,
+                    },
+                  ]}
+                >
+                  {new Date(match.start_datetime).toLocaleTimeString(
+                    i18n.language,
+                    { hour: "2-digit", minute: "2-digit" },
+                  )}
+                </Text>
+              </>
+            )}
+          </View>
+
+          <View style={styles.miniTeamCol}>
+            <View style={styles.badgeWrapper}>
+              {oppLogo ? (
+                <Image source={{ uri: oppLogo }} style={styles.miniBadge} />
+              ) : (
+                <View
+                  style={[
+                    styles.miniBadge,
+                    {
+                      backgroundColor: theme.isDark
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.05)",
+                    },
+                  ]}
+                />
+              )}
+            </View>
+            <Text
+              style={[
+                styles.miniTeamName,
+                {
+                  color: theme.isDark
+                    ? "rgba(255,255,255,0.8)"
+                    : theme.textSecondary,
+                },
+              ]}
+              numberOfLines={2}
+            >
+              {oppName}
+            </Text>
+          </View>
+        </View>
+
+        {match.venue_name && (
+          <View style={styles.venueRow}>
+            <Text
+              style={[
+                styles.venueText,
+                {
+                  color: theme.isDark
+                    ? "rgba(255,255,255,0.3)"
+                    : theme.textSecondary,
+                },
+              ]}
+            >
+              {match.venue_name}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  },
+);
+
+const FeaturedMatchCard = React.memo(
+  ({ team, isDark, theme, width, styles, t, i18n }: any) => {
+    const matches = team.matches || [];
+
+    // Encontramos el partido en curso o el último jugado
+    const activeMatch =
+      matches.find(
+        (m: any) => m.status === "live" || m.status === "finished",
+      ) || matches[0];
+    // Encontramos el próximo partido
+    const upMatch = matches.find(
+      (m: any) => m.status === "scheduled" && m.id !== activeMatch?.id,
+    );
+
+    if (matches.length === 0) {
+      return (
+        <View style={[styles.featuredCard, { width: width - 40 }]}>
+          <LinearGradient
+            colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
+            style={styles.cardGradient}
+          >
+            <View style={styles.emptyFeaturedCard}>
+              <Trophy size={32} color={theme.textSecondary} opacity={0.3} />
+              <Text style={styles.emptyFeaturedTitle}>
+                {team.name.toUpperCase()}
+              </Text>
+              <Text style={styles.emptyFeaturedSubtitle}>
+                {t("home.no_matches")}
+              </Text>
+            </View>
+          </LinearGradient>
+        </View>
+      );
+    }
+
+    return (
+      <View
+        style={[
+          styles.featuredCard,
+          {
+            width: width - 40,
+            backgroundColor: theme.isDark ? "#16082A" : "#FFFFFF",
+          },
+        ]}
+      >
         <LinearGradient
-          colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
+          colors={
+            theme.isDark ? ["#2D1B4E", "#16082A"] : ["#FFFFFF", "#F9FAFB"]
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={styles.cardGradient}
         >
-          <View style={styles.emptyFeaturedCard}>
-            <Trophy size={32} color={theme.textSecondary} opacity={0.3} />
-            <Text style={styles.emptyFeaturedTitle}>{team.name.toUpperCase()}</Text>
-            <Text style={styles.emptyFeaturedSubtitle}>{t('home.no_matches')}</Text>
+          <View style={styles.groupedHeader}>
+            <View style={styles.groupedTeamInfo}>
+              {team.logo ? (
+                <Image
+                  source={{ uri: team.logo }}
+                  style={styles.headerTeamLogo}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.headerTeamLogo,
+                    {
+                      backgroundColor: theme.isDark
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.05)",
+                    },
+                  ]}
+                />
+              )}
+              <Text
+                style={[
+                  styles.headerTeamName,
+                  { color: theme.isDark ? "#FFF" : "#000" },
+                ]}
+              >
+                {team.name}
+              </Text>
+            </View>
+            <View style={styles.headerRefresh}>
+              <ActivityIndicator
+                size="small"
+                color={theme.isDark ? "#FFF" : theme.primary}
+              />
+            </View>
+          </View>
+
+          <View style={styles.groupedBody}>
+            <View style={styles.matchesSectionFull}>
+              <MatchRow
+                match={activeMatch}
+                teamName={team.name}
+                theme={theme}
+                styles={styles}
+                t={t}
+                i18n={i18n}
+              />
+              {upMatch && (
+                <>
+                  <View
+                    style={[
+                      styles.matchDivider,
+                      {
+                        backgroundColor: theme.isDark
+                          ? "rgba(255,255,255,0.1)"
+                          : "rgba(0,0,0,0.05)",
+                      },
+                    ]}
+                  />
+                  <MatchRow
+                    match={upMatch}
+                    teamName={team.name}
+                    theme={theme}
+                    styles={styles}
+                    t={t}
+                    i18n={i18n}
+                  />
+                </>
+              )}
+            </View>
           </View>
         </LinearGradient>
       </View>
     );
-  }
-
-  return (
-    <View style={[styles.featuredCard, { width: width - 40 }]}>
-      <LinearGradient
-        colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
-        style={styles.cardGradient}
-      >
-        <View style={styles.groupedHeader}>
-          <View style={styles.groupedTeamInfo}>
-            {team.logo ? (
-              <Image source={{ uri: team.logo }} style={styles.headerTeamLogo} />
-            ) : (
-              <View style={[styles.headerTeamLogo, { backgroundColor: theme.primary + '20' }]} />
-            )}
-            <Text style={styles.headerTeamName}>{team.name}</Text>
-          </View>
-        </View>
-
-        <View style={styles.groupedBody}>
-          <View style={styles.matchesSectionFull}>
-            <MatchRow 
-              match={activeMatch} 
-              teamName={team.name} 
-              theme={theme} 
-              styles={styles} 
-              t={t} 
-              i18n={i18n} 
-            />
-            <View style={styles.matchDivider} />
-            <MatchRow 
-              match={upMatch} 
-              teamName={team.name} 
-              theme={theme} 
-              styles={styles} 
-              t={t} 
-              i18n={i18n} 
-            />
-          </View>
-        </View>
-      </LinearGradient>
-    </View>
-  );
-});
+  },
+);
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -202,9 +406,9 @@ export default function HomeScreen() {
       const res = await api.get<TeamFeedResponse>(
         `/v1/matches/my_team_feed/?token=${token}`,
       );
+
       setTeamFeed(res);
     } catch (err) {
-      console.error("Error loading team feed:", err);
     }
   };
 
@@ -222,11 +426,13 @@ export default function HomeScreen() {
           <View style={styles.webContainer}>
             <View style={styles.sectionHeader}>
               <View>
-                <Text style={styles.sectionOverline}>{t('home.weekly_summary')}</Text>
+                <Text style={styles.sectionOverline}>
+                  {t("home.weekly_summary")}
+                </Text>
                 <Text
                   style={[GlobalStyles.sectionTitle, { color: theme.text }]}
                 >
-                  {t('home.my_teams')}
+                  {t("home.my_teams")}
                 </Text>
               </View>
             </View>
@@ -243,11 +449,11 @@ export default function HomeScreen() {
                   contentContainerStyle={styles.carouselContent}
                 >
                   {teamFeed.teams.map((team) => (
-                    <FeaturedMatchCard 
-                      key={team.id} 
-                      team={team} 
-                      isDark={isDark} 
-                      theme={theme} 
+                    <FeaturedMatchCard
+                      key={team.id}
+                      team={team}
+                      isDark={isDark}
+                      theme={theme}
                       width={width}
                       styles={styles}
                       t={t}
@@ -256,30 +462,39 @@ export default function HomeScreen() {
                   ))}
                 </ScrollView>
               ) : (
-                <View style={[styles.featuredCard, { marginHorizontal: 20 }]}>
+                <View style={[styles.featuredCard, { marginHorizontal: 20, backgroundColor: isDark ? "#16082A" : "#FFFFFF" }]}>
                   <LinearGradient
-                    colors={isDark ? ["#2D1B4E", "#1A1030"] : ["#FFFFFF", "#F3F4F6"]}
-                    style={[styles.cardGradient, { justifyContent: 'center', alignItems: 'center' }]}
+                    colors={isDark ? ["#2D1B4E", "#16082A"] : ["#FFFFFF", "#F9FAFB"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={[
+                      styles.cardGradient,
+                      { justifyContent: "center", alignItems: "center" },
+                    ]}
                   >
-                    <View style={styles.emptyStateDecoration}>
-                      <View style={[styles.decoCircle, { top: -20, left: -20, width: 100, height: 100 }]} />
-                      <View style={[styles.decoCircle, { bottom: -30, right: -40, width: 140, height: 140 }]} />
-                    </View>
-                    
                     <View style={styles.emptyFeaturedCard}>
-                      <View style={styles.emptyIconContainer}>
-                        <Calendar size={40} color={theme.primary} opacity={0.6} />
+                      <View style={[styles.emptyIconContainer, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)" }]}>
+                        <Calendar
+                          size={40}
+                          color={theme.primary}
+                        />
                       </View>
-                      <Text style={styles.emptyFeaturedTitle}>{t('home.no_matches') || "NO MATCHES"}</Text>
-                      <Text style={styles.emptyFeaturedSubtitle}>
-                        {t('home.join_team_subtitle') || "Join a team to see your feed."}
+                      <Text style={[styles.emptyFeaturedTitle, { color: isDark ? "#FFF" : "#000" }]}>
+                        {t("home.no_matches") || "NO MATCHES"}
                       </Text>
-                      
-                      <TouchableOpacity 
-                        style={styles.emptyStateButton}
-                        onPress={() => router.push('/leagues')}
+                      <Text style={[styles.emptyFeaturedSubtitle, { color: isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary }]}>
+                        {t("home.join_team_subtitle") ||
+                          "Join a team to see your feed."}
+                      </Text>
+
+                      <TouchableOpacity
+                        style={[styles.emptyStateButton, { backgroundColor: theme.primary }]}
+                        onPress={() => router.push("/leagues")}
+                        activeOpacity={0.8}
                       >
-                        <Text style={styles.emptyStateButtonText}>{t('home.explore_leagues') || "EXPLORE LEAGUES"}</Text>
+                        <Text style={styles.emptyStateButtonText}>
+                          {t("home.explore_leagues") || "EXPLORE LEAGUES"}
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </LinearGradient>
@@ -290,7 +505,7 @@ export default function HomeScreen() {
             {/* Stats Summary Area */}
             <View style={styles.statsContainer}>
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>{t('home.victories')}</Text>
+                <Text style={styles.statLabel}>{t("home.victories")}</Text>
                 <View style={styles.statValueContainer}>
                   <Text style={styles.statValue}>94%</Text>
                   <TrendingUp size={16} color={theme.primary} />
@@ -301,7 +516,9 @@ export default function HomeScreen() {
               </View>
 
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>{t('home.goals')} / {t('profile.matches')}</Text>
+                <Text style={styles.statLabel}>
+                  {t("home.goals")} / {t("profile.matches")}
+                </Text>
                 <View style={styles.statValueContainer}>
                   <Text style={styles.statValue}>2.2</Text>
                   <TrendingUp size={16} color={theme.primary} />
@@ -338,7 +555,7 @@ export default function HomeScreen() {
             {/* Players List Section */}
             <View style={styles.sectionHeader}>
               <Text style={[GlobalStyles.sectionTitle, { color: theme.text }]}>
-                {t('home.players')}
+                {t("home.players")}
               </Text>
               <View style={styles.headerActions}>
                 <TouchableOpacity
@@ -348,8 +565,10 @@ export default function HomeScreen() {
                   <Plus size={20} color={theme.primary} />
                 </TouchableOpacity>
                 {players.length > 0 && (
-                  <TouchableOpacity onPress={() => router.push("/players-list" as any)}>
-                    <Text style={styles.seeAllText}>{t('common.see_all')}</Text>
+                  <TouchableOpacity
+                    onPress={() => router.push("/players-list" as any)}
+                  >
+                    <Text style={styles.seeAllText}>{t("common.see_all")}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -449,21 +668,22 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     carouselContainer: {
       width: "100%",
-      height: verticalScale(280),
+      minHeight: verticalScale(280),
       marginBottom: verticalScale(30),
     },
     carouselContent: {
       gap: 0,
     },
     featuredCard: {
-      height: verticalScale(280),
+      minHeight: verticalScale(280),
       borderRadius: scale(30),
       overflow: "hidden",
-      elevation: 10,
+      elevation: isDark ? 0 : 8,
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.3,
-      shadowRadius: 20,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.3 : 0.08,
+      shadowRadius: 12,
+      marginBottom: 20,
     },
     teamLogo: {
       width: 40,
@@ -472,6 +692,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       marginBottom: 8,
     },
     cardGradient: {
+      flex: 1,
       padding: 20,
     },
     cardHeader: {
@@ -481,14 +702,14 @@ const createStyles = (theme: any, isDark: boolean) =>
       marginBottom: 15,
     },
     groupedHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 15,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 10,
     },
     groupedTeamInfo: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 10,
     },
     headerTeamLogo: {
@@ -498,90 +719,118 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     headerTeamName: {
       fontSize: 14,
-      fontWeight: '800',
-      color: '#FFF',
+      fontWeight: "800",
     },
     headerRefresh: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      flexDirection: "row",
+      alignItems: "center",
       gap: 5,
     },
     headerTimeText: {
       fontSize: 12,
-      color: 'rgba(255,255,255,0.7)',
-      fontWeight: '600',
+      color: "rgba(255,255,255,0.7)",
+      fontWeight: "600",
     },
     groupedBody: {
       flex: 1,
-      flexDirection: 'row',
-      gap: 12,
     },
     matchesSectionFull: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.15)',
-      borderRadius: 20,
-      padding: 15,
-      justifyContent: 'center',
+      justifyContent: "center",
+      paddingVertical: 10,
     },
     miniMatchRow: {
       paddingVertical: 10,
     },
     miniMatchTeams: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
     },
     miniTeamCol: {
-      alignItems: 'center',
-      width: 70,
+      alignItems: "center",
+      width: scale(90),
+    },
+    badgeWrapper: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      backgroundColor: "rgba(255,255,255,0.05)",
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 8,
     },
     miniBadge: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      marginBottom: 6,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
     },
     miniTeamName: {
       fontSize: 10,
-      fontWeight: '800',
-      color: 'rgba(255,255,255,0.8)',
+      fontWeight: "900",
+      textAlign: "center",
+      letterSpacing: 0.3,
     },
     miniScoreCol: {
-      alignItems: 'center',
+      alignItems: "center",
       flex: 1,
+      paddingHorizontal: 10,
     },
     miniScoreText: {
-      fontSize: 24,
-      fontWeight: '900',
-      color: '#FFF',
+      fontSize: 28,
+      fontWeight: "900",
+      color: "#FFF",
+      fontVariant: ["tabular-nums"],
+    },
+    statusBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 10,
+      backgroundColor: "rgba(255,255,255,0.1)",
+      marginTop: 4,
     },
     miniStatusText: {
       fontSize: 9,
-      fontWeight: '900',
-      color: 'rgba(255,255,255,0.4)',
+      fontWeight: "900",
+      letterSpacing: 0.5,
+    },
+    matchTournamentText: {
+      fontSize: 8,
+      fontWeight: "800",
+      textAlign: "center",
+      marginBottom: 8,
       letterSpacing: 1,
+    },
+    venueRow: {
+      marginTop: 8,
+      alignItems: "center",
+    },
+    venueText: {
+      fontSize: 8,
+      fontWeight: "600",
+      fontStyle: "italic",
     },
     miniDateText: {
       fontSize: 14,
-      fontWeight: '800',
-      color: '#FFF',
+      fontWeight: "800",
+      color: "#FFF",
     },
     miniTimeText: {
       fontSize: 10,
-      color: 'rgba(255,255,255,0.5)',
+      color: "rgba(255,255,255,0.5)",
       marginTop: 2,
     },
     matchDivider: {
       height: 1,
-      backgroundColor: 'rgba(255,255,255,0.1)',
+      backgroundColor: "rgba(255,255,255,0.1)",
       marginVertical: 15,
     },
     newsImage: {
-      width: '100%',
-      height: '100%',
+      width: "100%",
+      height: "100%",
     },
     newsOverlay: {
-      position: 'absolute',
+      position: "absolute",
       bottom: 0,
       left: 0,
       right: 0,
@@ -589,14 +838,14 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     newsTitle: {
       fontSize: 11,
-      fontWeight: '700',
-      color: '#FFF',
+      fontWeight: "700",
+      color: "#FFF",
       lineHeight: 14,
       marginBottom: 4,
     },
     newsTime: {
       fontSize: 8,
-      color: 'rgba(255,255,255,0.5)',
+      color: "rgba(255,255,255,0.5)",
     },
     leagueTag: {
       backgroundColor: isDark ? "rgba(0, 245, 255, 0.2)" : theme.primary + "26", // opacity 0.15
@@ -829,12 +1078,12 @@ const createStyles = (theme: any, isDark: boolean) =>
       width: 80,
       height: 80,
       borderRadius: 40,
-      backgroundColor: theme.primary + '10',
-      justifyContent: 'center',
-      alignItems: 'center',
+      backgroundColor: theme.primary + "10",
+      justifyContent: "center",
+      alignItems: "center",
       marginBottom: 20,
       borderWidth: 1,
-      borderColor: theme.primary + '20',
+      borderColor: theme.primary + "20",
     },
     emptyFeaturedTitle: {
       fontSize: 20,
@@ -853,12 +1102,12 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     emptyStateDecoration: {
       ...StyleSheet.absoluteFillObject,
-      overflow: 'hidden',
+      overflow: "hidden",
     },
     decoCircle: {
-      position: 'absolute',
+      position: "absolute",
       borderRadius: 100,
-      backgroundColor: theme.primary + '05',
+      backgroundColor: theme.primary + "05",
     },
     emptyStateButton: {
       backgroundColor: theme.primary,
@@ -873,11 +1122,11 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     emptyStateButtonText: {
       fontSize: 12,
-      fontWeight: '800',
-      color: '#001A2C',
+      fontWeight: "800",
+      color: "#001A2C",
       letterSpacing: 0.5,
     },
     playerSection: {
-        marginTop: 10,
-    }
+      marginTop: 10,
+    },
   });
