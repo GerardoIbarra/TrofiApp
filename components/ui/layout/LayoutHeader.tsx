@@ -1,8 +1,8 @@
 import { useTheme } from "@/context/ThemeContext";
+import { router, usePathname } from "expo-router";
+import { Bell, ChevronLeft } from "lucide-react-native";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { router, usePathname } from "expo-router";
-import { ChevronLeft, Bell } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface LayoutHeaderProps {
@@ -10,7 +10,10 @@ interface LayoutHeaderProps {
   showBackButton?: boolean;
 }
 
-export function LayoutHeader({ title = "TROFI", showBackButton = false }: LayoutHeaderProps) {
+export function LayoutHeader({
+  title = "TROFI",
+  showBackButton = false,
+}: LayoutHeaderProps) {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
@@ -41,7 +44,7 @@ export function LayoutHeader({ title = "TROFI", showBackButton = false }: Layout
 
       <View style={styles.rightContainer}>
         {!isNotificationsScreen && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.bellButton}
             onPress={() => router.push("/notifications" as any)}
           >
@@ -54,7 +57,9 @@ export function LayoutHeader({ title = "TROFI", showBackButton = false }: Layout
           onPress={() => router.push("/(tabs)/profile" as any)}
           style={[
             styles.profileButton,
-            { borderColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)" },
+            {
+              borderColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
+            },
           ]}
         >
           <Image
@@ -109,18 +114,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(255,255,255,0.05)",
-    position: 'relative',
+    position: "relative",
   },
   notificationDot: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#FF4B4B',
+    backgroundColor: "#FF4B4B",
     borderWidth: 1.5,
-    borderColor: '#001A2C', // Background color approx
+    borderColor: "#001A2C", // Background color approx
   },
   profileButton: {
     width: 40,

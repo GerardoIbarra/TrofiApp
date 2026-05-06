@@ -506,7 +506,7 @@ export default function ProfileScreen() {
             )}
 
             {/* CONFIGURATION - Only visible on my profile */}
-            {id && (
+            {!id && (
               <>
                 <View style={[styles.sectionHeader, { marginTop: 25 }]}>
                   <Text style={styles.mainSectionTitle}>

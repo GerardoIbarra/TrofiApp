@@ -235,9 +235,16 @@ export default function MatchDetailScreen() {
              {/* Simple visualization of starting XI */}
              <View style={styles.pitchArea}>
                 {lineup.home.starting_xi.slice(0, 1).map((p, i) => (
-                   <View key={i} style={styles.playerNode}>
+                    <View key={i} style={styles.playerNode}>
                       <View style={styles.playerAvatarSmall}>
-                        {p.photo ? <Image source={{uri: p.photo}} style={styles.fullImage} /> : <User size={20} color="#FFF" />}
+                        {p.photo ? (
+                          <Image
+                            source={{ uri: p.photo.replace(/\s/g, "") }}
+                            style={styles.fullImage}
+                          />
+                        ) : (
+                          <User size={20} color="#FFF" />
+                        )}
                       </View>
                       <Text style={styles.playerNodeName}>{p.player_name.split(' ')[0]}</Text>
                       <View style={styles.shirtNumberBadge}><Text style={styles.shirtNumberText}>{p.shirt_number}</Text></View>
@@ -253,7 +260,14 @@ export default function MatchDetailScreen() {
             <View key={i} style={styles.playerListItem}>
               <View style={styles.playerListItemInfo}>
                 <View style={styles.playerAvatarSmall}>
-                   {p.photo ? <Image source={{uri: p.photo}} style={styles.fullImage} /> : <User size={16} color="#FFF" />}
+                  {p.photo ? (
+                    <Image
+                      source={{ uri: p.photo.replace(/\s/g, "") }}
+                      style={styles.fullImage}
+                    />
+                  ) : (
+                    <User size={16} color="#FFF" />
+                  )}
                 </View>
                 <Text style={styles.playerListItemName}>{p.player_name}</Text>
               </View>
@@ -361,21 +375,36 @@ export default function MatchDetailScreen() {
       <View style={styles.scoreArea}>
         <View style={styles.teamBox}>
           <View style={styles.badgeContainer}>
-             <Shield size={40} color={theme.primary} opacity={0.2} />
+            {match?.home_team_logo ? (
+              <Image
+                source={{ uri: match.home_team_logo.replace(/\s/g, "") }}
+                style={styles.headerTeamLogoLarge}
+              />
+            ) : (
+              <Shield size={40} color={theme.primary} opacity={0.2} />
+            )}
           </View>
           <Text style={styles.teamNameMain}>{match?.home_team_name}</Text>
         </View>
 
         <View style={styles.scoreResult}>
-          {match?.status === 'scheduled' ? (
+          {match?.status === "scheduled" ? (
             <View style={styles.scheduledInfo}>
-              <Text style={styles.scheduledTime}>{new Date(match.start_datetime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</Text>
+              <Text style={styles.scheduledTime}>
+                {new Date(match.start_datetime).toLocaleTimeString("es-ES", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
               <Text style={styles.scheduledDate}>{t("match_detail.tomorrow")}</Text>
             </View>
           ) : (
             <View style={styles.liveScoreContainer}>
-              <Text style={styles.liveScore}>{match?.result?.home_score ?? 0} - {match?.result?.away_score ?? 0}</Text>
-              {match?.status === 'live' && (
+              <Text style={styles.liveScore}>
+                {match?.result?.home_score ?? 0} -{" "}
+                {match?.result?.away_score ?? 0}
+              </Text>
+              {match?.status === "live" && (
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>{match.current_minute}'</Text>
                 </View>
@@ -386,7 +415,14 @@ export default function MatchDetailScreen() {
 
         <View style={styles.teamBox}>
           <View style={styles.badgeContainer}>
-             <Shield size={40} color={theme.primary} opacity={0.2} />
+            {match?.away_team_logo ? (
+              <Image
+                source={{ uri: match.away_team_logo.replace(/\s/g, "") }}
+                style={styles.headerTeamLogoLarge}
+              />
+            ) : (
+              <Shield size={40} color={theme.primary} opacity={0.2} />
+            )}
           </View>
           <Text style={styles.teamNameMain}>{match?.away_team_name}</Text>
         </View>
@@ -459,13 +495,25 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     width: '30%',
   },
   badgeContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "#FFFFFF",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 10,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+  },
+  headerTeamLogoLarge: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   teamNameMain: {
     fontSize: 14,

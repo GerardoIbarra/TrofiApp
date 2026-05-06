@@ -35,6 +35,8 @@ export interface Match {
   referee_name?: string;
   result?: MatchResult;
   relevant_teams?: RelevantTeam[];
+  home_team_logo?: string;
+  away_team_logo?: string;
   created_at: string;
   updated_at: string;
 }
