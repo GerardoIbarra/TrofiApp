@@ -51,7 +51,7 @@ export function CreateTournamentModal({
     reset,
     formState: { isSubmitting },
   } = useForm<TournamentSchema>({
-    resolver: zodResolver(tournamentSchema),
+    resolver: zodResolver(tournamentSchema) as any,
     defaultValues: {
       name: "",
       season_label: "",

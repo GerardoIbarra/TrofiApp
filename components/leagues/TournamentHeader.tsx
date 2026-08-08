@@ -53,7 +53,7 @@ export function TournamentHeader({ tournament, onEditPress }: TournamentHeaderPr
       {/* Background Fallback for Tournaments */}
       <Image
         source="https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=1600"
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         contentFit="cover"
         transition={600}
         cachePolicy="disk"

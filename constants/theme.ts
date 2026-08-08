@@ -11,6 +11,7 @@ export const LightTheme = {
   error: '#EF4444',
   border: '#CBD5E1', // Borde más visible
   tint: '#00A3AC',
+  icon: '#687076',
 };
 
 export const DarkTheme = {
@@ -24,6 +25,7 @@ export const DarkTheme = {
   error: '#F87171',
   border: '#233554',
   tint: '#FFFFFF',
+  icon: '#9BA1A6',
 };
 
 export const TrofiTheme = DarkTheme; // Retrocompatibilidad (por defecto Dark)
@@ -48,3 +50,9 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+export const Colors = {
+  light: LightTheme,
+  dark: DarkTheme,
+};
+

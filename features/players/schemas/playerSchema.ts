@@ -5,8 +5,8 @@ export const playerSchema = z.object({
   nickname: z.string().min(2, "El apodo debe tener al menos 2 caracteres"),
   date_of_birth: z.string().min(1, "La fecha de nacimiento es obligatoria"),
   phone: z.string().optional(),
-  position: z.enum(["POR", "DEF", "MED", "DEL"], {
-    errorMap: () => ({ message: "Selecciona una posición técnica" }),
+  position: z.enum(["POR", "DEF", "MED", "DEL"] as const, {
+    message: "Selecciona una posición técnica",
   }),
   overall_rating: z.number().min(1).max(99).default(50),
   pace: z.number().min(1).max(99).default(50),

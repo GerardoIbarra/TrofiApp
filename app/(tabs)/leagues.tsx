@@ -457,7 +457,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       height: "100%",
     },
     featuredGradient: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     featuredContent: {
       position: "absolute",

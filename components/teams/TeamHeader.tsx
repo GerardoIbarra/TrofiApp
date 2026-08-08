@@ -35,7 +35,7 @@ export function TeamHeader({ team, onEditPress }: TeamHeaderProps) {
           team.logo ||
           "https://images.pexels.com/photos/114296/pexels-photo-114296.jpeg?auto=compress&cs=tinysrgb&w=1600"
         }
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         contentFit="cover"
         transition={600}
         cachePolicy="disk"

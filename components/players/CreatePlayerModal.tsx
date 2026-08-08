@@ -73,7 +73,7 @@ export function CreatePlayerModal({
     setValue,
     formState: { isSubmitting },
   } = useForm<PlayerSchema>({
-    resolver: zodResolver(playerSchema),
+    resolver: zodResolver(playerSchema) as any,
     defaultValues: {
       full_name: "",
       nickname: "",

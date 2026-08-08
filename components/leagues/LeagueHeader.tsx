@@ -35,7 +35,7 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
           league.logo ||
           "https://images.pexels.com/photos/47730/the-ball-stadion-football-the-pitch-47730.jpeg?auto=compress&cs=tinysrgb&w=1600"
         }
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         contentFit="cover"
         transition={600}
         cachePolicy="disk"
