@@ -19,6 +19,7 @@ import "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
 
 import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
+import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -98,6 +99,7 @@ export default function RootLayout() {
         >
           <ThemeAwareStatusBar />
           <InitialNavigation />
+          <UpdatePrompt />
         </PersistQueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>

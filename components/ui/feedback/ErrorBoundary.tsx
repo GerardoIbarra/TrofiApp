@@ -20,6 +20,17 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
+    if (Platform.OS === 'web' && 
+        (error.message?.includes('ChunkLoadError') || 
+         error.message?.includes('Loading chunk') ||
+         error.message?.includes('Failed to fetch dynamically imported module'))) {
+      try {
+        window.location.reload();
+      } catch (e) {
+        // fallback
+      }
+      return { hasError: false, error: null };
+    }
     return { hasError: true, error };
   }
 
