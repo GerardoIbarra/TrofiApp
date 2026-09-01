@@ -37,22 +37,22 @@ export function PlayerStatsWidget({ stats }: PlayerStatsWidgetProps) {
       )}
 
       <View style={styles.grid}>
-        <StatItem label="Partidos" value={stats.matches_played} icon={Activity} />
-        <StatItem label="Goles" value={stats.goals} icon={Target} />
-        <StatItem label="Asistencias" value={stats.assists} icon={Target} />
-        <StatItem label="Rating Prom." value={stats.avg_match_rating.toFixed(2)} icon={Activity} />
-        <StatItem label="MVP" value={stats.mvp_count} icon={Trophy} />
-        <StatItem label="Vallas Invictas" value={stats.clean_sheets} icon={Shield} />
-        <StatItem label="T. Amarillas" value={stats.yellow_cards} icon={AlertCircle} />
-        <StatItem label="T. Rojas" value={stats.red_cards} icon={AlertCircle} />
+        <StatItem label="Partidos" value={stats.matches_played ?? '-'} icon={Activity} />
+        <StatItem label="Goles" value={stats.goals ?? '-'} icon={Target} />
+        <StatItem label="Asistencias" value={stats.assists ?? '-'} icon={Target} />
+        <StatItem label="Rating Prom." value={stats.avg_match_rating != null ? stats.avg_match_rating.toFixed(2) : '-'} icon={Activity} />
+        <StatItem label="MVP" value={stats.mvp_count ?? '-'} icon={Trophy} />
+        <StatItem label="Vallas Invictas" value={stats.clean_sheets ?? '-'} icon={Shield} />
+        <StatItem label="T. Amarillas" value={stats.yellow_cards ?? '-'} icon={AlertCircle} />
+        <StatItem label="T. Rojas" value={stats.red_cards ?? '-'} icon={AlertCircle} />
       </View>
 
       <View style={styles.recordBox}>
         <Text style={[styles.recordLabel, { color: theme.textSecondary }]}>Récord de equipo con este jugador</Text>
         <View style={styles.recordValues}>
-          <Text style={[styles.recordValue, { color: '#4ADE80' }]}>{stats.wins} G</Text>
-          <Text style={[styles.recordValue, { color: theme.textSecondary }]}>{stats.draws} E</Text>
-          <Text style={[styles.recordValue, { color: '#EF4444' }]}>{stats.losses} P</Text>
+          <Text style={[styles.recordValue, { color: '#4ADE80' }]}>{stats.wins ?? '-'} G</Text>
+          <Text style={[styles.recordValue, { color: theme.textSecondary }]}>{stats.draws ?? '-'} E</Text>
+          <Text style={[styles.recordValue, { color: '#EF4444' }]}>{stats.losses ?? '-'} P</Text>
         </View>
       </View>
     </View>

@@ -37,8 +37,8 @@ export function PlayerCardView({ card, playerName, isProvisional }: PlayerCardVi
 
         <View style={styles.topSection}>
           <View style={styles.ratingBox}>
-            <Text style={styles.overallText}>{card.overall}</Text>
-            <Text style={styles.positionText}>{card.position}</Text>
+            <Text style={styles.overallText}>{card.overall ?? '-'}</Text>
+            <Text style={styles.positionText}>{card.position || 'N/A'}</Text>
           </View>
           <View style={styles.photoPlaceholder}>
             {/* Player photo will go here */}
@@ -53,30 +53,30 @@ export function PlayerCardView({ card, playerName, isProvisional }: PlayerCardVi
         <View style={styles.statsGrid}>
           <View style={styles.statColumn}>
             <View style={styles.statRow}>
-              <Text style={styles.statValue}>{card.pace}</Text>
+              <Text style={styles.statValue}>{card.pace ?? '-'}</Text>
               <Text style={styles.statLabel}>PAC</Text>
             </View>
             <View style={styles.statRow}>
-              <Text style={styles.statValue}>{card.shooting}</Text>
+              <Text style={styles.statValue}>{card.shooting ?? '-'}</Text>
               <Text style={styles.statLabel}>SHO</Text>
             </View>
             <View style={styles.statRow}>
-              <Text style={styles.statValue}>{card.passing}</Text>
+              <Text style={styles.statValue}>{card.passing ?? '-'}</Text>
               <Text style={styles.statLabel}>PAS</Text>
             </View>
           </View>
 
           <View style={styles.statColumn}>
             <View style={styles.statRow}>
-              <Text style={styles.statValue}>{card.dribbling}</Text>
+              <Text style={styles.statValue}>{card.dribbling ?? '-'}</Text>
               <Text style={styles.statLabel}>DRI</Text>
             </View>
             <View style={styles.statRow}>
-              <Text style={styles.statValue}>{card.defense}</Text>
+              <Text style={styles.statValue}>{card.defense ?? '-'}</Text>
               <Text style={styles.statLabel}>DEF</Text>
             </View>
             <View style={styles.statRow}>
-              <Text style={styles.statValue}>{card.physical}</Text>
+              <Text style={styles.statValue}>{card.physical ?? '-'}</Text>
               <Text style={styles.statLabel}>PHY</Text>
             </View>
           </View>
