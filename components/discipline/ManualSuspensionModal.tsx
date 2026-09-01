@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityInd
 import { useTheme } from '@/context/ThemeContext';
 import { X, Check } from 'lucide-react-native';
 import { useCreateManualSuspension } from '@/features/discipline/services/disciplineApi';
+import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
 
 interface ManualSuspensionModalProps {
@@ -12,6 +13,7 @@ interface ManualSuspensionModalProps {
 
 export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensionModalProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   
   const [teams, setTeams] = useState<any[]>([]);
   const [roster, setRoster] = useState<any[]>([]);
@@ -55,12 +57,12 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
 
   const handleSubmit = () => {
     if (!selectedRoster) {
-      Alert.alert('Error', 'Selecciona un jugador.');
+      Alert.alert('Error', t('discipline.error_no_player'));
       return;
     }
     
     if (!matchesSuspended || isNaN(Number(matchesSuspended)) || Number(matchesSuspended) < 1) {
-      Alert.alert('Error', 'Ingresa una cantidad válida de partidos.');
+      Alert.alert('Error', t('discipline.error_no_matches'));
       return;
     }
 
@@ -72,7 +74,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
       notes: notes,
     }, {
       onSuccess: () => {
-        Alert.alert('Éxito', 'Sanción aplicada correctamente.');
+        Alert.alert('Éxito', t('discipline.success_manual'));
         onClose();
       },
       onError: (err: any) => {
@@ -86,7 +88,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Sanción Manual</Text>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('discipline.modal_title')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color={theme.text} />
             </TouchableOpacity>
@@ -97,7 +99,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
           ) : (
             <ScrollView style={styles.form}>
               
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Equipo</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('discipline.label_team')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
                 {teams.map(t => (
                   <TouchableOpacity 
@@ -112,9 +114,9 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
 
               {selectedTeam !== '' && (
                 <>
-                  <Text style={[styles.label, { color: theme.textSecondary }]}>Jugador</Text>
+                  <Text style={[styles.label, { color: theme.textSecondary }]}>{t('discipline.label_player')}</Text>
                   {roster.length === 0 ? (
-                     <Text style={{ color: '#FF4444', fontSize: 12, marginBottom: 15 }}>No hay jugadores en este equipo.</Text>
+                     <Text style={{ color: '#FF4444', fontSize: 12, marginBottom: 15 }}>{t('discipline.empty_team_roster')}</Text>
                   ) : (
                     <View style={styles.rosterGrid}>
                       {roster.map(r => (
@@ -131,7 +133,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
                 </>
               )}
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Partidos de Suspensión</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('discipline.label_matches')}</Text>
               <TextInput 
                 style={[styles.input, { color: theme.text, borderColor: isDark ? '#333' : '#E0E0E0' }]}
                 keyboardType="number-pad"
@@ -139,10 +141,10 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
                 onChangeText={setMatchesSuspended}
               />
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Motivo / Notas</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('discipline.label_notes')}</Text>
               <TextInput 
                 style={[styles.input, { color: theme.text, borderColor: isDark ? '#333' : '#E0E0E0', height: 80, textAlignVertical: 'top' }]}
-                placeholder="Ej. Conducta antideportiva en gradas..."
+                placeholder={t('discipline.notes_placeholder')}
                 placeholderTextColor={theme.textSecondary}
                 multiline
                 value={notes}
@@ -159,7 +161,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
                 ) : (
                   <>
                     <Check size={20} color="#FFF" />
-                    <Text style={styles.submitText}>Aplicar Sanción</Text>
+                    <Text style={styles.submitText}>{t('discipline.btn_apply_sanction')}</Text>
                   </>
                 )}
               </TouchableOpacity>

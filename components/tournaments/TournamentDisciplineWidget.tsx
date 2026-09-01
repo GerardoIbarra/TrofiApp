@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { ShieldAlert, AlertCircle, AlertOctagon, Check, Plus } from 'lucide-react-native';
 import { useGetActiveSuspensions, useGetDisciplinaryRecords, useLiftSuspension } from '@/features/discipline/services/disciplineApi';
 import { ManualSuspensionModal } from '@/components/discipline/ManualSuspensionModal';
+import { FlashList } from '@shopify/flash-list';
 
 interface TournamentDisciplineWidgetProps {
   tournamentId: string;
@@ -25,16 +26,16 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
 
   const handleLiftSuspension = (id: string, playerName: string) => {
     Alert.alert(
-      'Levantar Suspensión',
-      `¿Estás seguro de levantar la suspensión de ${playerName}? Podrá jugar inmediatamente.`,
+      t('discipline.lift_confirm_title'),
+      t('discipline.lift_confirm_msg', { name: playerName }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('discipline.lift_cancel'), style: 'cancel' },
         { 
-          text: 'Levantar Sanción', 
+          text: t('discipline.lift_confirm_btn'), 
           style: 'destructive',
           onPress: () => {
             liftSuspension.mutate(id, {
-              onSuccess: () => Alert.alert('Éxito', 'Suspensión levantada.'),
+              onSuccess: () => Alert.alert('Éxito', t('discipline.lift_success')),
               onError: (err: any) => Alert.alert('Error', err?.response?.data?.detail || 'No se pudo levantar.')
             });
           }
@@ -54,13 +55,13 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
             style={[styles.tab, activeTab === 'suspensions' && { borderBottomColor: theme.primary, borderBottomWidth: 2 }]}
             onPress={() => setActiveTab('suspensions')}
           >
-            <Text style={[styles.tabText, { color: activeTab === 'suspensions' ? theme.primary : theme.textSecondary }]}>Suspensiones</Text>
+            <Text style={[styles.tabText, { color: activeTab === 'suspensions' ? theme.primary : theme.textSecondary }]}>{t('discipline.tab_suspensions')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'records' && { borderBottomColor: theme.primary, borderBottomWidth: 2 }]}
             onPress={() => setActiveTab('records')}
           >
-            <Text style={[styles.tabText, { color: activeTab === 'records' ? theme.primary : theme.textSecondary }]}>Historial de Tarjetas</Text>
+            <Text style={[styles.tabText, { color: activeTab === 'records' ? theme.primary : theme.textSecondary }]}>{t('discipline.tab_records')}</Text>
           </TouchableOpacity>
         </View>
         
@@ -70,7 +71,7 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
             onPress={() => setIsManualModalVisible(true)}
           >
             <Plus size={14} color="#FF4444" />
-            <Text style={[styles.adminBtnText, { color: '#FF4444' }]}>Sanción Manual</Text>
+            <Text style={[styles.adminBtnText, { color: '#FF4444' }]}>{t('discipline.btn_manual_suspension')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -81,14 +82,17 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
         </View>
       ) : activeTab === 'suspensions' ? (
         <View style={styles.list}>
-          {suspensions.length === 0 ? (
-            <View style={styles.emptyBox}>
-              <Check size={40} color={theme.primary} opacity={0.3} />
-              <Text style={styles.emptyText}>No hay jugadores suspendidos en este momento.</Text>
-            </View>
-          ) : (
-            suspensions.map(susp => (
-              <View key={susp.id} style={[styles.card, { backgroundColor: theme.surface, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+          <FlashList
+            data={suspensions}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyBox}>
+                <Check size={40} color={theme.primary} opacity={0.3} />
+                <Text style={styles.emptyText}>{t('discipline.empty_suspensions')}</Text>
+              </View>
+            )}
+            renderItem={({ item: susp }) => (
+              <View style={[styles.card, { backgroundColor: theme.surface, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
                 <View style={styles.cardInfo}>
                   <Text style={[styles.playerName, { color: theme.text }]}>{susp.player_name}</Text>
                   <Text style={[styles.teamName, { color: theme.textSecondary }]}>{susp.team_name}</Text>
@@ -96,16 +100,16 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
                   <View style={styles.reasonBadge}>
                     <AlertOctagon size={12} color="#FF4444" />
                     <Text style={styles.reasonText}>
-                      {susp.reason === 'manual' ? 'Sanción Administrativa' :
-                       susp.reason === 'red_card' ? 'Tarjeta Roja Directa' : 'Acumulación de Amarillas'}
+                      {susp.reason === 'manual' ? t('discipline.reason_manual') :
+                       susp.reason === 'red_card' ? t('discipline.reason_red') : t('discipline.reason_yellows')}
                     </Text>
                   </View>
                   
                   <Text style={[styles.suspendedText, { color: theme.text }]}>
-                    Suspendido: {susp.matches_suspended} partidos (Cumplidos: {susp.matches_served})
+                    {t('discipline.suspended_status', { total: susp.matches_suspended, served: susp.matches_served })}
                   </Text>
                   
-                  {susp.notes && <Text style={styles.notesText}>Nota: {susp.notes}</Text>}
+                  {susp.notes && <Text style={styles.notesText}>{t('discipline.note_prefix')} {susp.notes}</Text>}
                 </View>
                 
                 {isAdmin && (
@@ -115,23 +119,26 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
                     disabled={liftSuspension.isPending}
                   >
                     <ShieldAlert size={16} color={theme.primary} />
-                    <Text style={[styles.liftBtnText, { color: theme.primary }]}>Levantar</Text>
+                    <Text style={[styles.liftBtnText, { color: theme.primary }]}>{t('discipline.btn_lift')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
-            ))
-          )}
+            )}
+          />
         </View>
       ) : (
         <View style={styles.list}>
-           {records.length === 0 ? (
-            <View style={styles.emptyBox}>
-              <ShieldAlert size={40} color={theme.textSecondary} opacity={0.3} />
-              <Text style={styles.emptyText}>No hay tarjetas registradas en este torneo.</Text>
-            </View>
-          ) : (
-            records.map(rec => (
-              <View key={rec.id} style={[styles.recordRow, { backgroundColor: theme.surface, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+          <FlashList
+            data={records}
+            contentContainerStyle={{ paddingBottom: 40 }}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyBox}>
+                <ShieldAlert size={40} color={theme.textSecondary} opacity={0.3} />
+                <Text style={styles.emptyText}>{t('discipline.empty_records')}</Text>
+              </View>
+            )}
+            renderItem={({ item: rec }) => (
+              <View style={[styles.recordRow, { backgroundColor: theme.surface, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
                  <View style={styles.recordLeft}>
                     <View style={[styles.cardIcon, { backgroundColor: rec.card_type === 'yellow' ? '#FFD700' : '#FF4444' }]} />
                     <View>
@@ -145,8 +152,8 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
                    </View>
                  )}
               </View>
-            ))
-          )}
+            )}
+          />
         </View>
       )}
 
@@ -200,6 +207,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   list: {
+    flex: 1,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },

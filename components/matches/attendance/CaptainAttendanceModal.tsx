@@ -39,7 +39,7 @@ export function CaptainAttendanceModal({ matchId, teamId, roster, onClose }: Cap
 
   const handleConfirm = () => {
     if (selectedPlayers.size === 0) {
-      Alert.alert('Error', 'Selecciona al menos un jugador.');
+      Alert.alert('Error', t('attendance.error_select_one'));
       return;
     }
 
@@ -56,11 +56,11 @@ export function CaptainAttendanceModal({ matchId, teamId, roster, onClose }: Cap
       },
       {
         onSuccess: () => {
-          Alert.alert('Éxito', 'Asistencia confirmada para los jugadores seleccionados.');
+          Alert.alert('Éxito', t('attendance.success_mass'));
           onClose();
         },
         onError: (err: any) => {
-          Alert.alert('Error', err?.response?.data?.detail || 'No se pudo confirmar la asistencia.');
+          Alert.alert('Error', err?.response?.data?.detail || t('attendance.error_default', 'No se pudo confirmar la asistencia.'));
         }
       }
     );
@@ -71,22 +71,22 @@ export function CaptainAttendanceModal({ matchId, teamId, roster, onClose }: Cap
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Gestionar Asistencia</Text>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('attendance.modal_title')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color={theme.text} />
             </TouchableOpacity>
           </View>
 
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Confirma la asistencia en nombre de tus jugadores.
+            {t('attendance.modal_subtitle')}
           </Text>
 
           <View style={styles.actionsRow}>
             <TouchableOpacity onPress={selectAll} style={styles.actionBtn}>
-              <Text style={[styles.actionBtnText, { color: theme.primary }]}>Seleccionar Todos</Text>
+              <Text style={[styles.actionBtnText, { color: theme.primary }]}>{t('attendance.btn_select_all')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={clearSelection} style={styles.actionBtn}>
-              <Text style={[styles.actionBtnText, { color: theme.textSecondary }]}>Limpiar</Text>
+              <Text style={[styles.actionBtnText, { color: theme.textSecondary }]}>{t('attendance.btn_clear')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -122,7 +122,7 @@ export function CaptainAttendanceModal({ matchId, teamId, roster, onClose }: Cap
             {roster.length === 0 && (
               <View style={styles.emptyContainer}>
                  <Users size={32} color={theme.textSecondary} opacity={0.5} />
-                 <Text style={{ color: theme.textSecondary, marginTop: 10 }}>No hay jugadores en el roster.</Text>
+                 <Text style={{ color: theme.textSecondary, marginTop: 10 }}>{t('attendance.empty_roster')}</Text>
               </View>
             )}
             <View style={{ height: 20 }} />
@@ -141,7 +141,7 @@ export function CaptainAttendanceModal({ matchId, teamId, roster, onClose }: Cap
               {confirmMutation.isPending ? (
                 <ActivityIndicator color="#000" />
               ) : (
-                <Text style={styles.submitText}>Confirmar Seleccionados ({selectedPlayers.size})</Text>
+                <Text style={styles.submitText}>{t('attendance.btn_submit_selected', { count: selectedPlayers.size })}</Text>
               )}
             </TouchableOpacity>
           </View>

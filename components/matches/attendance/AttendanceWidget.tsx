@@ -29,10 +29,10 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
       data: { status }
     }, {
       onSuccess: () => {
-        Alert.alert('Éxito', status === 'confirmed' ? 'Asistencia confirmada.' : 'Asistencia rechazada.');
+        Alert.alert('Éxito', status === 'confirmed' ? t('attendance.success_confirm') : t('attendance.success_decline'));
       },
       onError: (err: any) => {
-        Alert.alert('Error', err?.response?.data?.detail || 'No se pudo registrar la asistencia.');
+        Alert.alert('Error', err?.response?.data?.detail || t('attendance.error_default', 'No se pudo registrar la asistencia.'));
       }
     });
   };
@@ -57,7 +57,7 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
         <Text style={[styles.teamName, { color: theme.text }]}>{teamName}</Text>
         <View style={styles.statsRow}>
           <Text style={[styles.statValue, { color: theme.textSecondary }]}>
-            <Text style={{ color: isDeficient ? '#FF4444' : theme.text, fontWeight: '800' }}>{stats.confirmed}</Text> / {stats.required} mín
+            <Text style={{ color: isDeficient ? '#FF4444' : theme.text, fontWeight: '800' }}>{stats.confirmed}</Text> / {stats.required} {t('attendance.min_required')}
           </Text>
           {isDeficient && <AlertCircle size={14} color="#FF4444" style={{ marginLeft: 5 }} />}
         </View>
@@ -72,7 +72,7 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
       <View style={styles.header}>
         <Users size={18} color={theme.primary} />
-        <Text style={[styles.title, { color: theme.text }]}>Confirmación de Asistencia</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{t('attendance.title')}</Text>
       </View>
 
       <View style={styles.summaryContainer}>
@@ -83,7 +83,7 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
 
       {/* User Actions */}
       <View style={styles.actionsContainer}>
-        <Text style={[styles.actionLabel, { color: theme.textSecondary }]}>¿Vas a asistir al partido?</Text>
+        <Text style={[styles.actionLabel, { color: theme.textSecondary }]}>{t('attendance.ask_attend')}</Text>
         <View style={styles.actionButtonsRow}>
           <TouchableOpacity 
             style={[styles.btn, { backgroundColor: theme.primary + '20', borderColor: theme.primary }]}
@@ -91,7 +91,7 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
             disabled={confirmMutation.isPending}
           >
             <Check size={16} color={theme.primary} />
-            <Text style={[styles.btnText, { color: theme.primary }]}>Confirmar</Text>
+            <Text style={[styles.btnText, { color: theme.primary }]}>{t('attendance.btn_confirm')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.btn, { backgroundColor: '#FF444420', borderColor: '#FF4444' }]}
@@ -99,7 +99,7 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
             disabled={confirmMutation.isPending}
           >
             <X size={16} color="#FF4444" />
-            <Text style={[styles.btnText, { color: '#FF4444' }]}>Rechazar</Text>
+            <Text style={[styles.btnText, { color: '#FF4444' }]}>{t('attendance.btn_decline')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -112,7 +112,7 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
             onPress={() => setIsCaptainModalVisible(true)}
           >
             <Settings size={14} color={theme.primary} />
-            <Text style={[styles.captainBtnText, { color: theme.primary }]}>Gestionar Equipo</Text>
+            <Text style={[styles.captainBtnText, { color: theme.primary }]}>{t('attendance.btn_manage_team')}</Text>
           </TouchableOpacity>
         </View>
       )}

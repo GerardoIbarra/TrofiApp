@@ -23,7 +23,7 @@ export function PlayerCardView({ card, playerName, isProvisional }: PlayerCardVi
   return (
     <View style={styles.cardContainer}>
       <LinearGradient
-        colors={gradientColors}
+        colors={gradientColors as any}
         style={styles.cardBackground}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}

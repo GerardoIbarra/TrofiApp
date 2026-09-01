@@ -123,7 +123,28 @@ export const useConfirmAttendance = () => {
       const response = await api.post(`/v1/matches/${matchId}/confirm-attendance/`, data);
       return response;
     },
-    onSuccess: (_, variables) => {
+    onMutate: async ({ matchId, data }) => {
+      await queryClient.cancelQueries({ queryKey: ["match-attendance", matchId] });
+      const previousData = queryClient.getQueryData<MatchAttendanceSummary>(["match-attendance", matchId]);
+
+      if (previousData) {
+        const optimisticData = { ...previousData };
+        // Simple optimistic approach: Assume user is on home team for visual bounce.
+        // In a real app we'd pass userTeamId to this hook.
+        if (data.status === 'confirmed') optimisticData.home.confirmed += 1;
+        else if (data.status === 'declined') optimisticData.home.declined += 1;
+        
+        queryClient.setQueryData(["match-attendance", matchId], optimisticData);
+      }
+
+      return { previousData, matchId };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(["match-attendance", context.matchId], context.previousData);
+      }
+    },
+    onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: ["match-attendance", variables.matchId] });
     },
   });

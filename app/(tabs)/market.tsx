@@ -9,6 +9,7 @@ import { Search, MapPin, User, Users, Plus, Shield } from 'lucide-react-native';
 import { useGetMarketListings } from '@/features/market/services/marketApi';
 import { CreateListingModal } from '@/components/market/CreateListingModal';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { FlashList } from '@shopify/flash-list';
 
 export default function MarketScreen() {
   const { theme, isDark } = useTheme();
@@ -33,13 +34,13 @@ export default function MarketScreen() {
       
       <SafeAreaView style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={[styles.title, { color: theme.text }]}>Mercado de Jugadores</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{t('market.title')}</Text>
           <TouchableOpacity 
             style={[styles.addButton, { backgroundColor: theme.primary }]}
             onPress={() => setIsModalVisible(true)}
           >
             <Plus size={20} color="#001A2C" />
-            <Text style={styles.addButtonText}>Publicar</Text>
+            <Text style={styles.addButtonText}>{t('market.btn_publish')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -47,7 +48,7 @@ export default function MarketScreen() {
           <Search size={20} color={theme.textSecondary} />
           <TextInput 
             style={[styles.searchInput, { color: theme.text }]}
-            placeholder="Buscar por equipo, jugador, notas..."
+            placeholder={t('market.search_placeholder')}
             placeholderTextColor={theme.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -62,7 +63,7 @@ export default function MarketScreen() {
         >
           <Users size={18} color={activeTab === 'team_seeking_player' ? theme.primary : theme.textSecondary} />
           <Text style={[styles.tabLabel, activeTab === 'team_seeking_player' && styles.tabLabelActive]}>
-            Equipos Buscan
+            {t('market.tab_teams')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity 
@@ -71,7 +72,7 @@ export default function MarketScreen() {
         >
           <User size={18} color={activeTab === 'player_seeking_team' ? theme.primary : theme.textSecondary} />
           <Text style={[styles.tabLabel, activeTab === 'player_seeking_team' && styles.tabLabelActive]}>
-            Jugadores Libres
+            {t('market.tab_players')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -81,15 +82,18 @@ export default function MarketScreen() {
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
       ) : (
-        <ScrollView style={styles.listContainer} contentContainerStyle={{ paddingBottom: 100 }}>
-          {listings.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Search size={48} color={theme.textSecondary} opacity={0.3} />
-              <Text style={styles.emptyText}>No se encontraron anuncios para esta categoría.</Text>
-            </View>
-          ) : (
-            listings.map(listing => (
-              <View key={listing.id} style={[styles.listingCard, { backgroundColor: theme.surface, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
+        <View style={styles.listContainer}>
+          <FlashList
+            data={listings}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyContainer}>
+                <Search size={48} color={theme.textSecondary} opacity={0.3} />
+                <Text style={styles.emptyText}>{t('market.empty_state')}</Text>
+              </View>
+            )}
+            renderItem={({ item: listing }) => (
+              <View style={[styles.listingCard, { backgroundColor: theme.surface, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
                 <View style={styles.cardHeader}>
                   <View style={styles.avatarBox}>
                     {listing.listing_type === 'team_seeking_player' ? (
@@ -101,13 +105,13 @@ export default function MarketScreen() {
                   <View style={styles.headerInfo}>
                     <Text style={[styles.listingName, { color: theme.text }]}>
                       {listing.listing_type === 'team_seeking_player' 
-                        ? (listing.team_name || 'Equipo Anónimo') 
-                        : (listing.player_name || 'Jugador Anónimo')}
+                        ? (listing.team_name || t('market.unknown_team')) 
+                        : (listing.player_name || t('market.unknown_player'))}
                     </Text>
                     <View style={styles.leagueRow}>
                       <MapPin size={12} color={theme.textSecondary} />
                       <Text style={[styles.leagueName, { color: theme.textSecondary }]}>
-                        {listing.league_name || 'Liga Desconocida'}
+                        {listing.league_name || t('market.unknown_league')}
                       </Text>
                     </View>
                   </View>
@@ -120,27 +124,27 @@ export default function MarketScreen() {
 
                 {listing.availability_note && (
                   <View style={styles.noteRow}>
-                    <Text style={[styles.noteLabel, { color: theme.textSecondary }]}>Disponibilidad:</Text>
+                    <Text style={[styles.noteLabel, { color: theme.textSecondary }]}>{t('market.availability_note')}</Text>
                     <Text style={[styles.noteValue, { color: theme.text }]}>{listing.availability_note}</Text>
                   </View>
                 )}
 
                 {listing.notes && (
                   <View style={styles.noteRow}>
-                    <Text style={[styles.noteLabel, { color: theme.textSecondary }]}>Notas:</Text>
+                    <Text style={[styles.noteLabel, { color: theme.textSecondary }]}>{t('market.notes')}</Text>
                     <Text style={[styles.noteValue, { color: theme.text }]}>{listing.notes}</Text>
                   </View>
                 )}
                 
                 {listing.distance_km != null && (
                   <Text style={[styles.distanceText, { color: theme.textSecondary }]}>
-                    A {Math.round(listing.distance_km)} km de ti
+                    {t('market.distance', { km: Math.round(listing.distance_km) })}
                   </Text>
                 )}
               </View>
-            ))
-          )}
-        </ScrollView>
+            )}
+          />
+        </View>
       )}
 
       {isModalVisible && (

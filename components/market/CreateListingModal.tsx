@@ -38,12 +38,10 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
     try {
       const [leaguesRes, teamsRes] = await Promise.all([
         api.get<any>('/v1/leagues/my_leagues/'),
-        api.get<any>('/v1/teams/?is_owner=true') // Simplified assuming backend allows ?is_owner
+        api.get<any>('/v1/teams/?is_owner=true') 
       ]);
       setMyLeagues(leaguesRes.results || leaguesRes || []);
       
-      // We only need to show teams where the user is an owner, or just fetch user's teams and filter
-      // For now we assume teamsRes returns teams the user manages.
       setMyTeams(teamsRes.results || teamsRes || []);
       
       if (leaguesRes?.length > 0) setLeague(leaguesRes[0].id);
@@ -57,17 +55,17 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
 
   const handleCreate = () => {
     if (!league) {
-      Alert.alert('Error', 'Debes seleccionar una liga.');
+      Alert.alert('Error', t('market.error_no_league'));
       return;
     }
     
     if (listingType === 'team_seeking_player' && !team) {
-      Alert.alert('Error', 'Debes seleccionar un equipo.');
+      Alert.alert('Error', t('market.error_no_team'));
       return;
     }
     
-    if (listingType === 'player_seeking_team' && !user?.player_profile_id) {
-      Alert.alert('Error', 'Debes crear tu perfil de jugador primero.');
+    if (listingType === 'player_seeking_team' && !(user as any)?.player_profile_id) {
+      Alert.alert('Error', t('market.error_no_player_profile'));
       return;
     }
 
@@ -82,11 +80,11 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
       },
       {
         onSuccess: () => {
-          Alert.alert('Éxito', 'Anuncio publicado en el mercado.');
+          Alert.alert('Éxito', t('market.success_msg'));
           onClose();
         },
         onError: (err: any) => {
-          Alert.alert('Error', err?.response?.data?.detail || 'No se pudo crear el anuncio.');
+          Alert.alert('Error', err?.response?.data?.detail || t('market.error_creation'));
         }
       }
     );
@@ -97,7 +95,7 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
           <View style={styles.modalHeader}>
-            <Text style={[styles.modalTitle, { color: theme.text }]}>Nuevo Anuncio</Text>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>{t('market.create_title')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color={theme.text} />
             </TouchableOpacity>
@@ -110,27 +108,27 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
           ) : (
             <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
               
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Tipo de Anuncio</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('market.label_type')}</Text>
               <View style={styles.typeSelector}>
                 <TouchableOpacity 
                   style={[styles.typeBtn, listingType === 'team_seeking_player' && { backgroundColor: theme.primary }]}
                   onPress={() => setListingType('team_seeking_player')}
                 >
                   <Users size={16} color={listingType === 'team_seeking_player' ? '#000' : theme.text} />
-                  <Text style={[styles.typeBtnText, { color: listingType === 'team_seeking_player' ? '#000' : theme.text }]}>Busco Jugador</Text>
+                  <Text style={[styles.typeBtnText, { color: listingType === 'team_seeking_player' ? '#000' : theme.text }]}>{t('market.btn_seeking_player')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={[styles.typeBtn, listingType === 'player_seeking_team' && { backgroundColor: theme.primary }]}
                   onPress={() => setListingType('player_seeking_team')}
                 >
                   <User size={16} color={listingType === 'player_seeking_team' ? '#000' : theme.text} />
-                  <Text style={[styles.typeBtnText, { color: listingType === 'player_seeking_team' ? '#000' : theme.text }]}>Busco Equipo</Text>
+                  <Text style={[styles.typeBtnText, { color: listingType === 'player_seeking_team' ? '#000' : theme.text }]}>{t('market.btn_seeking_team')}</Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Liga (Requerido)</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('market.label_league')}</Text>
               {myLeagues.length === 0 ? (
-                <Text style={{ color: '#FF4444', fontSize: 12, marginBottom: 15 }}>No perteneces a ninguna liga.</Text>
+                <Text style={{ color: '#FF4444', fontSize: 12, marginBottom: 15 }}>{t('market.no_leagues')}</Text>
               ) : (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
                   {myLeagues.map(l => (
@@ -147,9 +145,9 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
 
               {listingType === 'team_seeking_player' && (
                 <>
-                  <Text style={[styles.label, { color: theme.textSecondary }]}>Mi Equipo</Text>
+                  <Text style={[styles.label, { color: theme.textSecondary }]}>{t('market.label_team')}</Text>
                   {myTeams.length === 0 ? (
-                    <Text style={{ color: '#FF4444', fontSize: 12, marginBottom: 15 }}>No tienes equipos.</Text>
+                    <Text style={{ color: '#FF4444', fontSize: 12, marginBottom: 15 }}>{t('market.no_teams')}</Text>
                   ) : (
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
                       {myTeams.map(t => (
@@ -166,7 +164,7 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
                 </>
               )}
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Posición (Opcional)</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('market.label_position')}</Text>
               <View style={styles.positionsRow}>
                 {['GK', 'DEF', 'MED', 'DEL'].map(pos => (
                   <TouchableOpacity 
@@ -179,19 +177,19 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
                 ))}
               </View>
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Disponibilidad (Opcional)</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('market.label_availability')}</Text>
               <TextInput 
                 style={[styles.input, { color: theme.text, borderColor: isDark ? '#333' : '#E0E0E0' }]}
-                placeholder="Ej. Martes y jueves en la noche"
+                placeholder={t('market.placeholder_availability')}
                 placeholderTextColor={theme.textSecondary}
                 value={availabilityNote}
                 onChangeText={setAvailabilityNote}
               />
 
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Notas adicionales</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>{t('market.label_notes')}</Text>
               <TextInput 
                 style={[styles.input, { color: theme.text, borderColor: isDark ? '#333' : '#E0E0E0', height: 80, textAlignVertical: 'top' }]}
-                placeholder="Ej. Buscamos central con buen pie..."
+                placeholder={t('market.placeholder_notes')}
                 placeholderTextColor={theme.textSecondary}
                 multiline
                 value={notes}
@@ -208,7 +206,7 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
                 ) : (
                   <>
                     <Check size={20} color="#000" />
-                    <Text style={styles.submitText}>Publicar Anuncio</Text>
+                    <Text style={styles.submitText}>{t('market.btn_publish_now')}</Text>
                   </>
                 )}
               </TouchableOpacity>
