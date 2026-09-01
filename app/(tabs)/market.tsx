@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, TextInput, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
@@ -9,7 +9,7 @@ import { Search, MapPin, User, Users, Plus, Shield } from 'lucide-react-native';
 import { useGetMarketListings } from '@/features/market/services/marketApi';
 import { CreateListingModal } from '@/components/market/CreateListingModal';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { FlashList } from '@shopify/flash-list';
+
 
 export default function MarketScreen() {
   const { theme, isDark } = useTheme();
@@ -83,9 +83,8 @@ export default function MarketScreen() {
         </View>
       ) : (
         <View style={styles.listContainer}>
-          <FlashList
+          <FlatList
             data={listings}
-            estimatedItemSize={120}
             contentContainerStyle={{ paddingBottom: 100 }}
             ListEmptyComponent={() => (
               <View style={styles.emptyContainer}>

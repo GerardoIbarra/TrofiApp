@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { ShieldAlert, AlertCircle, AlertOctagon, Check, Plus } from 'lucide-react-native';
 import { useGetActiveSuspensions, useGetDisciplinaryRecords, useLiftSuspension } from '@/features/discipline/services/disciplineApi';
 import { ManualSuspensionModal } from '@/components/discipline/ManualSuspensionModal';
-import { FlashList } from '@shopify/flash-list';
+
 
 interface TournamentDisciplineWidgetProps {
   tournamentId: string;
@@ -82,9 +82,8 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
         </View>
       ) : activeTab === 'suspensions' ? (
         <View style={styles.list}>
-          <FlashList
+          <FlatList
             data={suspensions}
-            estimatedItemSize={140}
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={() => (
               <View style={styles.emptyBox}>
@@ -129,9 +128,8 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
         </View>
       ) : (
         <View style={styles.list}>
-          <FlashList
+          <FlatList
             data={records}
-            estimatedItemSize={70}
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={() => (
               <View style={styles.emptyBox}>
