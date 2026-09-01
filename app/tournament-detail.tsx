@@ -12,6 +12,7 @@ import { TournamentStandingsWidget } from '@/components/tournaments/TournamentSt
 import { TournamentMatchesWidget } from '@/components/tournaments/TournamentMatchesWidget';
 import { TournamentTeamsWidget } from '@/components/tournaments/TournamentTeamsWidget';
 import { BracketWidget } from '@/components/tournaments/BracketWidget';
+import { TournamentDisciplineWidget } from '@/components/tournaments/TournamentDisciplineWidget';
 import { CloneTournamentModal } from '@/components/leagues/CloneTournamentModal';
 import { useOpenRegistration, useCloseRegistration } from '@/features/tournaments/services/tournamentApi';
 import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight } from 'lucide-react-native';
@@ -111,7 +112,7 @@ export default function TournamentDetailScreen() {
           />
 
           <View style={styles.tabContainer}>
-            {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'INFO'].map((tab) => (
+            {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'DISCIPLINE', 'INFO'].map((tab) => (
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab)}
@@ -139,6 +140,10 @@ export default function TournamentDetailScreen() {
 
             {activeTab === 'TEAMS' && (
                <TournamentTeamsWidget tournamentId={tournament.id} />
+            )}
+
+            {activeTab === 'DISCIPLINE' && (
+               <TournamentDisciplineWidget tournamentId={tournament.id} isAdmin={true} />
             )}
 
             {activeTab === 'INFO' && (

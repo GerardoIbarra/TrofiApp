@@ -9,7 +9,7 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="index" />
       <Tabs.Screen name="leagues" />
-      <Tabs.Screen name="explore" />
+      <Tabs.Screen name="market" />
       <Tabs.Screen name="teams" />
       <Tabs.Screen name="profile" />
       <Tabs.Screen name="change-password" options={{ href: null }} />

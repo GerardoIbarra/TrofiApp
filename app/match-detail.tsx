@@ -17,6 +17,7 @@ import api from '@/services/api';
 import { Match } from '@/features/tournaments/types/match';
 import { MatchLineupResponse, MatchHeadToHeadResponse, MatchTimelineResponse, MatchEvent } from '@/features/tournaments/types/matchDetail';
 import { MatchAdminControls } from '@/components/matches/admin/MatchAdminControls';
+import { AttendanceWidget } from '@/components/matches/attendance/AttendanceWidget';
 import {
   ChevronLeft, 
   Calendar, 
@@ -100,6 +101,16 @@ export default function MatchDetailScreen() {
           <Info size={18} color={theme.primary} />
           <Text style={styles.sectionTitle}>{t("match_detail.section_encounter")}</Text>
         </View>
+        
+        {/* RSVP / Attendance Widget */}
+        {match && (
+          <AttendanceWidget 
+            matchId={match.id}
+            isCaptain={true} // TO DO: Real check if current user is captain
+            userTeamId={match.home_team} // TO DO: Real logic to resolve which team the user belongs to
+            roster={lineup?.home.starting_xi || []} 
+          />
+        )}
         
         <View style={styles.detailCard}>
           <View style={styles.detailItem}>

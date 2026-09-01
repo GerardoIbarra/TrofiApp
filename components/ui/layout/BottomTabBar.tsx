@@ -58,7 +58,7 @@ export function BottomTabBar({ state, navigation }: any) {
         isDark={isDark} 
         handlePress={() => {
           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          handlePress('explore', 2);
+          handlePress('market', 2);
         }}
       />
       

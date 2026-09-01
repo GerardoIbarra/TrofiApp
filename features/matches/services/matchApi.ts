@@ -6,6 +6,7 @@ import {
   GenerateScheduleSchema,
   ExtraTimeSchema,
 } from "../schemas/matchSchema";
+import { MatchAttendanceSummary, ConfirmAttendanceData, CaptainConfirmAttendanceData } from "../schemas/attendanceSchema";
 
 export const useCreateMatch = () => {
   const queryClient = useQueryClient();
@@ -99,6 +100,45 @@ export const useRecordExtraTime = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches"] });
       queryClient.invalidateQueries({ queryKey: ["bracket"] });
+    },
+  });
+};
+
+export const useGetMatchAttendance = (matchId: string) => {
+  return useQuery({
+    queryKey: ["match-attendance", matchId],
+    queryFn: async () => {
+      const response = await api.get<MatchAttendanceSummary>(`/v1/matches/${matchId}/attendance-confirmations/`);
+      return response;
+    },
+    enabled: !!matchId,
+  });
+};
+
+export const useConfirmAttendance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ matchId, data }: { matchId: string; data: ConfirmAttendanceData }) => {
+      const response = await api.post(`/v1/matches/${matchId}/confirm-attendance/`, data);
+      return response;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["match-attendance", variables.matchId] });
+    },
+  });
+};
+
+export const useCaptainConfirmAttendance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ matchId, data }: { matchId: string; data: CaptainConfirmAttendanceData }) => {
+      const response = await api.post(`/v1/matches/${matchId}/captain-confirm-attendance/`, data);
+      return response;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["match-attendance", variables.matchId] });
     },
   });
 };
