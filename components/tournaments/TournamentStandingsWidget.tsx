@@ -162,22 +162,22 @@ export function TournamentStandingsWidget({
               </Text>
 
               <Text style={[styles.statCell, styles.cellStat]}>
-                {item.played}
+                {item.played ?? "-"}
               </Text>
               <Text style={[styles.statCell, styles.cellStat]}>
-                {item.wins}
+                {item.wins ?? "-"}
               </Text>
               <Text style={[styles.statCell, styles.cellStat]}>
-                {item.draws}
+                {item.draws ?? "-"}
               </Text>
               <Text style={[styles.statCell, styles.cellStat]}>
-                {item.losses}
+                {item.losses ?? "-"}
               </Text>
               <Text style={[styles.statCell, styles.cellStat]}>
-                {item.goals_for}
+                {item.goals_for ?? "-"}
               </Text>
               <Text style={[styles.statCell, styles.cellStat]}>
-                {item.goals_against}
+                {item.goals_against ?? "-"}
               </Text>
 
               <Text
@@ -185,17 +185,19 @@ export function TournamentStandingsWidget({
                   styles.statCell,
                   styles.cellStat,
                   styles.dgText,
-                  item.goal_difference > 0 && { color: "#4ADE80" },
-                  item.goal_difference < 0 && { color: "#FF4444" },
+                  item.goal_difference != null && item.goal_difference > 0 && { color: "#4ADE80" },
+                  item.goal_difference != null && item.goal_difference < 0 && { color: "#FF4444" },
                 ]}
               >
-                {item.goal_difference > 0
-                  ? `+${item.goal_difference}`
-                  : item.goal_difference}
+                {item.goal_difference != null
+                  ? (item.goal_difference > 0
+                      ? `+${item.goal_difference}`
+                      : item.goal_difference)
+                  : "-"}
               </Text>
 
               <Text style={[styles.pointsCell, styles.cellPoints]}>
-                {item.points}
+                {item.points ?? "-"}
               </Text>
             </View>
           ))}
