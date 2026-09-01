@@ -12,12 +12,21 @@ import {
   View,
 } from "react-native";
 
+import { Tournament } from "@/features/tournaments/types/tournament";
+import { TiebreakerConfigModal } from "./modals/TiebreakerConfigModal";
+import { Settings2 } from "lucide-react-native";
+import { TouchableOpacity } from "react-native";
+
 interface TournamentStandingsWidgetProps {
   tournamentId: string;
+  isAdmin?: boolean;
+  tournament?: Tournament;
 }
 
 export function TournamentStandingsWidget({
   tournamentId,
+  isAdmin,
+  tournament,
 }: TournamentStandingsWidgetProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
@@ -25,6 +34,7 @@ export function TournamentStandingsWidget({
 
   const [standings, setStandings] = useState<StandingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isConfigVisible, setIsConfigVisible] = useState(false);
 
   useEffect(() => {
     fetchStandings();
@@ -76,6 +86,18 @@ export function TournamentStandingsWidget({
 
   return (
     <View style={styles.container}>
+      {isAdmin && tournament && (
+        <View style={styles.adminActionRow}>
+          <TouchableOpacity 
+            style={styles.adminBtn} 
+            onPress={() => setIsConfigVisible(true)}
+          >
+            <Settings2 size={14} color={theme.primary} />
+            <Text style={styles.adminBtnText}>Configurar Desempate</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -184,6 +206,14 @@ export function TournamentStandingsWidget({
         <AlertCircle size={12} color={theme.textSecondary} />
         <Text style={styles.footerText}>{t("standings.footer_scroll")}</Text>
       </View>
+
+      {tournament && (
+        <TiebreakerConfigModal 
+          visible={isConfigVisible} 
+          onClose={() => setIsConfigVisible(false)} 
+          tournament={tournament} 
+        />
+      )}
     </View>
   );
 }
@@ -197,6 +227,27 @@ const createStyles = (theme: any, isDark: boolean) =>
       marginTop: 15,
       borderWidth: 1,
       borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+    },
+    adminActionRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+    },
+    adminBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: theme.primary + "15",
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+    },
+    adminBtnText: {
+      fontSize: 11,
+      fontWeight: "800",
+      color: theme.primary,
     },
     loadingBox: {
       padding: 60,

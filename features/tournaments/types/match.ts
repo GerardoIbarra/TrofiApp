@@ -1,11 +1,11 @@
-export type MatchStatus = 'scheduled' | 'ongoing' | 'live' | 'finished' | 'canceled';
+export type MatchStatus = 'scheduled' | 'live' | 'paused' | 'played' | 'postponed' | 'canceled' | 'forfeit';
 
 export interface MatchResult {
   id: string;
   match: string;
   home_score: number;
   away_score: number;
-  result_type: 'normal' | 'technical' | 'walkover';
+  result_type: 'normal' | 'extra_time' | 'penalties' | 'forfeit' | 'technical' | 'walkover';
   notes?: string;
   locked_at?: string;
   created_at: string;

@@ -16,7 +16,8 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import api from '@/services/api';
 import { Match } from '@/features/tournaments/types/match';
 import { MatchLineupResponse, MatchHeadToHeadResponse, MatchTimelineResponse, MatchEvent } from '@/features/tournaments/types/matchDetail';
-import { 
+import { MatchAdminControls } from '@/components/matches/admin/MatchAdminControls';
+import {
   ChevronLeft, 
   Calendar, 
   MapPin, 
@@ -50,6 +51,9 @@ export default function MatchDetailScreen() {
   const [h2h, setH2h] = useState<MatchHeadToHeadResponse | null>(null);
   const [timeline, setTimeline] = useState<MatchTimelineResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // TODO: Implement proper admin check based on tournament role or match referee
+  const isAdmin = true;
 
   useEffect(() => {
     if (id) {
@@ -427,6 +431,9 @@ export default function MatchDetailScreen() {
           <Text style={styles.teamNameMain}>{match?.away_team_name}</Text>
         </View>
       </View>
+
+      {/* Admin Controls */}
+      {isAdmin && match && <MatchAdminControls match={match} />}
 
       {/* Tabs */}
       <View style={styles.tabsWrapper}>

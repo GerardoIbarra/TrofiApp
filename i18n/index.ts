@@ -35,6 +35,7 @@ i18n
 
 // 3. Cargar idioma guardado de forma asíncrona (sin bloquear el inicio)
 const loadSavedLanguage = async () => {
+  if (typeof window === 'undefined') return;
   try {
     const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
     if (savedLanguage && savedLanguage !== i18n.language) {

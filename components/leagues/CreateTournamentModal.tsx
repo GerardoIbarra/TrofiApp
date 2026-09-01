@@ -1,6 +1,7 @@
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { FormInput } from "@/components/ui/forms/FormInput";
 import { FormDatePicker } from "@/components/ui/forms/FormDatePicker";
+import { FormSelect } from "@/components/ui/forms/FormSelect";
 import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { useTheme } from "@/context/ThemeContext";
 import { TournamentSchema, tournamentSchema } from "@/features/tournaments/schemas/tournamentSchema";
@@ -58,6 +59,10 @@ export function CreateTournamentModal({
       status: "draft",
       start_date: new Date().toISOString().split("T")[0],
       end_date: "",
+      format: "11v11",
+      gender: "mens",
+      champion_determination: "standings",
+      knockout_tiebreaker: "penalty_shootout",
     },
   });
 
@@ -70,6 +75,13 @@ export function CreateTournamentModal({
           status: initialData.status,
           start_date: initialData.start_date.split("T")[0],
           end_date: initialData.end_date.split("T")[0],
+          format: initialData.format || "11v11",
+          gender: initialData.gender || "mens",
+          champion_determination: initialData.champion_determination || "standings",
+          knockout_tiebreaker: initialData.knockout_tiebreaker || "penalty_shootout",
+          max_teams: initialData.max_teams,
+          min_age: initialData.min_age,
+          max_age: initialData.max_age,
         });
       } else {
         reset({
@@ -78,6 +90,10 @@ export function CreateTournamentModal({
           status: "draft",
           start_date: new Date().toISOString().split("T")[0],
           end_date: "",
+          format: "11v11",
+          gender: "mens",
+          champion_determination: "standings",
+          knockout_tiebreaker: "penalty_shootout",
         });
       }
     }
@@ -218,6 +234,86 @@ export function CreateTournamentModal({
                     required
                   />
                 </View>
+              </View>
+
+              <View style={styles.row}>
+                <FormSelect
+                  control={control}
+                  name="format"
+                  label="FORMATO"
+                  options={[
+                    { label: "Fútbol 11", value: "11v11" },
+                    { label: "Fútbol 7", value: "7v7" },
+                    { label: "Fútbol 5", value: "5v5" },
+                  ]}
+                  containerStyle={{ flex: 1 }}
+                />
+                <View style={{ width: 15 }} />
+                <FormSelect
+                  control={control}
+                  name="gender"
+                  label="GÉNERO"
+                  options={[
+                    { label: "Masculino", value: "mens" },
+                    { label: "Femenino", value: "womens" },
+                    { label: "Mixto", value: "mixed" },
+                  ]}
+                  containerStyle={{ flex: 1 }}
+                />
+              </View>
+
+              <View style={styles.row}>
+                <FormSelect
+                  control={control}
+                  name="champion_determination"
+                  label="DEFINICIÓN CAMPEÓN"
+                  options={[
+                    { label: "Por Puntos", value: "standings" },
+                    { label: "Playoffs", value: "playoffs" },
+                  ]}
+                  containerStyle={{ flex: 1 }}
+                />
+                <View style={{ width: 15 }} />
+                <FormSelect
+                  control={control}
+                  name="knockout_tiebreaker"
+                  label="DESEMPATE (PLAYOFFS)"
+                  options={[
+                    { label: "Penales", value: "penalty_shootout" },
+                    { label: "Posición", value: "standings" },
+                    { label: "Visitante", value: "away_goals" },
+                  ]}
+                  containerStyle={{ flex: 1 }}
+                />
+              </View>
+
+              <View style={styles.row}>
+                <FormInput
+                  control={control}
+                  name="max_teams"
+                  label="MAX. EQUIPOS"
+                  placeholder="Ej. 12"
+                  keyboardType="numeric"
+                  containerStyle={{ flex: 1 }}
+                />
+                <View style={{ width: 15 }} />
+                <FormInput
+                  control={control}
+                  name="min_age"
+                  label="EDAD MÍN."
+                  placeholder="Ej. 15"
+                  keyboardType="numeric"
+                  containerStyle={{ flex: 1 }}
+                />
+                <View style={{ width: 15 }} />
+                <FormInput
+                  control={control}
+                  name="max_age"
+                  label="EDAD MÁX."
+                  placeholder="Ej. 17"
+                  keyboardType="numeric"
+                  containerStyle={{ flex: 1 }}
+                />
               </View>
 
               <View style={styles.infoBox}>

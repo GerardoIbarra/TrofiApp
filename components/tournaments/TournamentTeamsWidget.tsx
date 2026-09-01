@@ -12,6 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { EnrollTeamModal } from "@/components/tournaments/EnrollTeamModal";
+import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 
 interface TournamentTeam {
   id: string;
@@ -43,6 +45,7 @@ export function TournamentTeamsWidget({
 
   const [teams, setTeams] = useState<TournamentTeam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEnrollModalVisible, setIsEnrollModalVisible] = useState(false);
 
   useEffect(() => {
     fetchTournamentTeams();
@@ -76,27 +79,34 @@ export function TournamentTeamsWidget({
     );
   }
 
-  if (teams.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Users size={40} color={theme.textSecondary} opacity={0.2} />
-        <Text style={styles.emptyText}>
-          {t("tournament.teams_coming_soon")}
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      {teams.map((item, index) => (
-        <TouchableOpacity
-          key={item.id}
-          style={styles.teamCard}
-          onPress={() =>
-            router.push({ pathname: "/team-detail", params: { id: item.team } })
-          }
+      <View style={styles.headerRow}>
+        <Text style={styles.titleText}>{t("tournament.teams_label") || "Equipos"}</Text>
+        <TouchableOpacity 
+          style={styles.enrollButton}
+          onPress={() => setIsEnrollModalVisible(true)}
         >
+          <Text style={styles.enrollButtonText}>+ Inscribir Equipo</Text>
+        </TouchableOpacity>
+      </View>
+
+      {teams.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Users size={40} color={theme.textSecondary} opacity={0.2} />
+          <Text style={styles.emptyText}>
+            {t("tournament.teams_coming_soon")}
+          </Text>
+        </View>
+      ) : (
+        teams.map((item, index) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.teamCard}
+            onPress={() =>
+              router.push({ pathname: "/tournament-team-detail", params: { id: item.id } })
+            }
+          >
           <View style={styles.cardContent}>
             <Image
               source={{
@@ -128,7 +138,15 @@ export function TournamentTeamsWidget({
             <ChevronRight size={18} color={theme.textSecondary} opacity={0.5} />
           </View>
         </TouchableOpacity>
-      ))}
+        ))
+      )}
+
+      <EnrollTeamModal 
+        visible={isEnrollModalVisible}
+        onClose={() => setIsEnrollModalVisible(false)}
+        onSuccess={fetchTournamentTeams}
+        tournamentId={tournamentId}
+      />
     </View>
   );
 }
@@ -137,6 +155,28 @@ const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     container: {
       paddingBottom: 20,
+    },
+    headerRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 15,
+    },
+    titleText: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: theme.text,
+    },
+    enrollButton: {
+      backgroundColor: theme.primary + "20",
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    enrollButtonText: {
+      color: theme.primary,
+      fontSize: 12,
+      fontWeight: "800",
     },
     loadingContainer: {
       height: 200,

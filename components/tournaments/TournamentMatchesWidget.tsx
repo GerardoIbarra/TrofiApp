@@ -15,6 +15,9 @@ import {
   View,
 } from "react-native";
 import { MatchResultModal } from "./MatchResultModal";
+import { ScheduleConfigModal } from "./ScheduleConfigModal";
+import { GenerateScheduleModal } from "./GenerateScheduleModal";
+import { Settings, CalendarPlus } from "lucide-react-native";
 
 interface TournamentMatchesWidgetProps {
   tournamentId: string;
@@ -35,6 +38,8 @@ export function TournamentMatchesWidget({
   const [refreshing, setRefreshing] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isResultModalVisible, setIsResultModalVisible] = useState(false);
+  const [isConfigModalVisible, setIsConfigModalVisible] = useState(false);
+  const [isGenerateModalVisible, setIsGenerateModalVisible] = useState(false);
 
   useEffect(() => {
     fetchMatches();
@@ -200,6 +205,25 @@ export function TournamentMatchesWidget({
 
   return (
     <View style={styles.container}>
+      {isAdmin && (
+        <View style={styles.adminActionRow}>
+          <TouchableOpacity 
+            style={styles.adminBtn} 
+            onPress={() => setIsConfigModalVisible(true)}
+          >
+            <Settings size={14} color={theme.primary} />
+            <Text style={styles.adminBtnText}>Configurar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.adminBtn, { backgroundColor: theme.primary }]} 
+            onPress={() => setIsGenerateModalVisible(true)}
+          >
+            <CalendarPlus size={14} color="#001A2C" />
+            <Text style={[styles.adminBtnText, { color: "#001A2C" }]}>Generar Fixture</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <FlatList
         data={matches}
         renderItem={renderMatchCard}
@@ -229,6 +253,18 @@ export function TournamentMatchesWidget({
         onClose={() => setIsResultModalVisible(false)}
         onSuccess={fetchMatches}
       />
+      
+      <ScheduleConfigModal
+        visible={isConfigModalVisible}
+        onClose={() => setIsConfigModalVisible(false)}
+        tournamentId={tournamentId}
+      />
+      
+      <GenerateScheduleModal
+        visible={isGenerateModalVisible}
+        onClose={() => setIsGenerateModalVisible(false)}
+        tournamentId={tournamentId}
+      />
     </View>
   );
 }
@@ -238,6 +274,27 @@ const createStyles = (theme: any, isDark: boolean) =>
     container: {
       flex: 1,
       marginTop: 10,
+    },
+    adminActionRow: {
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      gap: 10,
+      marginBottom: 15,
+      paddingHorizontal: 5,
+    },
+    adminBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: theme.primary + "15",
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+    },
+    adminBtnText: {
+      fontSize: 11,
+      fontWeight: "800",
+      color: theme.primary,
     },
     listContent: {
       paddingBottom: 40,

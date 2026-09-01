@@ -11,7 +11,10 @@ import { CreateTournamentModal } from '@/components/leagues/CreateTournamentModa
 import { TournamentStandingsWidget } from '@/components/tournaments/TournamentStandingsWidget';
 import { TournamentMatchesWidget } from '@/components/tournaments/TournamentMatchesWidget';
 import { TournamentTeamsWidget } from '@/components/tournaments/TournamentTeamsWidget';
-import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle } from 'lucide-react-native';
+import { BracketWidget } from '@/components/tournaments/BracketWidget';
+import { CloneTournamentModal } from '@/components/leagues/CloneTournamentModal';
+import { useOpenRegistration, useCloseRegistration } from '@/features/tournaments/services/tournamentApi';
+import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function TournamentDetailScreen() {
@@ -34,7 +37,24 @@ export default function TournamentDetailScreen() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isCloneModalVisible, setIsCloneModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('STANDINGS');
+
+  const openRegistration = useOpenRegistration();
+  const closeRegistration = useCloseRegistration();
+
+  const handleToggleRegistration = () => {
+    if (!tournament) return;
+    if (tournament.registration_open) {
+      closeRegistration.mutate(tournament.id, {
+        onSuccess: () => fetchTournamentDetails()
+      });
+    } else {
+      openRegistration.mutate(tournament.id, {
+        onSuccess: () => fetchTournamentDetails()
+      });
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -91,7 +111,7 @@ export default function TournamentDetailScreen() {
           />
 
           <View style={styles.tabContainer}>
-            {['STANDINGS', 'MATCHES', 'TEAMS', 'INFO'].map((tab) => (
+            {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'INFO'].map((tab) => (
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab)}
@@ -106,11 +126,15 @@ export default function TournamentDetailScreen() {
 
           <View style={styles.tabContentArea}>
             {activeTab === 'STANDINGS' && (
-              <TournamentStandingsWidget tournamentId={tournament.id} />
+              <TournamentStandingsWidget tournamentId={tournament.id} isAdmin={true} tournament={tournament} />
             )}
 
             {activeTab === 'MATCHES' && (
               <TournamentMatchesWidget tournamentId={tournament.id} isAdmin={true} />
+            )}
+
+            {activeTab === 'PLAYOFFS' && (
+              <BracketWidget tournamentId={tournament.id} isAdmin={true} />
             )}
 
             {activeTab === 'TEAMS' && (
@@ -202,6 +226,30 @@ export default function TournamentDetailScreen() {
                   </View>
                 </View>
 
+                <TouchableOpacity 
+                  style={styles.rulesButton} 
+                  activeOpacity={0.7}
+                  onPress={() => setIsCloneModalVisible(true)}
+                >
+                  <Copy size={18} color={theme.primary} />
+                  <Text style={styles.rulesText}>Clonar Temporada</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={styles.rulesButton} 
+                  activeOpacity={0.7}
+                  onPress={handleToggleRegistration}
+                >
+                  {tournament.registration_open ? (
+                    <ToggleRight size={18} color="#FF4444" />
+                  ) : (
+                    <ToggleLeft size={18} color="#4ADE80" />
+                  )}
+                  <Text style={[styles.rulesText, { color: tournament.registration_open ? "#FF4444" : "#4ADE80" }]}>
+                    {tournament.registration_open ? "Cerrar Inscripciones" : "Abrir Inscripciones"}
+                  </Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity style={styles.rulesButton} activeOpacity={0.7}>
                   <Info size={18} color={theme.primary} />
                   <Text style={styles.rulesText}>{t("tournament.view_rules")}</Text>
@@ -218,6 +266,17 @@ export default function TournamentDetailScreen() {
         onSuccess={fetchTournamentDetails}
         leagueId={tournament.league}
         initialData={tournament}
+      />
+
+      <CloneTournamentModal
+        visible={isCloneModalVisible}
+        onClose={() => setIsCloneModalVisible(false)}
+        onSuccess={() => {
+          fetchTournamentDetails();
+          // Ideally navigate to the new tournament, but staying here is ok for now.
+        }}
+        tournamentId={tournament.id}
+        leagueId={tournament.league}
       />
     </View>
   );

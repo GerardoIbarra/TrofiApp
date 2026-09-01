@@ -16,6 +16,7 @@ import { LeagueHeader } from "@/components/leagues/LeagueHeader";
 import { LeagueMembersWidget } from "@/components/leagues/LeagueMembersWidget";
 import { LeagueTabsList } from "@/components/leagues/LeagueTabsList";
 import { LeagueTournamentsWidget } from "@/components/leagues/LeagueTournamentsWidget";
+import { EloRankingWidget } from "@/components/leagues/EloRankingWidget";
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { League } from "@/features/leagues/types/league";
@@ -82,8 +83,7 @@ export default function LeagueDetailScreen() {
     (f) => league?.features?.[f.key as keyof typeof league.features],
   );
 
-  // Generate Dynamic Tabs
-  const dynamicTabs = ["STANDINGS", "MATCHES"];
+  const dynamicTabs = ["STANDINGS", "RANKING ELO", "MATCHES"];
   if (league?.features?.comms_enabled) dynamicTabs.push("NEWS");
   dynamicTabs.push("PLAYERS");
   if (league?.features?.payments_enabled) dynamicTabs.push("PAYMENTS");
@@ -123,6 +123,8 @@ export default function LeagueDetailScreen() {
             </Text>
           </View>
         );
+      case "RANKING ELO":
+        return <EloRankingWidget leagueId={league.id} />;
       case "STANDINGS":
         return <LeagueTournamentsWidget leagueId={league.id} />;
       default:

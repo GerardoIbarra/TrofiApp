@@ -25,6 +25,7 @@ export interface Tournament {
   start_date: string;
   end_date: string;
   features?: TournamentFeatures;
+  standings_tiebreaker?: 'goal_difference' | 'head_to_head';
   team_count?: string;
   match_count?: string;
   created_at: string;

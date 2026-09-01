@@ -99,6 +99,12 @@ export default function SignInScreen() {
               required
               isPassword
             />
+            
+            <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password' as any)}>
+              <Text style={{ color: theme.primary, textAlign: 'right', marginTop: -10, marginBottom: 20, fontWeight: '600' }}>
+                ¿Olvidaste tu contraseña?
+              </Text>
+            </TouchableOpacity>
 
             {/* Login Button */}
             {isSubmitting ? (

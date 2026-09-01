@@ -24,6 +24,7 @@ import {
   Shield,
   Star,
   User,
+  Lock,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -560,6 +561,7 @@ export default function ProfileScreen() {
                   label={t("profile.my_account")}
                   theme={theme}
                   isDark={isDark}
+                  onPress={() => router.push('/(tabs)/edit-profile' as any)}
                 />
                 <MenuItem
                   icon={<Award size={20} color={theme.primary} />}
@@ -572,6 +574,13 @@ export default function ProfileScreen() {
                   label={t("profile.privacy")}
                   theme={theme}
                   isDark={isDark}
+                />
+                <MenuItem
+                  icon={<Lock size={20} color={theme.primary} />}
+                  label="Cambiar Contraseña"
+                  theme={theme}
+                  isDark={isDark}
+                  onPress={() => router.push('/(tabs)/change-password' as any)}
                 />
                 <MenuItem
                   icon={<Settings size={20} color={theme.primary} />}
@@ -749,15 +758,17 @@ function MenuItem({
   label,
   theme,
   isDark,
+  onPress,
 }: {
   icon: React.ReactNode;
   label: string;
   theme: any;
   isDark: boolean;
+  onPress?: () => void;
 }) {
   const styles = createStyles(theme, isDark);
   return (
-    <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.menuItem} activeOpacity={0.7} onPress={onPress}>
       <View style={styles.menuIconText}>
         {icon}
         <Text style={styles.menuLabel}>{label}</Text>
