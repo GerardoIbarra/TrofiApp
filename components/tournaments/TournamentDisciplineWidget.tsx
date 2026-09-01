@@ -84,6 +84,7 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
         <View style={styles.list}>
           <FlashList
             data={suspensions}
+            estimatedItemSize={140}
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={() => (
               <View style={styles.emptyBox}>
@@ -130,6 +131,7 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
         <View style={styles.list}>
           <FlashList
             data={records}
+            estimatedItemSize={70}
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={() => (
               <View style={styles.emptyBox}>

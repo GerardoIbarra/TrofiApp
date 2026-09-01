@@ -85,6 +85,7 @@ export default function MarketScreen() {
         <View style={styles.listContainer}>
           <FlashList
             data={listings}
+            estimatedItemSize={120}
             contentContainerStyle={{ paddingBottom: 100 }}
             ListEmptyComponent={() => (
               <View style={styles.emptyContainer}>
