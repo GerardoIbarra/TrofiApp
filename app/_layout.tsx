@@ -12,8 +12,9 @@ import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client
 import * as Location from "expo-location";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as Updates from "expo-updates";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
@@ -22,6 +23,46 @@ import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
 import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
 
 SplashScreen.preventAutoHideAsync();
+
+const UPDATE_CHECK_TIMEOUT_MS = 5000;
+
+// Forces every cold start to run on the latest published update instead of
+// silently downloading it in the background and waiting for a manual tap.
+function useUpdateGate() {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    async function runUpdateCheck() {
+      if (__DEV__ || !Updates.isEnabled) {
+        setIsReady(true);
+        return;
+      }
+
+      try {
+        const check = (async () => {
+          const { isAvailable } = await Updates.checkForUpdateAsync();
+          if (isAvailable) {
+            await Updates.fetchUpdateAsync();
+            await Updates.reloadAsync();
+          }
+        })();
+
+        await Promise.race([
+          check,
+          new Promise((resolve) => setTimeout(resolve, UPDATE_CHECK_TIMEOUT_MS)),
+        ]);
+      } catch (err) {
+        console.error("Error checking for updates:", err);
+      } finally {
+        setIsReady(true);
+      }
+    }
+
+    runUpdateCheck();
+  }, []);
+
+  return isReady;
+}
 
 export const unstable_settings = {
   anchor: "(auth)",
@@ -90,6 +131,10 @@ function InitialNavigation() {
 }
 
 export default function RootLayout() {
+  const isUpdateGateReady = useUpdateGate();
+
+  if (!isUpdateGateReady) return null;
+
   return (
     <ErrorBoundary>
       <ThemeProvider>
