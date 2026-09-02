@@ -77,7 +77,7 @@ export function TournamentMatchesWidget({
   };
 
   const renderMatchCard = ({ item }: { item: Match }) => {
-    const isFinished = item.status === "finished";
+    const isFinished = item.status === "played";
     const matchDate = new Date(item.start_datetime);
     const isToday = matchDate.toDateString() === new Date().toDateString();
 
