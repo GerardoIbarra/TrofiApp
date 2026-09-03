@@ -28,12 +28,15 @@ import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { HomeFeedMatchCard } from "@/components/matches/HomeFeedMatchCard";
+import { useGetHomeFeed } from "@/features/matches/services/homeFeedApi";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -400,13 +403,24 @@ export default function HomeScreen() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isPlayersLoading, setIsPlayersLoading] = useState(true);
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
-  const [teamFeed, setTeamFeed] = useState<TeamFeedResponse | null>(null);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const {
+    data: homeFeed = [],
+    isLoading: isHomeFeedLoading,
+    refetch: refetchHomeFeed,
+  } = useGetHomeFeed();
 
   useEffect(() => {
     loadPlayers();
-    loadNextMatch();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([refetchHomeFeed(), loadPlayers()]);
+    setRefreshing(false);
+  };
 
   const loadPlayers = async () => {
     try {
@@ -419,17 +433,6 @@ export default function HomeScreen() {
     }
   };
 
-  const loadNextMatch = async () => {
-    try {
-      const token = await AuthStorage.getAccessToken();
-      const res = await api.get<TeamFeedResponse>(
-        `/v1/matches/my_team_feed/?token=${token}`,
-      );
-
-      setTeamFeed(res);
-    } catch (err) {}
-  };
-
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
@@ -440,24 +443,45 @@ export default function HomeScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme.primary}
+            />
+          }
         >
           <View style={styles.webContainer}>
             <View style={styles.sectionHeader}>
               <View>
                 <Text style={styles.sectionOverline}>
-                  {t("home.weekly_summary")}
+                  {t("home.weekly_summary") || "RESUMEN"}
                 </Text>
                 <Text
                   style={[GlobalStyles.sectionTitle, { color: theme.text }]}
                 >
-                  {t("home.my_teams")}
+                  {t("home.my_matches", "Tus Partidos")}
                 </Text>
               </View>
             </View>
 
             {/* Featured Match Carousel */}
             <View style={styles.carouselContainer}>
-              {teamFeed && teamFeed.teams.length > 0 ? (
+              {isHomeFeedLoading ? (
+                <View
+                  style={[
+                    styles.featuredCard,
+                    {
+                      width: width - 40,
+                      justifyContent: "center",
+                      alignItems: "center",
+                      backgroundColor: isDark ? "#16082A" : "#FFFFFF",
+                    },
+                  ]}
+                >
+                  <ActivityIndicator size="small" color={theme.primary} />
+                </View>
+              ) : homeFeed && homeFeed.length > 0 ? (
                 <>
                   <ScrollView
                     horizontal
@@ -475,22 +499,17 @@ export default function HomeScreen() {
                     }}
                     contentContainerStyle={styles.carouselContent}
                   >
-                    {teamFeed.teams.map((team) => (
-                      <FeaturedMatchCard
-                        key={team.id}
-                        team={team}
-                        isDark={isDark}
-                        theme={theme}
-                        width={width}
-                        styles={styles}
-                        t={t}
-                        i18n={i18n}
+                    {homeFeed.map((item) => (
+                      <HomeFeedMatchCard
+                        key={item.match.id}
+                        feedItem={item}
+                        width={width - 40}
                       />
                     ))}
                   </ScrollView>
-                  {teamFeed.teams.length > 1 && (
+                  {homeFeed.length > 1 && (
                     <View style={styles.paginationDots}>
-                      {teamFeed.teams.map((_, i) => (
+                      {homeFeed.map((_, i) => (
                         <View
                           key={i}
                           style={[
