@@ -16,6 +16,7 @@ import { Tournament } from "@/features/tournaments/types/tournament";
 import { TiebreakerConfigModal } from "./modals/TiebreakerConfigModal";
 import { Settings2 } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
+import { SponsorBanner } from "@/components/sponsors/SponsorBanner";
 
 interface TournamentStandingsWidgetProps {
   tournamentId: string;
@@ -86,6 +87,13 @@ export function TournamentStandingsWidget({
 
   return (
     <View style={styles.container}>
+      <SponsorBanner
+        placementType="standings_banner"
+        tournamentId={tournamentId}
+        leagueId={tournament?.league}
+        style={{ marginHorizontal: 12, marginTop: 10, marginBottom: 4 }}
+      />
+
       {isAdmin && tournament && (
         <View style={styles.adminActionRow}>
           <TouchableOpacity 

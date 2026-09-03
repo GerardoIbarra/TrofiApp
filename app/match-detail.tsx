@@ -18,6 +18,7 @@ import { Match } from '@/features/tournaments/types/match';
 import { MatchLineupResponse, MatchHeadToHeadResponse, MatchTimelineResponse, MatchEvent } from '@/features/tournaments/types/matchDetail';
 import { MatchAdminControls } from '@/components/matches/admin/MatchAdminControls';
 import { AttendanceWidget } from '@/components/matches/attendance/AttendanceWidget';
+import { SponsorBanner } from '@/components/sponsors/SponsorBanner';
 import {
   ChevronLeft, 
   Calendar, 
@@ -109,6 +110,16 @@ export default function MatchDetailScreen() {
             isCaptain={true} // TO DO: Real check if current user is captain
             userTeamId={match.home_team} // TO DO: Real logic to resolve which team the user belongs to
             roster={lineup?.home.starting_xi || []} 
+          />
+        )}
+
+        {/* Sponsor Banner for Match */}
+        {match && (
+          <SponsorBanner
+            placementType="match_banner"
+            tournamentId={match.tournament}
+            teamId={match.home_team}
+            style={{ marginBottom: 16 }}
           />
         )}
         

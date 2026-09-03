@@ -13,7 +13,7 @@ import { LANGUAGE_KEY } from "@/i18n";
 import api from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import {
   Award,
   ChevronRight,
@@ -564,6 +564,13 @@ export default function ProfileScreen() {
                   onPress={() => router.push('/(tabs)/edit-profile' as any)}
                 />
                 <MenuItem
+                  icon={<Award size={20} color="#F59E0B" />}
+                  label="Espacios Publicitarios (Sponsors)"
+                  theme={theme}
+                  isDark={isDark}
+                  onPress={() => router.push('/sponsor-placements' as any)}
+                />
+                <MenuItem
                   icon={<Award size={20} color={theme.primary} />}
                   label={t("profile.achievements")}
                   theme={theme}
@@ -802,7 +809,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       height: "100%",
     },
     heroGradient: {
-      ...StyleSheet.absoluteFill,
+      ...StyleSheet.absoluteFillObject,
     },
     heroContent: {
       position: "absolute",

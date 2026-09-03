@@ -204,7 +204,21 @@
     "tab_matches": "PARTIDOS",
     "tab_news": "NOTICIAS",
     "tab_players": "JUGADORES",
-    "tab_payments": "PAGOS"
+    "tab_payments": "PAGOS",
+    "tab_sponsors": "SPONSORS"
+  },
+  "sponsors": {
+    "title": "Sponsor Hub",
+    "request_placement": "Pedir Espacio Publicitario",
+    "renew": "Renovar Patrocinio",
+    "my_placements": "Mis Espacios",
+    "explore": "Explorar Activos",
+    "metrics_impressions": "Vistas",
+    "metrics_clicks": "Clics",
+    "metrics_ctr": "CTR",
+    "status_active": "Activo",
+    "status_expired": "Vencido",
+    "status_inactive": "Pausado"
   },
   "standings": {
     "loading": "Calculando posiciones...",

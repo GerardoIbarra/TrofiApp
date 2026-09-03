@@ -428,7 +428,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       letterSpacing: 1,
     },
     overlay: {
-      ...StyleSheet.absoluteFill,
+      ...StyleSheet.absoluteFillObject,
       backgroundColor: "rgba(0,0,0,0.1)",
     },
     logoPicker: {

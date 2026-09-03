@@ -202,7 +202,21 @@
     "tab_matches": "MATCHES",
     "tab_news": "NEWS",
     "tab_players": "PLAYERS",
-    "tab_payments": "PAYMENTS"
+    "tab_payments": "PAYMENTS",
+    "tab_sponsors": "SPONSORS"
+  },
+  "sponsors": {
+    "title": "Sponsor Hub",
+    "request_placement": "Request Ad Placement",
+    "renew": "Renew Sponsorship",
+    "my_placements": "My Placements",
+    "explore": "Explore Active",
+    "metrics_impressions": "Impressions",
+    "metrics_clicks": "Clicks",
+    "metrics_ctr": "CTR",
+    "status_active": "Active",
+    "status_expired": "Expired",
+    "status_inactive": "Paused"
   },
   "standings": {
     "loading": "Calculating positions...",

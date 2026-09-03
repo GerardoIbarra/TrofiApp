@@ -17,6 +17,7 @@ import { LeagueMembersWidget } from "@/components/leagues/LeagueMembersWidget";
 import { LeagueTabsList } from "@/components/leagues/LeagueTabsList";
 import { LeagueTournamentsWidget } from "@/components/leagues/LeagueTournamentsWidget";
 import { EloRankingWidget } from "@/components/leagues/EloRankingWidget";
+import { LeagueSponsorsWidget } from "@/components/leagues/LeagueSponsorsWidget";
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { League } from "@/features/leagues/types/league";
@@ -87,6 +88,7 @@ export default function LeagueDetailScreen() {
   if (league?.features?.comms_enabled) dynamicTabs.push("NEWS");
   dynamicTabs.push("PLAYERS");
   if (league?.features?.payments_enabled) dynamicTabs.push("PAYMENTS");
+  if (league?.features?.sponsors_enabled) dynamicTabs.push("SPONSORS");
 
   // Fallback to first tab if activeTab is not in dynamicTabs
   useEffect(() => {
@@ -127,6 +129,8 @@ export default function LeagueDetailScreen() {
         return <EloRankingWidget leagueId={league.id} />;
       case "STANDINGS":
         return <LeagueTournamentsWidget leagueId={league.id} />;
+      case "SPONSORS":
+        return <LeagueSponsorsWidget leagueId={league.id} />;
       default:
         return (
           <View style={styles.comingSoonBox}>

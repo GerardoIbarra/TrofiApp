@@ -266,7 +266,7 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     height: '100%',
   },
   cardGradient: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
   },
   cardContent: {
     position: 'absolute',
@@ -428,7 +428,7 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     height: '100%',
   },
   sportGradient: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
   },
   sportTitle: {
     position: 'absolute',
