@@ -126,9 +126,17 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   }
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    let errorData: any = {};
+    const text = await response.text().catch(() => '');
+    if (text) {
+      try {
+        errorData = JSON.parse(text);
+      } catch {
+        errorData = { message: text };
+      }
+    }
 
-    const errorMessage = typeof errorData === 'object' 
+    const errorMessage = typeof errorData === 'object' && errorData !== null
       ? Object.entries(errorData).map(([key, value]) => `${key}: ${value}`).join(', ')
       : errorData.message || errorData.detail;
 
@@ -147,7 +155,20 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     throw error;
   }
 
-  return response.json() as Promise<T>;
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  const rawText = await response.text();
+  if (!rawText || rawText.trim() === '') {
+    return {} as T;
+  }
+
+  try {
+    return JSON.parse(rawText) as T;
+  } catch {
+    return rawText as unknown as T;
+  }
 }
 
 export const api = {
