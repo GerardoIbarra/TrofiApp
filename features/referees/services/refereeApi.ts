@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/services/api';
+import { metrics } from '@/services/metrics';
 import {
   RefereeAvailability,
   SetRefereeAvailabilityData,
@@ -30,7 +31,8 @@ export const useSetRefereeAvailability = () => {
       const response = await api.post<RefereeAvailability>('/v1/referee-availability/', data as any);
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      metrics.trackRefereeAvailability(variables.is_open);
       queryClient.invalidateQueries({ queryKey: ['referee-availability'] });
     },
   });
@@ -78,7 +80,8 @@ export const useAcceptRefereeOffer = () => {
       const response = await api.post(`/v1/referee-offers/${offerId}/accept/`, {});
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (_, offerId) => {
+      metrics.trackRefereeOfferResponse('accept', offerId);
       queryClient.invalidateQueries({ queryKey: ['referee-offers'] });
       queryClient.invalidateQueries({ queryKey: ['matches'] });
     },
@@ -93,7 +96,8 @@ export const useDeclineRefereeOffer = () => {
       const response = await api.post(`/v1/referee-offers/${offerId}/decline/`, {});
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (_, offerId) => {
+      metrics.trackRefereeOfferResponse('decline', offerId);
       queryClient.invalidateQueries({ queryKey: ['referee-offers'] });
     },
   });

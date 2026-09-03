@@ -184,6 +184,48 @@ class MetricsService {
       action,
     });
   }
+
+  public trackMatchLiveAction(
+    action: 'started' | 'paused' | 'resumed' | 'ended' | 'locked',
+    matchId?: string
+  ) {
+    this.count(`match.${action}`, 1, {
+      match_id: matchId || 'unknown',
+    });
+  }
+
+  public trackAttendanceConfirmation(status: string, matchId?: string) {
+    this.count('attendance.responses', 1, {
+      status,
+      match_id: matchId || 'unknown',
+    });
+  }
+
+  public trackCaptainAttendance(playerCount: number, matchId?: string) {
+    this.count('attendance.captain_bulk_confirmations', 1, {
+      match_id: matchId || 'unknown',
+    });
+    this.measurement('attendance.players_confirmed_by_captain', playerCount, 'none');
+  }
+
+  public trackRefereeAvailability(isOpen: boolean) {
+    this.count('referee.availability_toggled', 1, {
+      is_open: String(isOpen),
+    });
+  }
+
+  public trackRefereeOfferResponse(action: 'accept' | 'decline', offerId?: string) {
+    this.count('referee.offers_resolved', 1, {
+      action,
+      offer_id: offerId || 'unknown',
+    });
+  }
+
+  public trackTeamCreated(leagueId?: string) {
+    this.count('teams.created', 1, {
+      league: leagueId || 'unknown',
+    });
+  }
 }
 
 export const metrics = new MetricsService();

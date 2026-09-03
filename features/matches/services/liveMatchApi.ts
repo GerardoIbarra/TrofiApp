@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
+import { metrics } from "@/services/metrics";
 import {
   MatchEventSchema,
   SubstituteSchema,
@@ -19,6 +20,7 @@ export const useStartMatch = () => {
       return response;
     },
     onSuccess: (_, matchId) => {
+      metrics.trackMatchLiveAction('started', matchId);
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches"] });
     },
@@ -65,6 +67,7 @@ export const usePauseMatch = () => {
       return response;
     },
     onSuccess: (_, matchId) => {
+      metrics.trackMatchLiveAction('paused', matchId);
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
     },
   });
@@ -78,6 +81,7 @@ export const useResumeMatch = () => {
       return response;
     },
     onSuccess: (_, matchId) => {
+      metrics.trackMatchLiveAction('resumed', matchId);
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
     },
   });
@@ -92,6 +96,7 @@ export const useEndMatch = () => {
       return response;
     },
     onSuccess: (_, matchId) => {
+      metrics.trackMatchLiveAction('ended', matchId);
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches"] });
     },
@@ -164,6 +169,7 @@ export const useLockResult = () => {
       return response;
     },
     onSuccess: (_, matchId) => {
+      metrics.trackMatchLiveAction('locked', matchId);
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
     },
   });

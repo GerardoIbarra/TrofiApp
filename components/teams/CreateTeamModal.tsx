@@ -4,6 +4,7 @@ import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { useTheme } from "@/context/ThemeContext";
 import { TeamSchema, teamSchema } from "@/features/teams/schemas/teamSchema";
 import api from "@/services/api";
+import { metrics } from "@/services/metrics";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { League, LeaguesResponse } from "@/features/leagues/types/league";
 import { Team } from "@/features/teams/types/team";
@@ -109,6 +110,7 @@ export function CreateTeamModal({
         Alert.alert(t('common.save'), t('teams_form.success_update'));
       } else {
         await api.post("/v1/teams/", payload);
+        metrics.trackTeamCreated(data.league);
         Alert.alert(t('common.save'), t('teams_form.success_create'));
       }
 

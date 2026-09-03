@@ -148,6 +148,9 @@ export const useConfirmAttendance = () => {
         queryClient.setQueryData(["match-attendance", context.matchId], context.previousData);
       }
     },
+    onSuccess: (_, variables) => {
+      metrics.trackAttendanceConfirmation(variables.data.status, variables.matchId);
+    },
     onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: ["match-attendance", variables.matchId] });
     },
@@ -163,6 +166,7 @@ export const useCaptainConfirmAttendance = () => {
       return response;
     },
     onSuccess: (_, variables) => {
+      metrics.trackCaptainAttendance(variables.data.roster_membership_ids?.length || 0, variables.matchId);
       queryClient.invalidateQueries({ queryKey: ["match-attendance", variables.matchId] });
     },
   });
