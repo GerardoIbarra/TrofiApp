@@ -21,6 +21,14 @@ import { useTheme } from "@/context/ThemeContext";
 
 import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
 import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
+import * as Sentry from "@sentry/react-native";
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || "https://e1a140813db3ac1cda5643b6e7d8ffae@o4512019969802240.ingest.us.sentry.io/4512019974389760",
+  debug: false,
+  tracesSampleRate: 1.0,
+  enableAutoSessionTracking: true,
+});
 
 SplashScreen.preventAutoHideAsync();
 
@@ -130,7 +138,7 @@ function InitialNavigation() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const isUpdateGateReady = useUpdateGate();
 
   if (!isUpdateGateReady) return null;
@@ -150,6 +158,8 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+export default Sentry.wrap(RootLayout);
 
 function ThemeAwareStatusBar() {
   const { isDark } = useTheme();

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AlertCircle, RefreshCw } from 'lucide-react-native';
 import * as Updates from 'expo-updates';
+import * as Sentry from '@sentry/react-native';
 
 interface Props {
   children: ReactNode;
@@ -36,8 +37,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("[Global Error]", error, errorInfo);
-    // Aquí podrías agregar Sentry más adelante:
-    // Sentry.captureException(error, { extra: errorInfo });
+    Sentry.captureException(error, { extra: errorInfo as any });
   }
 
   private handleRestart = async () => {
@@ -94,7 +94,7 @@ if (!__DEV__) {
   const defaultHandler = ErrorUtils.getGlobalHandler();
   ErrorUtils.setGlobalHandler((error, isFatal) => {
     console.error("Global JS Error:", error, isFatal);
-    // En producción, podrías forzar el reinicio o loggear a Sentry
+    Sentry.captureException(error);
     defaultHandler(error, isFatal);
   });
 }
