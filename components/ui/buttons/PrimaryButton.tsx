@@ -1,21 +1,44 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, Platform, View } from 'react-native';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  StyleProp,
+  ViewStyle,
+  Platform,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/context/ThemeContext';
 
-interface PrimaryButtonProps {
-  title: string;
-  onPress: () => void;
+export interface PrimaryButtonProps {
+  title?: string;
+  label?: string;
+  children?: React.ReactNode;
+  onPress: (e?: any) => void | Promise<any>;
   style?: StyleProp<ViewStyle>;
   fullWidth?: boolean;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
-export function PrimaryButton({ title, onPress, style, fullWidth, disabled }: PrimaryButtonProps) {
+export function PrimaryButton({
+  title,
+  label,
+  children,
+  onPress,
+  style,
+  fullWidth,
+  disabled,
+  isLoading,
+}: PrimaryButtonProps) {
   const { theme } = useTheme();
+  const textContent = title || label || (typeof children === 'string' ? children : '');
+
   const handlePress = () => {
-    if (disabled) return;
+    if (disabled || isLoading) return;
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
@@ -23,20 +46,19 @@ export function PrimaryButton({ title, onPress, style, fullWidth, disabled }: Pr
   };
 
   return (
-    <View style={[
-      styles.shadowContainer,
-      { shadowColor: theme.primary },
-      fullWidth && { width: '100%' },
-      style
-    ]}>
-      <TouchableOpacity 
-        style={[
-          styles.button, 
-          disabled && { opacity: 0.5 },
-        ]}
+    <View
+      style={[
+        styles.shadowContainer,
+        { shadowColor: theme.primary },
+        fullWidth && { width: '100%' },
+        style,
+      ]}
+    >
+      <TouchableOpacity
+        style={[styles.button, (disabled || isLoading) && { opacity: 0.6 }]}
         activeOpacity={0.8}
         onPress={handlePress}
-        disabled={disabled}
+        disabled={disabled || isLoading}
       >
         <LinearGradient
           colors={[theme.primary, theme.accent || '#00D1FF']}
@@ -44,7 +66,13 @@ export function PrimaryButton({ title, onPress, style, fullWidth, disabled }: Pr
           end={{ x: 1, y: 0 }}
           style={styles.buttonGradient}
         >
-          <Text style={styles.buttonText}>{title}</Text>
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#001A2C" />
+          ) : children && typeof children !== 'string' ? (
+            children
+          ) : (
+            <Text style={styles.buttonText}>{textContent}</Text>
+          )}
         </LinearGradient>
       </TouchableOpacity>
     </View>
