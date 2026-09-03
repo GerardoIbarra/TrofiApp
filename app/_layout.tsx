@@ -10,7 +10,7 @@ import { queryClient } from "@/services/queryClient";
 import { asyncStoragePersister } from "@/services/queryPersister";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import * as Location from "expo-location";
-import { Stack, router } from "expo-router";
+import { Stack, router, useNavigationContainerRef } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import * as Updates from "expo-updates";
 import { StatusBar } from "expo-status-bar";
@@ -23,11 +23,22 @@ import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
 import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
 import * as Sentry from "@sentry/react-native";
 
+const navigationIntegration = Sentry.reactNavigationIntegration({
+  enableTimeToInitialDisplay: true,
+});
+
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || "https://e1a140813db3ac1cda5643b6e7d8ffae@o4512019969802240.ingest.us.sentry.io/4512019974389760",
   debug: false,
+  // Enable logs to be sent to Sentry
+  enableLogs: true,
   tracesSampleRate: 1.0,
+  // profilesSampleRate is relative to tracesSampleRate (100% of transactions profiled)
+  profilesSampleRate: 1.0,
   enableAutoSessionTracking: true,
+  enableNativeFramesTracking: true,
+  integrations: [navigationIntegration],
+  tracePropagationTargets: ["localhost", /^https:\/\/api\.trofi\.club/],
 });
 
 SplashScreen.preventAutoHideAsync();
@@ -78,6 +89,13 @@ export const unstable_settings = {
 
 function InitialNavigation() {
   const { isAuthenticated, isLoading, initialize } = useAuthStore();
+  const navigationRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    if (navigationRef) {
+      navigationIntegration.registerNavigationContainer(navigationRef);
+    }
+  }, [navigationRef]);
 
   useEffect(() => {
     initialize();

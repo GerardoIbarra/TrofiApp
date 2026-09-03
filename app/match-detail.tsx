@@ -20,6 +20,7 @@ import { MatchAdminControls } from '@/components/matches/admin/MatchAdminControl
 import { AttendanceWidget } from '@/components/matches/attendance/AttendanceWidget';
 import { SponsorBanner } from '@/components/sponsors/SponsorBanner';
 import { RateRefereeModal } from '@/components/referees/RateRefereeModal';
+import { metrics } from '@/services/metrics';
 import {
   ChevronLeft, 
   Calendar, 
@@ -72,6 +73,7 @@ export default function MatchDetailScreen() {
       // 1. Cargar datos básicos del partido
       const matchData = await api.get<Match>(`/v1/matches/${id}/`);
       setMatch(matchData);
+      metrics.trackMatchView(matchData.id, matchData.status);
 
       // 2. Cargar Alineación
       try {

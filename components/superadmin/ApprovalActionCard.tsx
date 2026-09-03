@@ -17,6 +17,7 @@ import {
   useApproveTournament,
   useRejectTournament,
 } from '@/features/superadmin/services/superadminApi';
+import { metrics } from '@/services/metrics';
 
 interface ApprovalActionCardProps {
   type: 'league' | 'tournament';
@@ -59,6 +60,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
             if (isLeague) {
               approveLeagueMutation.mutate(item.id, {
                 onSuccess: () => {
+                  metrics.trackApprovalAction('league', 'approved');
                   Alert.alert('¡Aprobada!', `La liga "${item.name}" fue aprobada.`);
                   onSuccess?.();
                 },
@@ -69,6 +71,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
             } else {
               approveTournamentMutation.mutate(item.id, {
                 onSuccess: () => {
+                  metrics.trackApprovalAction('tournament', 'approved');
                   Alert.alert('¡Aprobado!', `El torneo "${item.name}" fue aprobado.`);
                   onSuccess?.();
                 },
@@ -96,6 +99,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
             if (isLeague) {
               rejectLeagueMutation.mutate(item.id, {
                 onSuccess: () => {
+                  metrics.trackApprovalAction('league', 'rejected');
                   Alert.alert('Rechazada', `La liga "${item.name}" fue rechazada.`);
                   onSuccess?.();
                 },
@@ -106,6 +110,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
             } else {
               rejectTournamentMutation.mutate(item.id, {
                 onSuccess: () => {
+                  metrics.trackApprovalAction('tournament', 'rejected');
                   Alert.alert('Rechazado', `El torneo "${item.name}" fue rechazado.`);
                   onSuccess?.();
                 },

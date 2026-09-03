@@ -1,5 +1,7 @@
 import { AuthStorage } from '@/features/auth/services/authStorage';
 import { LocationService } from './locationService';
+import { logger } from './logger';
+import { metrics } from './metrics';
 
 /**
  * Centralized API client for TrofiApp with Silent Refresh logic.
@@ -62,10 +64,20 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     });
   };
 
+  const method = rest.method || 'GET';
+  const startTime = Date.now();
+  logger.info('http', `${method} ${endpoint}`, {
+    method,
+    endpoint,
+    hasBody: Boolean(body),
+  });
+
   let response = await fetchRequest();
+  metrics.trackApiRequest(endpoint, method, Date.now() - startTime, response.status);
 
   // 2. Handle Unauthorized (401) - Silent Refresh
   if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh')) {
+    logger.warn('http', `401 Unauthorized on ${endpoint}. Triggering token refresh.`);
     if (isRefreshing) {
       // If already refreshing, wait for the new token
       return new Promise((resolve, reject) => {
@@ -115,11 +127,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    
-    if (!options.silent) {
-      console.error(`[API ERROR] ${endpoint} ${response.status}:`, errorData);
-    }
-    
+
     const errorMessage = typeof errorData === 'object' 
       ? Object.entries(errorData).map(([key, value]) => `${key}: ${value}`).join(', ')
       : errorData.message || errorData.detail;
@@ -127,6 +135,15 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     const error = new Error(errorMessage || `API Error ${response.status}`) as any;
     error.status = response.status;
     error.data = errorData;
+
+    if (!options.silent) {
+      logger.error('api', `[API ${response.status}] ${endpoint}: ${errorMessage}`, error, {
+        status: response.status,
+        endpoint,
+        errorData,
+      });
+    }
+
     throw error;
   }
 

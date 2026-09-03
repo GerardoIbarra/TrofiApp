@@ -11,6 +11,7 @@ import {
 import { X, Star } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useRateReferee } from '@/features/referees/services/refereeApi';
+import { metrics } from '@/services/metrics';
 
 interface RateRefereeModalProps {
   visible: boolean;
@@ -46,6 +47,7 @@ export const RateRefereeModal: React.FC<RateRefereeModalProps> = ({
       { stars },
       {
         onSuccess: () => {
+          metrics.trackRefereeRating(matchId, stars);
           Alert.alert(
             '¡Calificación Enviada!',
             'Tu evaluación ha sido registrada exitosamente.'

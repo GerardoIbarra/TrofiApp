@@ -6,6 +6,7 @@ import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { useTheme } from "@/context/ThemeContext";
 import { TournamentSchema, tournamentSchema } from "@/features/tournaments/schemas/tournamentSchema";
 import api from "@/services/api";
+import { metrics } from "@/services/metrics";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trophy, X, Calendar, Trash2, AlertTriangle } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
@@ -112,6 +113,7 @@ export function CreateTournamentModal({
           ...data,
           league: leagueId,
         });
+        metrics.trackTournamentCreated(data.format, data.gender);
         Alert.alert("¡Éxito!", "Torneo creado correctamente.");
       }
       onSuccess();

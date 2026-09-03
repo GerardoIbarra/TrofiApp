@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
+import { metrics } from "@/services/metrics";
 import {
   ManualMatchSchema,
   ScheduleConfigSchema,
@@ -17,6 +18,7 @@ export const useCreateMatch = () => {
       return response;
     },
     onSuccess: (_, variables) => {
+      metrics.trackMatchCreated(variables.tournament);
       queryClient.invalidateQueries({
         queryKey: ["matches", variables.tournament],
       });
@@ -66,6 +68,7 @@ export const useGenerateWeeklySchedule = () => {
       return response;
     },
     onSuccess: (_, variables) => {
+      metrics.trackScheduleGenerated('weekly', variables.tournamentId);
       queryClient.invalidateQueries({
         queryKey: ["matches", variables.tournamentId],
       });
@@ -82,6 +85,7 @@ export const useGenerateRoundRobin = () => {
       return response;
     },
     onSuccess: (_, variables) => {
+      metrics.trackScheduleGenerated('round_robin', variables.tournamentId);
       queryClient.invalidateQueries({
         queryKey: ["matches", variables.tournamentId],
       });

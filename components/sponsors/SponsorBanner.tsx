@@ -20,6 +20,7 @@ import {
   useRecordClick,
   useRecordImpression,
 } from '@/features/sponsors/services/sponsorApi';
+import { metrics } from '@/services/metrics';
 
 interface SponsorBannerProps {
   placementType: PlacementType;
@@ -63,6 +64,7 @@ export const SponsorBanner: React.FC<SponsorBannerProps> = ({
     if (activePlacement && activePlacement.id && recordedImpressionRef.current !== activePlacement.id) {
       recordedImpressionRef.current = activePlacement.id;
       recordImpressionMutation.mutate(activePlacement.id);
+      metrics.trackSponsorInteraction('impression', activePlacement.placement_type);
     }
   }, [activePlacement?.id]);
 
@@ -73,6 +75,7 @@ export const SponsorBanner: React.FC<SponsorBannerProps> = ({
   const handlePress = async () => {
     if (activePlacement.id) {
       recordClickMutation.mutate(activePlacement.id);
+      metrics.trackSponsorInteraction('click', activePlacement.placement_type);
     }
 
     const url = activePlacement.redirect_url || activePlacement.sponsor_website;

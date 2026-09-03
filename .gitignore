@@ -47,3 +47,5 @@ app-example
 #skills-lock
 .agents/
 skills-lock.json
+
+.env.local

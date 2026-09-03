@@ -12,6 +12,7 @@ import {
 import { X, DollarSign, CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useCreatePaymentRecord } from '@/features/superadmin/services/superadminApi';
+import { metrics } from '@/services/metrics';
 
 interface RecordPaymentModalProps {
   visible: boolean;
@@ -51,6 +52,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       },
       {
         onSuccess: () => {
+          metrics.trackPaymentLogged(Number(cleanAmount));
           Alert.alert(
             '¡Pago Registrado!',
             `El pago de $${cleanAmount} fue asentado correctamente. La liga ha quedado marcada como "Al día" (up_to_date).`

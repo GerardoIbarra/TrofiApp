@@ -13,6 +13,7 @@ import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient'
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
+import { metrics } from '@/services/metrics';
 import { router } from 'expo-router';
 import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -36,6 +37,7 @@ export default function RoleSelectionScreen() {
     try {
       // API call to create profile
       await api.post(selectedRole.endpoint, {});
+      metrics.trackRoleSelected(selectedRole.id);
       
       // Update me
       const meRes = await api.get<any>('/v1/me/');

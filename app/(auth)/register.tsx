@@ -33,6 +33,7 @@ import { FormInput } from '@/components/ui/forms/FormInput';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
+import { metrics } from '@/services/metrics';
 import { RegisterResponse } from '@/features/auth/types/auth';
 import { useTranslation } from 'react-i18next';
 
@@ -277,6 +278,7 @@ export default function RegisterScreen() {
   const onSubmit = async (data: RegisterSchema) => {
     try {
       await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
+      metrics.trackUserRegistered('email');
       transitionTo(2);
     } catch (err: any) {
       const { Alert } = require('react-native');

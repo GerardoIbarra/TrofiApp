@@ -9,6 +9,7 @@ import {
   leagueSchema,
 } from "@/features/leagues/schemas/leagueSchema";
 import { League } from "@/features/leagues/types/league";
+import { metrics } from "@/services/metrics";
 import api from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image } from "expo-image";
@@ -174,6 +175,7 @@ export function CreateLeagueModal({
         Alert.alert(t('common.save'), t('leagues_form.success_update'));
       } else {
         await api.post("/v1/leagues/", formData);
+        metrics.trackLeagueCreated(data.city, data.country);
         Alert.alert(t('common.save'), t('leagues_form.success_create'));
       }
 
