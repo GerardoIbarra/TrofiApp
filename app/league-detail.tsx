@@ -31,6 +31,8 @@ import {
   ShieldCheck,
   ShoppingBag,
   Zap,
+  Clock,
+  AlertTriangle,
 } from "lucide-react-native";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -157,6 +159,46 @@ export default function LeagueDetailScreen() {
             league={league}
             onEditPress={() => setIsEditModalVisible(true)}
           />
+
+          {league.approval_status === 'pending' && (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              padding: 10,
+              borderRadius: 12,
+              marginHorizontal: 20,
+              marginTop: 10,
+              borderWidth: 1,
+              borderColor: 'rgba(245, 158, 11, 0.3)'
+            }}>
+              <Clock size={16} color="#F59E0B" />
+              <Text style={{ fontSize: 12, color: '#F59E0B', fontWeight: '700', flex: 1 }}>
+                Liga Pendiente de Aprobación por Staff de Trofi
+              </Text>
+            </View>
+          )}
+
+          {league.payment_status === 'overdue' && (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: 'rgba(239, 68, 68, 0.12)',
+              padding: 10,
+              borderRadius: 12,
+              marginHorizontal: 20,
+              marginTop: 10,
+              borderWidth: 1,
+              borderColor: 'rgba(239, 68, 68, 0.3)'
+            }}>
+              <AlertTriangle size={16} color="#EF4444" />
+              <Text style={{ fontSize: 12, color: '#EF4444', fontWeight: '700', flex: 1 }}>
+                Pago Vencido: Creación de nuevos torneos y calendarios bloqueada
+              </Text>
+            </View>
+          )}
 
           {/* FEATURES CHIPS */}
           {activeFeatures.length > 0 && (

@@ -10,6 +10,8 @@ export interface User {
   spectator_profile?: any;
   referee_profile?: any;
   sponsor_profile?: any;
+  is_staff?: boolean;
+  is_superuser?: boolean;
 }
 
 export interface AuthResponse {

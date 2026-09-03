@@ -29,6 +29,9 @@ export interface Tournament {
   standings_tiebreaker?: 'goal_difference' | 'head_to_head';
   team_count?: string;
   match_count?: string;
+  approval_status?: 'pending' | 'approved' | 'rejected';
+  approved_at?: string | null;
+  approved_by_name?: string | null;
   created_at: string;
   updated_at?: string;
 }

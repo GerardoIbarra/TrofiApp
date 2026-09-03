@@ -231,6 +231,21 @@
     "certified": "Certified",
     "experience_years": "years of experience"
   },
+  "super_admin": {
+    "title": "Super Admin Trofi",
+    "summary": "Summary",
+    "approvals": "Pending Approval",
+    "payments": "Billing",
+    "active_leagues": "Active Leagues",
+    "pending_approvals": "Pending Approval",
+    "revenue_month": "Collected This Month",
+    "record_payment": "Record Payment",
+    "set_status": "Change Status",
+    "approve": "Approve",
+    "reject": "Reject",
+    "overdue": "Payment Overdue",
+    "up_to_date": "Up to Date"
+  },
   "standings": {
     "loading": "Calculating positions...",
     "empty": "The table will be automatically generated when the first results are recorded.",

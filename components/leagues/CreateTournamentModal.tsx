@@ -118,10 +118,12 @@ export function CreateTournamentModal({
       onClose();
     } catch (error: any) {
       console.error("Error saving tournament:", error);
-      Alert.alert(
-        "Error",
-        error.message || "Ocurrió un problema al guardar el torneo."
-      );
+      const detail =
+        error?.response?.data?.detail ||
+        error?.response?.data?.error ||
+        error.message ||
+        "Ocurrió un problema al guardar el torneo.";
+      Alert.alert("Error", detail);
     }
   };
 

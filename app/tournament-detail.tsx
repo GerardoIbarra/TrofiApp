@@ -15,7 +15,7 @@ import { BracketWidget } from '@/components/tournaments/BracketWidget';
 import { TournamentDisciplineWidget } from '@/components/tournaments/TournamentDisciplineWidget';
 import { CloneTournamentModal } from '@/components/leagues/CloneTournamentModal';
 import { useOpenRegistration, useCloseRegistration } from '@/features/tournaments/services/tournamentApi';
-import { Trophy, Calendar, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight } from 'lucide-react-native';
+import { Trophy, Calendar, Clock, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function TournamentDetailScreen() {
@@ -110,6 +110,25 @@ export default function TournamentDetailScreen() {
             tournament={tournament} 
             onEditPress={() => setIsEditModalVisible(true)}
           />
+
+          {tournament.approval_status === 'pending' && (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              padding: 10,
+              borderRadius: 10,
+              marginBottom: 10,
+              borderWidth: 1,
+              borderColor: 'rgba(245, 158, 11, 0.3)'
+            }}>
+              <Clock size={16} color="#F59E0B" />
+              <Text style={{ fontSize: 12, color: '#F59E0B', fontWeight: '700', flex: 1 }}>
+                Torneo Pendiente de Aprobación por Staff de Trofi
+              </Text>
+            </View>
+          )}
 
           <View style={styles.tabContainer}>
             {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'DISCIPLINE', 'INFO'].map((tab) => (

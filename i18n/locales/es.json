@@ -233,6 +233,21 @@
     "certified": "Certificado",
     "experience_years": "años de experiencia"
   },
+  "super_admin": {
+    "title": "Super Admin Trofi",
+    "summary": "Resumen",
+    "approvals": "Por Aprobar",
+    "payments": "Cobranzas",
+    "active_leagues": "Ligas Activas",
+    "pending_approvals": "Por Aprobar",
+    "revenue_month": "Cobrado este mes",
+    "record_payment": "Registrar Pago",
+    "set_status": "Cambiar Estado",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "overdue": "Pago Vencido",
+    "up_to_date": "Al día"
+  },
   "standings": {
     "loading": "Calculando posiciones...",
     "empty": "La tabla se generará automáticamente cuando se registren los primeros resultados.",

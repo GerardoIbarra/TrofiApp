@@ -22,6 +22,7 @@ import {
   Moon,
   Settings,
   Shield,
+  ShieldAlert,
   Star,
   User,
   Lock,
@@ -576,6 +577,13 @@ export default function ProfileScreen() {
                   theme={theme}
                   isDark={isDark}
                   onPress={() => router.push('/referee-marketplace' as any)}
+                />
+                <MenuItem
+                  icon={<ShieldAlert size={20} color="#EF4444" />}
+                  label="Super Admin (Trofi Staff)"
+                  theme={theme}
+                  isDark={isDark}
+                  onPress={() => router.push('/super-admin' as any)}
                 />
                 <MenuItem
                   icon={<Award size={20} color={theme.primary} />}

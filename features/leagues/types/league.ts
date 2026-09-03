@@ -31,6 +31,10 @@ export interface League {
   features?: LeagueFeatures;
   memberships?: LeagueMembership[];
   tournament_count?: string;
+  approval_status?: 'pending' | 'approved' | 'rejected';
+  approved_at?: string | null;
+  approved_by_name?: string | null;
+  payment_status?: 'up_to_date' | 'pending' | 'overdue';
   created_at: string;
   updated_at: string;
 }
