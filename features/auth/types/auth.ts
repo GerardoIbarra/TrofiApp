@@ -4,6 +4,8 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string;
+  photo?: string;
   memberships?: any[];
   player_profile_id?: string;
   player_profile?: any;

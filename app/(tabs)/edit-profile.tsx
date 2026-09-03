@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -14,6 +14,8 @@ import { ChevronLeft, Camera } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
 import { editProfileSchema, EditProfileSchema } from '@/features/auth/schemas/authSchemas';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
@@ -27,6 +29,8 @@ export default function EditProfileScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+
+  const [previewUri, setPreviewUri] = useState<string | null>(user?.photo || null);
 
   const {
     control,
@@ -49,16 +53,53 @@ export default function EditProfileScreen() {
       setValue('first_name', user.first_name || '');
       setValue('last_name', user.last_name || '');
       setValue('email', user.email || '');
-      // If phone is available in user profile
       setValue('phone', (user as any).phone || '');
+      if (user.photo) {
+        setPreviewUri(user.photo);
+      }
     }
   }, [user, setValue]);
 
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Se requiere acceso a la galería para cambiar tu foto de perfil.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        setPreviewUri(asset.uri);
+        if (asset.base64) {
+          const mimeType = asset.mimeType || 'image/jpeg';
+          const dataUrl = `data:${mimeType};base64,${asset.base64}`;
+          setValue('photo', dataUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error al seleccionar imagen:', error);
+      Alert.alert('Error', 'No se pudo abrir la galería de imágenes.');
+    }
+  };
+
   const onSubmit = async (data: EditProfileSchema) => {
     try {
-      // Clean up empty fields so we don't send them if not needed, though the API might handle it.
-      const payload = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== '' && v !== null));
-      
+      const payload: Record<string, any> = {};
+      if (data.first_name !== undefined) payload.first_name = data.first_name;
+      if (data.last_name !== undefined) payload.last_name = data.last_name;
+      if (data.email !== undefined && data.email !== '') payload.email = data.email;
+      if (data.phone !== undefined) payload.phone = data.phone;
+      if (data.photo) payload.photo = data.photo;
+
       await api.patch('/v1/me/', payload);
       
       // Update local state
@@ -91,13 +132,20 @@ export default function EditProfileScreen() {
           </View>
 
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            {/* Fake photo picker for now - wait for image picker integration */}
-            <View style={styles.photoContainer}>
+            <TouchableOpacity
+              style={styles.photoContainer}
+              activeOpacity={0.8}
+              onPress={pickImage}
+            >
               <View style={styles.photoCircle}>
-                <Camera size={32} color={theme.textSecondary} />
+                {previewUri ? (
+                  <Image source={{ uri: previewUri }} style={styles.photoImage} contentFit="cover" />
+                ) : (
+                  <Camera size={32} color={theme.textSecondary} />
+                )}
               </View>
               <Text style={{ color: theme.primary, marginTop: 8, fontWeight: '600' }}>Cambiar foto</Text>
-            </View>
+            </TouchableOpacity>
 
             <FormInput
               control={control}
@@ -178,6 +226,13 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: theme.primary,
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
   },
   buttonContainer: {
     marginTop: 24,
