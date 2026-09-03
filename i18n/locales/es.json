@@ -220,6 +220,19 @@
     "status_expired": "Vencido",
     "status_inactive": "Pausado"
   },
+  "referee_market": {
+    "title": "Mercado de Árbitros",
+    "availability": "Disponibilidad",
+    "available": "Disponible",
+    "unavailable": "No disponible",
+    "offers": "Ofertas de Partidos",
+    "offer_match": "Ofrecer Partido",
+    "accept_match": "Aceptar Partido",
+    "decline_match": "Rechazar",
+    "rate_referee": "Calificar Árbitro",
+    "certified": "Certificado",
+    "experience_years": "años de experiencia"
+  },
   "standings": {
     "loading": "Calculando posiciones...",
     "empty": "La tabla se generará automáticamente cuando se registren los primeros resultados.",

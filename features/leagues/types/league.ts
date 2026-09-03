@@ -5,6 +5,7 @@ export interface LeagueFeatures {
   qr_checkin_enabled: boolean;
   player_market_enabled: boolean;
   sponsors_enabled: boolean;
+  referee_marketplace_enabled?: boolean;
   white_label_enabled: boolean;
 }
 

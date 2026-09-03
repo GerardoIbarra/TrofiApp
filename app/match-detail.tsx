@@ -19,6 +19,7 @@ import { MatchLineupResponse, MatchHeadToHeadResponse, MatchTimelineResponse, Ma
 import { MatchAdminControls } from '@/components/matches/admin/MatchAdminControls';
 import { AttendanceWidget } from '@/components/matches/attendance/AttendanceWidget';
 import { SponsorBanner } from '@/components/sponsors/SponsorBanner';
+import { RateRefereeModal } from '@/components/referees/RateRefereeModal';
 import {
   ChevronLeft, 
   Calendar, 
@@ -30,6 +31,7 @@ import {
   Clock,
   Shield,
   User,
+  Star,
   ArrowRightLeft,
   AlertCircle,
   Video
@@ -53,6 +55,7 @@ export default function MatchDetailScreen() {
   const [h2h, setH2h] = useState<MatchHeadToHeadResponse | null>(null);
   const [timeline, setTimeline] = useState<MatchTimelineResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRateModalVisible, setIsRateModalVisible] = useState(false);
 
   // TODO: Implement proper admin check based on tournament role or match referee
   const isAdmin = true;
@@ -146,9 +149,28 @@ export default function MatchDetailScreen() {
 
           <View style={styles.detailItem}>
             <User size={20} color={theme.textSecondary} />
-            <View style={styles.detailTextContainer}>
-              <Text style={styles.detailLabel}>{t("match_detail.label_referee")}</Text>
-              <Text style={styles.detailValue}>{match?.referee_name || 'Por designar'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flex: 1 }}>
+              <View style={styles.detailTextContainer}>
+                <Text style={styles.detailLabel}>{t("match_detail.label_referee")}</Text>
+                <Text style={styles.detailValue}>{match?.referee_name || 'Por designar'}</Text>
+              </View>
+              {match?.referee && match?.status === 'played' && (
+                <TouchableOpacity
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    borderRadius: 8,
+                  }}
+                  onPress={() => setIsRateModalVisible(true)}
+                >
+                  <Star size={13} color="#F59E0B" fill="#F59E0B" />
+                  <Text style={{ fontSize: 11, fontWeight: '800', color: '#F59E0B' }}>Calificar</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
@@ -482,6 +504,15 @@ export default function MatchDetailScreen() {
         {activeTab === 'ALINEACION' && <LineupTab />}
         {activeTab === 'ESTADISTICAS' && <StatsTab />}
       </View>
+
+      {match && (
+        <RateRefereeModal
+          visible={isRateModalVisible}
+          onClose={() => setIsRateModalVisible(false)}
+          matchId={match.id}
+          refereeName={match.referee_name}
+        />
+      )}
     </View>
   );
 }

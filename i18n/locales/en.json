@@ -218,6 +218,19 @@
     "status_expired": "Expired",
     "status_inactive": "Paused"
   },
+  "referee_market": {
+    "title": "Referee Marketplace",
+    "availability": "Availability",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "offers": "Match Offers",
+    "offer_match": "Offer Match",
+    "accept_match": "Accept Match",
+    "decline_match": "Decline",
+    "rate_referee": "Rate Referee",
+    "certified": "Certified",
+    "experience_years": "years of experience"
+  },
   "standings": {
     "loading": "Calculating positions...",
     "empty": "The table will be automatically generated when the first results are recorded.",

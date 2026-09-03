@@ -571,6 +571,13 @@ export default function ProfileScreen() {
                   onPress={() => router.push('/sponsor-placements' as any)}
                 />
                 <MenuItem
+                  icon={<Award size={20} color="#10B981" />}
+                  label="Mercado de Árbitros"
+                  theme={theme}
+                  isDark={isDark}
+                  onPress={() => router.push('/referee-marketplace' as any)}
+                />
+                <MenuItem
                   icon={<Award size={20} color={theme.primary} />}
                   label={t("profile.achievements")}
                   theme={theme}
