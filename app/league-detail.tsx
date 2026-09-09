@@ -49,6 +49,8 @@ export default function LeagueDetailScreen() {
 
   const user = useAuthStore((state) => state.user);
   const isOwner = user?.id === league?.created_by;
+  const canManage = isOwner || Boolean(user?.is_staff || user?.is_superuser);
+  const [refreshTournamentsKey, setRefreshTournamentsKey] = useState(0);
 
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
@@ -130,7 +132,14 @@ export default function LeagueDetailScreen() {
       case "RANKING ELO":
         return <EloRankingWidget leagueId={league.id} />;
       case "STANDINGS":
-        return <LeagueTournamentsWidget leagueId={league.id} />;
+        return (
+          <LeagueTournamentsWidget
+            leagueId={league.id}
+            canManage={canManage}
+            onAddTournament={() => setIsTournamentModalVisible(true)}
+            refreshKey={refreshTournamentsKey}
+          />
+        );
       case "SPONSORS":
         return <LeagueSponsorsWidget leagueId={league.id} />;
       default:
@@ -232,8 +241,8 @@ export default function LeagueDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* FAB PARA NUEVO TORNEO (Solo dueño en pestaña posiciones) */}
-      {isOwner && activeTab === "POSICIONES" && (
+      {/* FAB PARA NUEVO TORNEO (Dueño o admin en pestaña de torneos) */}
+      {canManage && (activeTab === "STANDINGS" || activeTab === "POSICIONES") && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => setIsTournamentModalVisible(true)}
@@ -255,7 +264,10 @@ export default function LeagueDetailScreen() {
       <CreateTournamentModal
         visible={isTournamentModalVisible}
         onClose={() => setIsTournamentModalVisible(false)}
-        onSuccess={fetchLeagueDetails}
+        onSuccess={() => {
+          fetchLeagueDetails();
+          setRefreshTournamentsKey((prev) => prev + 1);
+        }}
         leagueId={league.id}
       />
     </View>

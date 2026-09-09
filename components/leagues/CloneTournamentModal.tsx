@@ -74,7 +74,12 @@ export function CloneTournamentModal({
           onClose();
         },
         onError: (error: any) => {
-          Alert.alert("Error", error.message || "No se pudo clonar la temporada.");
+          const detail =
+            error?.response?.data?.detail ||
+            error?.response?.data?.error ||
+            error?.message ||
+            "No se pudo clonar la temporada.";
+          Alert.alert("Error", detail);
         },
       }
     );

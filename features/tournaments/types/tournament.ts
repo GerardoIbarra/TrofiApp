@@ -26,7 +26,13 @@ export interface Tournament {
   start_date: string;
   end_date: string;
   features?: TournamentFeatures;
+  champion_determination?: 'standings' | 'playoffs';
   standings_tiebreaker?: 'goal_difference' | 'head_to_head';
+  knockout_tiebreaker?: 'penalty_shootout' | 'standings' | 'away_goals';
+  extra_time_enabled?: boolean;
+  two_legged_knockout?: boolean;
+  min_age?: number;
+  max_age?: number;
   team_count?: string;
   match_count?: string;
   approval_status?: 'pending' | 'approved' | 'rejected';

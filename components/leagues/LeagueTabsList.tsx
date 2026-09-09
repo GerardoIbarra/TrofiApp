@@ -30,7 +30,7 @@ export function LeagueTabsList({ tabs, activeTab, onTabChange }: LeagueTabsListP
               onPress={() => onTabChange(tab)}
             >
               <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                {t(`league_detail.tab_${tab.toLowerCase()}`)}
+                {t(`league_detail.tab_${tab.toLowerCase().replace(/\s+/g, '_')}`)}
               </Text>
             </TouchableOpacity>
           );

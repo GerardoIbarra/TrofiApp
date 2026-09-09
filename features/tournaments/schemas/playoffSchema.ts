@@ -14,7 +14,7 @@ export type QualifyTeamsSchema = z.infer<typeof qualifyTeamsSchema>;
 
 export const qualifyFromGroupsSchema = z.object({
   top_n_per_group: z.coerce.number().min(1).default(2),
-  group_top_n: z.record(z.coerce.number()).optional(),
+  group_top_n: z.record(z.string(), z.coerce.number()).optional(),
 });
 export type QualifyFromGroupsSchema = z.infer<typeof qualifyFromGroupsSchema>;
 

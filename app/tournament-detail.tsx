@@ -130,6 +130,51 @@ export default function TournamentDetailScreen() {
             </View>
           )}
 
+          {(tournament.status === 'completed' || (!!tournament.end_date && new Date(tournament.end_date).getTime() < Date.now())) && (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+              padding: 12,
+              borderRadius: 12,
+              marginBottom: 12,
+              borderWidth: 1,
+              borderColor: 'rgba(245, 158, 11, 0.3)',
+              gap: 10,
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+                <Clock size={18} color="#F59E0B" />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 13, color: '#F59E0B', fontWeight: '800' }}>
+                    Temporada Finalizada
+                  </Text>
+                  <Text style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>
+                    Crea la nueva temporada clonando configuraciones y equipos.
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#F59E0B',
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+                activeOpacity={0.8}
+                onPress={() => setIsCloneModalVisible(true)}
+              >
+                <Copy size={13} color="#001A2C" />
+                <Text style={{ fontSize: 11, fontWeight: '900', color: '#001A2C' }}>
+                  Nueva Temporada
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View style={styles.tabContainer}>
             {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'DISCIPLINE', 'INFO'].map((tab) => (
               <TouchableOpacity

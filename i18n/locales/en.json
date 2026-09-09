@@ -183,7 +183,13 @@
     "label_duration": "DURATION",
     "starts_in": "Starts in {{count}} days",
     "starts_today": "Starts today!",
-    "already_started": "In progress"
+    "already_started": "In progress",
+    "status_finished": "FINISHED",
+    "status_active": "ACTIVE",
+    "status_completed": "COMPLETED",
+    "status_draft": "DRAFT",
+    "season_concluded": "Season concluded",
+    "new_season_clone": "New Season"
   },
   "league_detail": {
     "stats_available_soon": "The statistics and results of {{tab}} will be available once the tournament starts.",
@@ -191,6 +197,8 @@
     "competitions": "COMPETITIONS",
     "tournaments_count": "{{count}} TOURNAMENTS",
     "no_tournaments": "No tournaments registered in this league yet.",
+    "add_tournament": "Add Tournament",
+    "create_first_tournament": "Create First Tournament",
     "feature_payments": "Payments",
     "feature_qr": "QR",
     "feature_chat": "Chat",
@@ -199,6 +207,7 @@
     "feature_sponsors": "Sponsors",
     "feature_premium": "Premium",
     "tab_standings": "STANDINGS",
+    "tab_ranking_elo": "ELO RANKING",
     "tab_matches": "MATCHES",
     "tab_news": "NEWS",
     "tab_players": "PLAYERS",
