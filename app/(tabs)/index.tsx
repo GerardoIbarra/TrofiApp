@@ -1244,7 +1244,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
     },
     emptyStateDecoration: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       overflow: "hidden",
     },
     decoCircle: {

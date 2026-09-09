@@ -824,7 +824,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       height: "100%",
     },
     heroGradient: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     heroContent: {
       position: "absolute",

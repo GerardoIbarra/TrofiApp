@@ -46,7 +46,9 @@
           "project": "react-native",
           "organization": "trofy"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
