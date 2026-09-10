@@ -8,6 +8,13 @@ import {
   ExtraTimeSchema,
 } from "../schemas/matchSchema";
 import { MatchAttendanceSummary, ConfirmAttendanceData, CaptainConfirmAttendanceData } from "../schemas/attendanceSchema";
+import { FanCheckInRequest, FanCheckInResponse } from "../types/fanCheckIn";
+import {
+  MVPVoteTallyResponse,
+  VoteMVPPayload,
+  VoteMVPResponse,
+  LockMVPVoteResponse,
+} from "../types/mvpVoting";
 
 export const useCreateMatch = () => {
   const queryClient = useQueryClient();
@@ -171,3 +178,68 @@ export const useCaptainConfirmAttendance = () => {
     },
   });
 };
+
+export const useFanCheckIn = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      matchId,
+      data,
+    }: {
+      matchId: string;
+      data: FanCheckInRequest;
+    }): Promise<FanCheckInResponse> => {
+      let body: any = {};
+      if (data.latitude !== undefined && data.latitude !== null) body.latitude = data.latitude;
+      if (data.longitude !== undefined && data.longitude !== null) body.longitude = data.longitude;
+      if (data.photo) body.photo = data.photo;
+
+      return await api.post<FanCheckInResponse>(`/v1/matches/${matchId}/fan-checkin/`, body);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["match", variables.matchId] });
+      queryClient.invalidateQueries({ queryKey: ["fan-checkin", variables.matchId] });
+      queryClient.invalidateQueries({ queryKey: ["user-achievements"] });
+    },
+  });
+};
+
+export const useGetMVPVotes = (matchId: string, enabled = true) => {
+  return useQuery({
+    queryKey: ["mvp-votes", matchId],
+    queryFn: async (): Promise<MVPVoteTallyResponse> => {
+      return await api.get<MVPVoteTallyResponse>(`/v1/matches/${matchId}/vote-mvp/`);
+    },
+    enabled: !!matchId && enabled,
+    refetchInterval: 10000, // Poll every 10s during live voting
+  });
+};
+
+export const useVoteMVP = (matchId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: VoteMVPPayload): Promise<VoteMVPResponse> => {
+      return await api.post<VoteMVPResponse>(`/v1/matches/${matchId}/vote-mvp/`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mvp-votes", matchId] });
+    },
+  });
+};
+
+export const useLockMVPVote = (matchId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (): Promise<LockMVPVoteResponse> => {
+      return await api.post<LockMVPVoteResponse>(`/v1/matches/${matchId}/lock-mvp-vote/`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mvp-votes", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["match", matchId] });
+    },
+  });
+};
+

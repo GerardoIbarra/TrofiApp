@@ -29,6 +29,7 @@ import {
   Lock,
 } from "lucide-react-native";
 import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
+import { AchievementsModal } from "@/components/achievements/AchievementsModal";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -76,6 +77,7 @@ export default function ProfileScreen() {
   const [hasError, setHasError] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
   const [showNotificationPrefsModal, setShowNotificationPrefsModal] = useState(false);
+  const [showAchievementsModal, setShowAchievementsModal] = useState(false);
 
   const currentLanguage = i18n.language;
 
@@ -607,6 +609,7 @@ export default function ProfileScreen() {
                   label={t("profile.achievements")}
                   theme={theme}
                   isDark={isDark}
+                  onPress={() => setShowAchievementsModal(true)}
                 />
                 <MenuItem
                   icon={<Shield size={20} color={theme.primary} />}
@@ -700,6 +703,13 @@ export default function ProfileScreen() {
       <NotificationPreferencesModal
         visible={showNotificationPrefsModal}
         onClose={() => setShowNotificationPrefsModal(false)}
+      />
+
+      <AchievementsModal
+        visible={showAchievementsModal}
+        onClose={() => setShowAchievementsModal(false)}
+        userId={profile?.id || user?.id}
+        userName={fullName}
       />
     </View>
   );

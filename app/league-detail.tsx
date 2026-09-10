@@ -21,6 +21,7 @@ import { LeagueSponsorsWidget } from "@/components/leagues/LeagueSponsorsWidget"
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { League } from "@/features/leagues/types/league";
+import { useGetLeagueAchievements } from "@/features/achievements/services/achievementsApi";
 import { useLocalSearchParams, router } from "expo-router";
 import {
   Award,
@@ -54,6 +55,8 @@ export default function LeagueDetailScreen() {
   );
   const canManage = isOwner || isLeagueAdmin || Boolean(user?.is_staff || user?.is_superuser);
   const [refreshTournamentsKey, setRefreshTournamentsKey] = useState(0);
+
+  const { data: leagueAchievements = [] } = useGetLeagueAchievements(id);
 
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
@@ -209,6 +212,46 @@ export default function LeagueDetailScreen() {
               <Text style={{ fontSize: 12, color: '#EF4444', fontWeight: '700', flex: 1 }}>
                 Pago Vencido: Creación de nuevos torneos y calendarios bloqueada
               </Text>
+            </View>
+          )}
+
+          {/* LEAGUE ACHIEVEMENTS / SPOTLIGHT BADGES */}
+          {leagueAchievements.length > 0 && (
+            <View style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 8,
+              marginHorizontal: 20,
+              marginTop: 10,
+            }}>
+              {leagueAchievements.map((ach) => {
+                const isSpotlight = ach.achievement_type === 'league_spotlight';
+                const isFastest = ach.achievement_type === 'fastest_growing_league';
+                const title = ach.title || (isSpotlight ? 'Liga Destacada de la Semana' : isFastest ? 'Liga de Mayor Crecimiento' : 'Insignia Oficial');
+                const badgeColor = isSpotlight ? '#F59E0B' : isFastest ? '#10B981' : '#3B82F6';
+
+                return (
+                  <View
+                    key={ach.id}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                      borderColor: badgeColor + '66',
+                      borderWidth: 1,
+                      paddingHorizontal: 10,
+                      paddingVertical: 6,
+                      borderRadius: 12,
+                    }}
+                  >
+                    <Award size={14} color={badgeColor} />
+                    <Text style={{ fontSize: 12, fontWeight: '800', color: theme.text }}>
+                      {title}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
           )}
 

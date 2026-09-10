@@ -14,6 +14,7 @@ import { TournamentTeamsWidget } from '@/components/tournaments/TournamentTeamsW
 import { BracketWidget } from '@/components/tournaments/BracketWidget';
 import { TournamentDisciplineWidget } from '@/components/tournaments/TournamentDisciplineWidget';
 import { CloneTournamentModal } from '@/components/leagues/CloneTournamentModal';
+import { TournamentAwardsModal } from '@/components/tournaments/TournamentAwardsModal';
 import { useOpenRegistration, useCloseRegistration } from '@/features/tournaments/services/tournamentApi';
 import { Trophy, Calendar, Clock, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -40,6 +41,7 @@ export default function TournamentDetailScreen() {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isCloneModalVisible, setIsCloneModalVisible] = useState(false);
+  const [isAwardsModalVisible, setIsAwardsModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('STANDINGS');
 
   const openRegistration = useOpenRegistration();
@@ -177,11 +179,11 @@ export default function TournamentDetailScreen() {
             </View>
           )}
 
-          {/* BARRA DE ACCIÓN RÁPIDA: AGREGAR O CLONAR TORNEO */}
+          {/* BARRA DE ACCIÓN RÁPIDA: AGREGAR, CLONAR O PREMIAR TORNEO */}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 10,
+            gap: 8,
             marginBottom: 10,
           }}>
             <TouchableOpacity
@@ -189,42 +191,65 @@ export default function TournamentDetailScreen() {
                 flex: 1,
                 backgroundColor: theme.primary,
                 paddingVertical: 9,
-                paddingHorizontal: 12,
+                paddingHorizontal: 8,
                 borderRadius: 10,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
+                gap: 5,
               }}
               activeOpacity={0.8}
               onPress={() => setIsCreateModalVisible(true)}
             >
               <Plus size={14} color="#001A2C" />
-              <Text style={{ fontSize: 12, fontWeight: '800', color: '#001A2C' }}>
-                Agregar Torneo
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#001A2C' }} numberOfLines={1}>
+                Agregar
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={{
-                flex: 1,
+                flex: 1.1,
                 backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
                 paddingVertical: 9,
-                paddingHorizontal: 12,
+                paddingHorizontal: 8,
                 borderRadius: 10,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 6,
+                gap: 5,
                 borderWidth: 1,
                 borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
               }}
               activeOpacity={0.8}
               onPress={() => setIsCloneModalVisible(true)}
             >
-              <Copy size={14} color={theme.text} />
-              <Text style={{ fontSize: 12, fontWeight: '700', color: theme.text }}>
-                Clonar Temporada
+              <Copy size={13} color={theme.text} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: theme.text }} numberOfLines={1}>
+                Clonar
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                flex: 1.1,
+                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                paddingVertical: 9,
+                paddingHorizontal: 8,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 5,
+                borderWidth: 1,
+                borderColor: '#F59E0B',
+              }}
+              activeOpacity={0.8}
+              onPress={() => setIsAwardsModalVisible(true)}
+            >
+              <Trophy size={13} color="#F59E0B" />
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#F59E0B' }} numberOfLines={1}>
+                Premios
               </Text>
             </TouchableOpacity>
           </View>
@@ -433,6 +458,14 @@ export default function TournamentDetailScreen() {
         tournamentId={tournament.id}
         tournamentName={tournament.name}
         leagueId={tournament.league}
+      />
+
+      <TournamentAwardsModal
+        visible={isAwardsModalVisible}
+        onClose={() => setIsAwardsModalVisible(false)}
+        tournamentId={tournament.id}
+        tournamentName={tournament.name}
+        championDetermination={tournament.champion_determination}
       />
     </View>
   );

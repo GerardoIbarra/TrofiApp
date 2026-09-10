@@ -20,9 +20,12 @@ import { MatchAdminControls } from '@/components/matches/admin/MatchAdminControl
 import { AttendanceWidget } from '@/components/matches/attendance/AttendanceWidget';
 import { SponsorBanner } from '@/components/sponsors/SponsorBanner';
 import { RateRefereeModal } from '@/components/referees/RateRefereeModal';
+import { FanCheckInModal } from '@/components/matches/FanCheckInModal';
+import { MatchMVPVoteWidget } from '@/components/matches/MatchMVPVoteWidget';
 import { metrics } from '@/services/metrics';
 import {
   ChevronLeft, 
+  ChevronRight,
   Calendar, 
   MapPin, 
   Users, 
@@ -57,6 +60,7 @@ export default function MatchDetailScreen() {
   const [timeline, setTimeline] = useState<MatchTimelineResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRateModalVisible, setIsRateModalVisible] = useState(false);
+  const [isFanCheckInVisible, setIsFanCheckInVisible] = useState(false);
 
   // TODO: Implement proper admin check based on tournament role or match referee
   const isAdmin = true;
@@ -127,6 +131,26 @@ export default function MatchDetailScreen() {
             style={{ marginBottom: 16 }}
           />
         )}
+
+        {/* Fan Check-in Button */}
+        <TouchableOpacity
+          style={styles.fanCheckInBanner}
+          activeOpacity={0.8}
+          onPress={() => setIsFanCheckInVisible(true)}
+        >
+          <View style={styles.fanCheckInLeft}>
+            <View style={styles.fanCheckInIconCircle}>
+              <MapPin size={20} color="#001A2C" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.fanCheckInTitle}>¡Estoy en la Cancha!</Text>
+              <Text style={styles.fanCheckInSub}>
+                Haz check-in con GPS y foto para sumar rachas y logros de hincha
+              </Text>
+            </View>
+          </View>
+          <ChevronRight size={18} color="#001A2C" />
+        </TouchableOpacity>
         
         <View style={styles.detailCard}>
           <View style={styles.detailItem}>
@@ -207,6 +231,17 @@ export default function MatchDetailScreen() {
             </View>
           </View>
         </View>
+      )}
+
+      {/* MVP Voting Widget for finished matches */}
+      {match && (match.status === 'played' || (match.status as any) === 'completed') && (
+        <MatchMVPVoteWidget
+          matchId={match.id}
+          isPlayed={true}
+          isAdmin={isAdmin}
+          homeTeamRoster={lineup?.home?.starting_xi || []}
+          awayTeamRoster={lineup?.away?.starting_xi || []}
+        />
       )}
     </ScrollView>
   );
@@ -515,11 +550,58 @@ export default function MatchDetailScreen() {
           refereeName={match.referee_name}
         />
       )}
+
+      {match && (
+        <FanCheckInModal
+          visible={isFanCheckInVisible}
+          onClose={() => setIsFanCheckInVisible(false)}
+          matchId={match.id}
+          matchTitle={`${match.home_team_name} vs ${match.away_team_name}`}
+          venueName={match.venue_name}
+        />
+      )}
     </View>
   );
 }
 
 const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
+  fanCheckInBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.primary,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+  },
+  fanCheckInLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    marginRight: 10,
+  },
+  fanCheckInIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0, 26, 44, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fanCheckInTitle: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: '#001A2C',
+    letterSpacing: 0.5,
+  },
+  fanCheckInSub: {
+    fontSize: 11,
+    color: '#001A2C',
+    opacity: 0.8,
+    marginTop: 2,
+    lineHeight: 15,
+  },
   centered: {
     flex: 1,
     justifyContent: 'center',
