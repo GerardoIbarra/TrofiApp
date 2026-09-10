@@ -1,13 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
 import { VenueSchema, FieldSchema } from "../schemas/venueSchema";
+import { Venue, VenuesResponse } from "../types/venue";
 
-export const useGetVenues = () => {
+export const useGetVenues = (options?: { radius?: number; skipLocation?: boolean }) => {
   return useQuery({
-    queryKey: ["venues"],
+    queryKey: ["venues", options],
     queryFn: async () => {
-      const response = await api.get<any>("/v1/venues/");
-      return response.results || response;
+      const headers: Record<string, string> = {};
+      if (options?.radius) {
+        headers["X-Radius"] = options.radius.toString();
+      }
+      const response = await api.get<VenuesResponse | Venue[]>("/v1/venues/", {
+        headers,
+        skipLocationHeaders: options?.skipLocation,
+      });
+      if (Array.isArray(response)) {
+        return response;
+      }
+      return response.results || [];
     },
   });
 };
@@ -17,11 +28,27 @@ export const useCreateVenue = () => {
 
   return useMutation({
     mutationFn: async (data: VenueSchema) => {
-      const response = await api.post("/v1/venues/", data);
+      const response = await api.post<Venue>("/v1/venues/", data);
       return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["venues"] });
+      queryClient.invalidateQueries({ queryKey: ["nearby"] });
+    },
+  });
+};
+
+export const useUpdateVenue = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<VenueSchema> }) => {
+      const response = await api.patch<Venue>(`/v1/venues/${id}/`, data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["venues"] });
+      queryClient.invalidateQueries({ queryKey: ["nearby"] });
     },
   });
 };

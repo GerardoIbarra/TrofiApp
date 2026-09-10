@@ -7,6 +7,8 @@ export const leagueSchema = z.object({
   country: z.string().min(1, 'El país es requerido'),
   logo: z.string().optional(),
   background_image: z.string().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
 });
 
 export type LeagueSchema = z.infer<typeof leagueSchema>;

@@ -19,13 +19,15 @@ import {
   Camera,
   Globe,
   Layout,
+  MapPin,
   Trash2,
   Trophy,
   X
 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { LocationService } from "@/services/locationService";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -73,6 +75,7 @@ export function CreateLeagueModal({
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { isSubmitting },
   } = useForm<LeagueSchema>({
     resolver: zodResolver(leagueSchema),
@@ -82,8 +85,29 @@ export function CreateLeagueModal({
       country: initialData?.country || "México",
       logo: initialData?.logo || "",
       background_image: initialData?.background_image || "",
+      latitude: initialData?.latitude ?? undefined,
+      longitude: initialData?.longitude ?? undefined,
     },
   });
+
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  const handleUseCurrentLocation = async () => {
+    setIsGettingLocation(true);
+    try {
+      const loc = await LocationService.fetchCurrentPosition();
+      if (loc && typeof loc.latitude === "number" && typeof loc.longitude === "number") {
+        setValue("latitude", Number(loc.latitude.toFixed(6)));
+        setValue("longitude", Number(loc.longitude.toFixed(6)));
+      } else {
+        Alert.alert("Ubicación", "No se pudo obtener la ubicación GPS.");
+      }
+    } catch {
+      Alert.alert("Error", "Error al capturar la ubicación.");
+    } finally {
+      setIsGettingLocation(false);
+    }
+  };
 
   const logo = useWatch({ control, name: "logo" });
   const backgroundImage = useWatch({ control, name: "background_image" });
@@ -120,6 +144,8 @@ export function CreateLeagueModal({
         name: initialData?.name || "",
         city: initialData?.city || "",
         country: initialData?.country || "México",
+        latitude: initialData?.latitude ?? undefined,
+        longitude: initialData?.longitude ?? undefined,
       });
     }
   }, [initialData, visible, reset]);
@@ -150,6 +176,13 @@ export function CreateLeagueModal({
       formData.append("city", data.city);
       formData.append("country", data.country);
       formData.append("created_by", user.id);
+
+      if (data.latitude != null && !isNaN(Number(data.latitude))) {
+        formData.append("latitude", Number(data.latitude).toString());
+      }
+      if (data.longitude != null && !isNaN(Number(data.longitude))) {
+        formData.append("longitude", Number(data.longitude).toString());
+      }
 
       // Handle Logo
       if (data.logo && data.logo.startsWith("file://")) {
@@ -326,6 +359,44 @@ export function CreateLeagueModal({
                 />
               </View>
 
+              {/* Coordinates Section */}
+              <View style={styles.locationSection}>
+                <View style={styles.locationHeader}>
+                  <Text style={styles.locationTitle}>COORDENADAS (MAPA)</Text>
+                  <TouchableOpacity
+                    style={styles.gpsButton}
+                    onPress={handleUseCurrentLocation}
+                    disabled={isGettingLocation}
+                    activeOpacity={0.7}
+                  >
+                    <MapPin size={13} color={theme.primary} />
+                    <Text style={styles.gpsButtonText}>
+                      {isGettingLocation ? "Detectando..." : "Detectar GPS"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.row}>
+                  <FormInput
+                    control={control}
+                    name="latitude"
+                    label="LATITUD"
+                    placeholder="19.4326"
+                    keyboardType="numeric"
+                    containerStyle={{ flex: 1 }}
+                  />
+                  <View style={{ width: 15 }} />
+                  <FormInput
+                    control={control}
+                    name="longitude"
+                    label="LONGITUD"
+                    placeholder="-99.1332"
+                    keyboardType="numeric"
+                    containerStyle={{ flex: 1 }}
+                  />
+                </View>
+              </View>
+
               <View style={styles.infoBox}>
                 <Globe size={18} color={theme.primary} />
                 <Text style={styles.infoText}>
@@ -493,6 +564,40 @@ const createStyles = (theme: any, isDark: boolean) =>
     row: {
       flexDirection: "row",
       width: "100%",
+    },
+    locationSection: {
+      marginBottom: 15,
+      padding: 14,
+      borderRadius: 12,
+      backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+    },
+    locationHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 12,
+    },
+    locationTitle: {
+      fontSize: 11,
+      fontWeight: "800",
+      color: theme.textSecondary,
+      letterSpacing: 1,
+    },
+    gpsButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.1)" : "rgba(0, 245, 255, 0.15)",
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 20,
+    },
+    gpsButtonText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: theme.primary,
     },
     infoBox: {
       flexDirection: "row",

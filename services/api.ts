@@ -12,6 +12,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: Record<string, unknown> | FormData | null;
   silent?: boolean;
+  skipLocationHeaders?: boolean;
 };
 
 let isRefreshing = false;
@@ -29,7 +30,7 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 };
 
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { body, headers, ...rest } = options;
+  const { body, headers, skipLocationHeaders, ...rest } = options;
 
   // 1. Get access token and add to headers
   const token = await AuthStorage.getAccessToken();
@@ -41,11 +42,20 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     ...(headers as Record<string, string>),
   };
 
-  // Add location headers if available
-  const location = LocationService.getLocation();
-  if (location) {
-    authHeaders['X-Latitude'] = location.latitude.toString();
-    authHeaders['X-Longitude'] = location.longitude.toString();
+  // Add location headers if available and not explicitly skipped
+  if (!skipLocationHeaders) {
+    const location = LocationService.getLocation();
+    if (location && typeof location.latitude === 'number' && typeof location.longitude === 'number') {
+      if (!authHeaders['X-Latitude']) {
+        authHeaders['X-Latitude'] = location.latitude.toString();
+      }
+      if (!authHeaders['X-Longitude']) {
+        authHeaders['X-Longitude'] = location.longitude.toString();
+      }
+      if (!authHeaders['X-Radius'] && location.radius) {
+        authHeaders['X-Radius'] = location.radius.toString();
+      }
+    }
   }
 
   if (!isFormData) {

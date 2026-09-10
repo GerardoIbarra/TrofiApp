@@ -3,6 +3,9 @@ import { z } from "zod";
 export const venueSchema = z.object({
   name: z.string().min(1, "El nombre de la sede es obligatorio"),
   city: z.string().optional(),
+  address: z.string().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
   league: z.string().uuid().optional(), // Si no tiene league, es pública
 });
 export type VenueSchema = z.infer<typeof venueSchema>;

@@ -35,6 +35,9 @@ export interface League {
   approved_at?: string | null;
   approved_by_name?: string | null;
   payment_status?: 'up_to_date' | 'pending' | 'overdue';
+  latitude?: number | null;
+  longitude?: number | null;
+  distance_km?: number | null;
   created_at: string;
   updated_at: string;
 }

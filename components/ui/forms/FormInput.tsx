@@ -57,7 +57,7 @@ export function FormInput<T extends FieldValues>({
               placeholderTextColor={isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)'}
               onBlur={onBlur}
               onChangeText={onChange}
-              value={value}
+              value={value != null ? String(value) : ''}
               secureTextEntry={isPassword && !showPassword}
               autoCapitalize="none"
               {...textInputProps}

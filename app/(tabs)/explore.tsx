@@ -5,7 +5,8 @@ import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient'
 import { LayoutHeader } from '@/components/ui/layout/LayoutHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
-import { Search as SearchIcon, SlidersHorizontal, X, Star, ChevronRight, User as UserIcon, CircleDot, Sun, Zap, Mountain } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Search as SearchIcon, SlidersHorizontal, X, Star, ChevronRight, User as UserIcon, CircleDot, Sun, Zap, Mountain, Map as MapIcon } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 
@@ -44,6 +45,14 @@ export default function ExploreScreen() {
                   style={styles.searchInput}
                 />
               </View>
+              <TouchableOpacity 
+                style={styles.mapButton}
+                onPress={() => router.push('/nearby-map')}
+                activeOpacity={0.8}
+              >
+                <MapIcon size={18} color="#000" />
+                <Text style={styles.mapButtonText}>Ver mapa</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.filterButton}>
                 <SlidersHorizontal size={20} color={theme.text} />
               </TouchableOpacity>
@@ -209,6 +218,25 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: theme.primary,
+    height: 50,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    shadowColor: theme.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  mapButtonText: {
+    color: '#000',
+    fontWeight: '800',
+    fontSize: 12,
   },
   sectionHeader: {
     flexDirection: 'row',

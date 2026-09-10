@@ -14,8 +14,10 @@ import {
   CircleDot,
   Filter,
   Layout,
+  Map as MapIcon,
   MapPin,
   Medal,
+  Navigation,
   Plus,
   Search,
   Trophy,
@@ -137,7 +139,7 @@ export default function LeaguesExplorerScreen() {
           }
         >
           <View style={styles.webContainer}>
-            {/* Search Bar */}
+            {/* Search Bar & Map Button */}
             <View style={styles.searchContainer}>
               <View style={styles.searchBar}>
                 <Search size={20} color={theme.textSecondary} />
@@ -161,10 +163,16 @@ export default function LeaguesExplorerScreen() {
                     <X size={18} color={theme.textSecondary} />
                   </TouchableOpacity>
                 ) : null}
-                <TouchableOpacity style={styles.filterBtn}>
-                  <Filter color={theme.primary} size={20} />
-                </TouchableOpacity>
               </View>
+
+              <TouchableOpacity
+                style={styles.mapButton}
+                onPress={() => router.push("/nearby-map")}
+                activeOpacity={0.8}
+              >
+                <MapIcon size={16} color="#000" />
+                <Text style={styles.mapButtonText}>Ver mapa</Text>
+              </TouchableOpacity>
             </View>
 
             {/* If searching from backend, display dedicated search results */}
@@ -242,6 +250,17 @@ export default function LeaguesExplorerScreen() {
                             <>
                               <Text style={styles.metaDivider}>•</Text>
                               <Text style={styles.nearbyMeta}>{item.country}</Text>
+                            </>
+                          )}
+                          {item.distance_km != null && (
+                            <>
+                              <Text style={styles.metaDivider}>•</Text>
+                              <View style={styles.metaItem}>
+                                <Navigation size={11} color={theme.primary} />
+                                <Text style={[styles.nearbyMeta, { color: theme.primary, fontWeight: '700' }]}>
+                                  {typeof item.distance_km === 'number' ? `${item.distance_km.toFixed(2)} km` : `${item.distance_km} km`}
+                                </Text>
+                              </View>
                             </>
                           )}
                         </View>
@@ -393,6 +412,14 @@ export default function LeaguesExplorerScreen() {
                       {t("leagues.nearby_competitions")}
                     </Text>
                   </View>
+                  <TouchableOpacity
+                    style={styles.mapLink}
+                    onPress={() => router.push("/nearby-map")}
+                    activeOpacity={0.8}
+                  >
+                    <MapIcon size={14} color={theme.primary} />
+                    <Text style={styles.mapLinkText}>Ver mapa</Text>
+                  </TouchableOpacity>
                 </View>
 
                 {leagues.length > 0
@@ -419,7 +446,7 @@ export default function LeaguesExplorerScreen() {
                               <Trophy
                                 size={20}
                                 color={
-                                  isDark
+                                 isDark
                                     ? "rgba(255,255,255,0.6)"
                                     : "rgba(0,0,0,0.4)"
                                 }
@@ -449,6 +476,17 @@ export default function LeaguesExplorerScreen() {
                                 {new Date(item.created_at).toLocaleDateString()}
                               </Text>
                             </View>
+                            {item.distance_km != null && (
+                              <>
+                                <Text style={styles.metaDivider}>•</Text>
+                                <View style={styles.metaItem}>
+                                  <Navigation size={11} color={theme.primary} />
+                                  <Text style={[styles.nearbyMeta, { color: theme.primary, fontWeight: '700' }]}>
+                                    {typeof item.distance_km === 'number' ? `${item.distance_km.toFixed(2)} km` : `${item.distance_km} km`}
+                                  </Text>
+                                </View>
+                              </>
+                            )}
                           </View>
                         </View>
                         <View style={styles.nearbyStatusColumn}>
@@ -514,8 +552,12 @@ const createStyles = (theme: any, isDark: boolean) =>
       paddingHorizontal: 20,
       marginTop: 10,
       marginBottom: 20,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
     },
     searchBar: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: theme.surface,
@@ -529,6 +571,39 @@ const createStyles = (theme: any, isDark: boolean) =>
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: isDark ? 0 : 0.05,
       shadowRadius: 5,
+    },
+    mapButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: theme.primary,
+      height: 50,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    mapButtonText: {
+      color: "#000",
+      fontWeight: "800",
+      fontSize: 12,
+    },
+    mapLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.08)" : "rgba(0, 245, 255, 0.12)",
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    mapLinkText: {
+      fontSize: 11,
+      fontWeight: "800",
+      color: theme.primary,
     },
     searchInput: {
       flex: 1,

@@ -64,7 +64,8 @@
     "view_all": "VER TODO",
     "game_formats": "FORMATOS DE JUEGO",
     "nearby_competitions": "COMPETICIONES CERCANAS",
-    "all_distances": "Todas las distancias"
+    "all_distances": "Todas las distancias",
+    "view_map": "Ver mapa"
   },
   "teams": {
     "location": "UBICACIÓN",
