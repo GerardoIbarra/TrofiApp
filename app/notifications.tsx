@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   View,
@@ -17,8 +17,10 @@ import {
   Zap, 
   ChevronRight, 
   Circle,
-  Activity
+  Activity,
+  Sliders
 } from "lucide-react-native";
+import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
 
 // Mock data for notifications
 const MOCK_NOTIFICATIONS = [
@@ -68,6 +70,7 @@ export default function NotificationsScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
+  const [showPreferences, setShowPreferences] = useState(false);
 
   const renderItem = ({ item }: { item: typeof MOCK_NOTIFICATIONS[0] }) => {
     const Icon = item.icon;
@@ -99,7 +102,19 @@ export default function NotificationsScreen() {
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-      <LayoutHeader title={t('common.notifications')} showBackButton={true} />
+      <LayoutHeader 
+        title={t('common.notifications')} 
+        showBackButton={true} 
+        rightElement={
+          <TouchableOpacity
+            style={styles.headerSettingsBtn}
+            onPress={() => setShowPreferences(true)}
+            activeOpacity={0.7}
+          >
+            <Sliders size={20} color={theme.primary} />
+          </TouchableOpacity>
+        }
+      />
 
       <FlatList
         data={MOCK_NOTIFICATIONS}
@@ -113,12 +128,27 @@ export default function NotificationsScreen() {
           </View>
         }
       />
+
+      <NotificationPreferencesModal
+        visible={showPreferences}
+        onClose={() => setShowPreferences(false)}
+      />
     </View>
   );
 }
 
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
+    headerSettingsBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+    },
     listContent: {
       paddingHorizontal: 20,
       paddingTop: 10,

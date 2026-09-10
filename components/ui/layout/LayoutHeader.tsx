@@ -8,11 +8,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface LayoutHeaderProps {
   title?: string;
   showBackButton?: boolean;
+  rightElement?: React.ReactNode;
 }
 
 export function LayoutHeader({
   title = "TROFI",
   showBackButton = false,
+  rightElement,
 }: LayoutHeaderProps) {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
@@ -43,7 +45,8 @@ export function LayoutHeader({
       </View>
 
       <View style={styles.rightContainer}>
-        {!isNotificationsScreen && (
+        {rightElement}
+        {!isNotificationsScreen && !rightElement && (
           <TouchableOpacity
             style={styles.bellButton}
             onPress={() => router.push("/notifications" as any)}

@@ -16,6 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, router } from "expo-router";
 import {
   Award,
+  Bell,
   ChevronRight,
   Globe,
   LogOut,
@@ -27,6 +28,7 @@ import {
   User,
   Lock,
 } from "lucide-react-native";
+import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -73,6 +75,7 @@ export default function ProfileScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
+  const [showNotificationPrefsModal, setShowNotificationPrefsModal] = useState(false);
 
   const currentLanguage = i18n.language;
 
@@ -605,6 +608,13 @@ export default function ProfileScreen() {
                   onPress={() => router.push('/(tabs)/change-password' as any)}
                 />
                 <MenuItem
+                  icon={<Bell size={20} color={theme.primary} />}
+                  label="Preferencias de Notificaciones"
+                  theme={theme}
+                  isDark={isDark}
+                  onPress={() => setShowNotificationPrefsModal(true)}
+                />
+                <MenuItem
                   icon={<Settings size={20} color={theme.primary} />}
                   label={t("profile.app_settings")}
                   theme={theme}
@@ -672,6 +682,11 @@ export default function ProfileScreen() {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <NotificationPreferencesModal
+        visible={showNotificationPrefsModal}
+        onClose={() => setShowNotificationPrefsModal(false)}
+      />
     </View>
   );
 }
