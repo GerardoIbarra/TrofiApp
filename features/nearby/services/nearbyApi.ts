@@ -6,6 +6,7 @@ import { Venue } from '@/features/venues/types/venue';
 export interface NearbyResponse {
   leagues: League[];
   venues: Venue[];
+  pickup_spots?: any[];
 }
 
 interface UseGetNearbyOptions {
@@ -47,6 +48,7 @@ export const useGetNearby = ({
       return {
         leagues: response?.leagues || [],
         venues: response?.venues || [],
+        pickup_spots: response?.pickup_spots || [],
       };
     },
     enabled: enabled && hasCoordinates,

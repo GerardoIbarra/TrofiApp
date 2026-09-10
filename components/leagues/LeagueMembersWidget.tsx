@@ -58,10 +58,11 @@ export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
   const RenderMemberItem = ({ member }: { member: LeagueMembership }) => (
     <TouchableOpacity style={styles.memberCard} activeOpacity={0.7}>
       <View style={styles.avatarContainer}>
-        <Image
-          source={`https://i.pravatar.cc/150?u=${member.user}`}
-          style={styles.avatar}
-        />
+        <View style={[styles.avatar, styles.avatarPlaceholder]}>
+          <Text style={[styles.initialsText, { color: theme.primary }]}>
+            {(member.user_name || "U").substring(0, 2).toUpperCase()}
+          </Text>
+        </View>
         {member.role === "admin" && (
           <View style={styles.adminBadge}>
             <Shield size={10} color="#000" />
@@ -164,6 +165,16 @@ const createStyles = (theme: any, isDark: boolean) =>
       height: 48,
       borderRadius: 24,
       backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+    },
+    avatarPlaceholder: {
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.primary + "30",
+    },
+    initialsText: {
+      fontSize: 14,
+      fontWeight: "800",
     },
     adminBadge: {
       position: "absolute",

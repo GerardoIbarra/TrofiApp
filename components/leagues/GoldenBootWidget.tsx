@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Award } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 
 export function GoldenBootWidget() {
@@ -12,10 +13,9 @@ export function GoldenBootWidget() {
       
       <View style={styles.content}>
         <View style={styles.playerInfo}>
-          <Image 
-            source={{ uri: 'https://i.pravatar.cc/150?img=11' }} 
-            style={styles.avatar}
-          />
+          <View style={[styles.avatar, styles.avatarPlaceholder]}>
+            <Award size={20} color={theme.primary} />
+          </View>
           <View>
             <Text style={styles.playerName}>M. CARRILLO</Text>
             <Text style={styles.teamName}>TROFI LEGENDS</Text>
@@ -78,6 +78,12 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     height: 50,
     borderRadius: 12,
     backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+  },
+  avatarPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.primary + '30',
   },
   playerName: {
     fontSize: 18,

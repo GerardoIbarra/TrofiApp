@@ -1,6 +1,7 @@
 import { useTheme } from "@/context/ThemeContext";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import { router, usePathname } from "expo-router";
-import { Bell, ChevronLeft } from "lucide-react-native";
+import { Bell, ChevronLeft, User } from "lucide-react-native";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +20,7 @@ export function LayoutHeader({
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const user = useAuthStore((state) => state.user);
 
   const isNotificationsScreen = pathname === "/notifications";
 
@@ -62,13 +64,20 @@ export function LayoutHeader({
             styles.profileButton,
             {
               borderColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
+              backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+              justifyContent: "center",
+              alignItems: "center",
             },
           ]}
         >
-          <Image
-            source={{ uri: "https://i.pravatar.cc/150?u=avatar2" }}
-            style={styles.profileImage}
-          />
+          {user?.photo ? (
+            <Image
+              source={{ uri: user.photo }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <User size={18} color={theme.primary} />
+          )}
         </TouchableOpacity>
       </View>
     </View>

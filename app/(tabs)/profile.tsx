@@ -13,7 +13,7 @@ import { LANGUAGE_KEY } from "@/i18n";
 import api from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
 import {
   Award,
   Bell,
@@ -85,9 +85,14 @@ export default function ProfileScreen() {
     setShowLangModal(false);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [id]);
+  const user = useAuthStore((state) => state.user);
+  const activePhoto = profile?.photo || user?.photo;
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [id])
+  );
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -256,9 +261,17 @@ export default function ProfileScreen() {
                 </View>
               ) : (
                 <>
-                  <View style={[styles.heroImage, styles.initialsContainer]}>
-                    <Text style={styles.initialsText}>{initials}</Text>
-                  </View>
+                  {activePhoto ? (
+                    <Image
+                      source={{ uri: activePhoto }}
+                      style={[styles.heroImage, { opacity: 0.3 }]}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={[styles.heroImage, styles.initialsContainer]}>
+                      <Text style={styles.initialsText}>{initials}</Text>
+                    </View>
+                  )}
                   <LinearGradient
                     colors={[
                       "transparent",
@@ -274,6 +287,7 @@ export default function ProfileScreen() {
                       isDark={isDark}
                       name={fullName}
                       card={card}
+                      photoUrl={activePhoto}
                     />
 
                     <View style={styles.infoRow}>
@@ -716,13 +730,16 @@ function UltimateCard({
   isDark,
   name,
   card,
+  photoUrl,
 }: {
   theme: any;
   isDark: boolean;
   name: string;
   card: PlayerCard | null;
+  photoUrl?: string | null;
 }) {
   const styles = createStyles(theme, isDark);
+  const avatarUri = photoUrl || card?.generated_image;
   return (
     <View style={styles.cardShield}>
       <LinearGradient
@@ -741,13 +758,19 @@ function UltimateCard({
       <View style={styles.cardHeader}>
         <View style={styles.ratingInfo}>
           <Text style={styles.ratingNumber}>{card?.overall || "--"}</Text>
-          <Text style={styles.posLabel}>ST</Text>
+          <Text style={styles.posLabel}>{card?.position || "ST"}</Text>
           <View style={styles.flagPlaceholder} />
         </View>
-        <Image
-          source={{ uri: "https://i.pravatar.cc/150?u=avatar2" }}
-          style={styles.cardPlayerImage}
-        />
+        {avatarUri ? (
+          <Image
+            source={{ uri: avatarUri }}
+            style={styles.cardPlayerImage}
+          />
+        ) : (
+          <View style={[styles.cardPlayerImage, styles.cardPlaceholderImage]}>
+            <User size={64} color={theme.primary} opacity={0.6} />
+          </View>
+        )}
       </View>
 
       <View style={styles.cardNameSection}>
@@ -909,6 +932,13 @@ const createStyles = (theme: any, isDark: boolean) =>
       width: "100%",
       resizeMode: "contain",
       marginTop: -10,
+    },
+    cardPlaceholderImage: {
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
+      borderRadius: 16,
+      marginRight: 10,
     },
     cardNameSection: {
       alignItems: "center",

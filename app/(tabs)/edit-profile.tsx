@@ -24,6 +24,7 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { AuthStorage } from '@/features/auth/services/authStorage';
 
 export default function EditProfileScreen() {
   const { theme, isDark } = useTheme();
@@ -39,12 +40,12 @@ export default function EditProfileScreen() {
     formState: { isSubmitting },
   } = useForm<EditProfileSchema>({
     resolver: zodResolver(editProfileSchema),
-    defaultValues: { 
-      first_name: '', 
-      last_name: '', 
-      email: '',
-      phone: '',
-      photo: ''
+    defaultValues: {
+      first_name: user?.first_name || '',
+      last_name: user?.last_name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      photo: user?.photo || '',
     },
   });
 
@@ -53,8 +54,9 @@ export default function EditProfileScreen() {
       setValue('first_name', user.first_name || '');
       setValue('last_name', user.last_name || '');
       setValue('email', user.email || '');
-      setValue('phone', (user as any).phone || '');
+      setValue('phone', user.phone || '');
       if (user.photo) {
+        setValue('photo', user.photo);
         setPreviewUri(user.photo);
       }
     }
@@ -72,18 +74,14 @@ export default function EditProfileScreen() {
         mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.7,
+        quality: 0.8,
         base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
         const asset = result.assets[0];
         setPreviewUri(asset.uri);
-        if (asset.base64) {
-          const mimeType = asset.mimeType || 'image/jpeg';
-          const dataUrl = `data:${mimeType};base64,${asset.base64}`;
-          setValue('photo', dataUrl);
-        }
+        setValue('photo', asset.uri);
       }
     } catch (error) {
       console.error('Error al seleccionar imagen:', error);
@@ -93,19 +91,66 @@ export default function EditProfileScreen() {
 
   const onSubmit = async (data: EditProfileSchema) => {
     try {
-      const payload: Record<string, any> = {};
-      if (data.first_name !== undefined) payload.first_name = data.first_name;
-      if (data.last_name !== undefined) payload.last_name = data.last_name;
-      if (data.email !== undefined && data.email !== '') payload.email = data.email;
-      if (data.phone !== undefined) payload.phone = data.phone;
-      if (data.photo) payload.photo = data.photo;
+      const isNewPhoto = previewUri && (previewUri.startsWith('file:') || previewUri.startsWith('content:'));
+      let updatedUser: any;
 
-      await api.patch('/v1/me/', payload);
-      
-      // Update local state
-      const updatedUser = await api.get<any>('/v1/me/', { silent: true });
-      useAuthStore.setState({ user: updatedUser });
-      
+      if (isNewPhoto) {
+        const formData = new FormData();
+        if (data.first_name !== undefined) formData.append('first_name', data.first_name);
+        if (data.last_name !== undefined) formData.append('last_name', data.last_name);
+        if (data.email) formData.append('email', data.email);
+        if (data.phone) formData.append('phone', data.phone);
+
+        const uri = previewUri;
+        const name = uri.split('/').pop() || 'photo.jpg';
+        const match = /\.(\w+)$/.exec(name);
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+        formData.append('photo', {
+          uri,
+          name,
+          type,
+        } as any);
+
+        updatedUser = await api.patch('/v1/me/', formData);
+      } else {
+        const payload: Record<string, any> = {};
+        if (data.first_name !== undefined) payload.first_name = data.first_name;
+        if (data.last_name !== undefined) payload.last_name = data.last_name;
+        if (data.email !== undefined && data.email !== '') payload.email = data.email;
+        if (data.phone !== undefined) payload.phone = data.phone;
+        updatedUser = await api.patch('/v1/me/', payload);
+      }
+
+      // Re-fetch user from backend to get saved URL
+      let freshUser = await api.get<any>('/v1/me/', { silent: true });
+      if (!freshUser) {
+        freshUser = { ...user, ...updatedUser };
+      }
+      if (previewUri && !freshUser.photo) {
+        freshUser.photo = previewUri;
+      }
+
+      // If user has a linked player profile, also update player's photo
+      const playerId = freshUser?.player_profile_id || user?.player_profile_id;
+      if (playerId && isNewPhoto) {
+        try {
+          const playerFormData = new FormData();
+          const uri = previewUri;
+          const name = uri.split('/').pop() || 'photo.jpg';
+          const match = /\.(\w+)$/.exec(name);
+          const type = match ? `image/${match[1]}` : `image/jpeg`;
+          playerFormData.append('photo', { uri, name, type } as any);
+          await api.patch(`/v1/players/${playerId}/`, playerFormData, { silent: true });
+        } catch (playerErr) {
+          console.warn('Could not sync photo to player profile:', playerErr);
+        }
+      }
+
+      // Update local state and persistent storage
+      useAuthStore.setState({ user: freshUser });
+      await AuthStorage.saveUser(freshUser);
+
       Alert.alert('Éxito', 'Tu perfil ha sido actualizado.', [
         { text: 'OK', onPress: () => router.back() }
       ]);
