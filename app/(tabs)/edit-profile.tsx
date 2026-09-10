@@ -120,7 +120,7 @@ export default function EditProfileScreen() {
 
       <SafeAreaView style={GlobalStyles.safeArea}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardView}
         >
           <View style={styles.header}>
@@ -131,7 +131,11 @@ export default function EditProfileScreen() {
             <View style={{ width: 28 }} />
           </View>
 
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView 
+            contentContainerStyle={styles.content} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <TouchableOpacity
               style={styles.photoContainer}
               activeOpacity={0.8}
@@ -213,7 +217,7 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   content: {
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 40,
+    paddingBottom: 48,
   },
   photoContainer: {
     alignItems: 'center',
@@ -236,5 +240,6 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 24,
+    marginBottom: 24,
   },
 });

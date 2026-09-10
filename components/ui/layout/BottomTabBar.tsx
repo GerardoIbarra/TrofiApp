@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
-export function BottomTabBar({ state, navigation }: any) {
+export function BottomTabBar({ state, navigation, descriptors }: any) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
@@ -25,6 +25,19 @@ export function BottomTabBar({ state, navigation }: any) {
   };
 
   const currentRouteName = state?.routes[state?.index]?.name || 'index';
+  const focusedRoute = state?.routes[state?.index];
+  const focusedDescriptor = descriptors?.[focusedRoute?.key];
+  const tabBarStyle = focusedDescriptor?.options?.tabBarStyle;
+
+  // Do not render tab bar on secondary/modal screens
+  if (
+    tabBarStyle?.display === 'none' ||
+    currentRouteName === 'edit-profile' ||
+    currentRouteName === 'change-password'
+  ) {
+    return null;
+  }
+
   const isLeaguesActive = currentRouteName === 'leagues' || currentRouteName === 'league-detail';
 
   return (

@@ -11,9 +11,20 @@ export default function TabsLayout() {
       <Tabs.Screen name="leagues" />
       <Tabs.Screen name="market" />
       <Tabs.Screen name="teams" />
-      <Tabs.Screen name="profile" />
-      <Tabs.Screen name="change-password" options={{ href: null }} />
-      <Tabs.Screen name="edit-profile" options={{ href: null }} />
+      <Tabs.Screen 
+        name="change-password" 
+        options={{ 
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }} 
+      />
+      <Tabs.Screen 
+        name="edit-profile" 
+        options={{ 
+          href: null,
+          tabBarStyle: { display: 'none' },
+        }} 
+      />
     </Tabs>
   );
 }
