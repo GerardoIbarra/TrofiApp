@@ -54,10 +54,10 @@ export const useGetBracket = (tournamentId: string) => {
     queryKey: ["bracket", tournamentId],
     queryFn: async () => {
       try {
-        const response = await api.get<any>(`/v1/tournaments/${tournamentId}/bracket/`);
+        const response = await api.get<any>(`/v1/tournaments/${tournamentId}/bracket/`, { silent: true });
         return response;
       } catch (error: any) {
-        if (error?.response?.status === 404 || String(error).includes("404")) {
+        if (error?.status === 404 || error?.response?.status === 404 || String(error).includes("404")) {
           return null; // Bracket not created yet
         }
         throw error;

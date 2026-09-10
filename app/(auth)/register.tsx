@@ -35,6 +35,9 @@ import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
 import { metrics } from '@/services/metrics';
 import { RegisterResponse } from '@/features/auth/types/auth';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { AuthStorage } from '@/features/auth/services/authStorage';
+import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 const { width } = Layout.window;
@@ -246,9 +249,11 @@ export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, isDark, insets);
 
+  const signIn = useAuthStore((state) => state.signIn);
   const [step, setStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState<UserRole>(null);
   const [selectedPosition, setSelectedPosition] = useState<PlayerPosition>(null);
+  const [registeredAuth, setRegisteredAuth] = useState<RegisterResponse | null>(null);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -277,17 +282,56 @@ export default function RegisterScreen() {
 
   const onSubmit = async (data: RegisterSchema) => {
     try {
-      await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
+      const res = await api.post<RegisterResponse>('/v1/auth/register/', data as unknown as Record<string, unknown>);
       metrics.trackUserRegistered('email');
+      setRegisteredAuth(res);
+
+      // Si el backend devuelve access y refresh (HTTP 201), pre-guardamos la sesión
+      if (res?.access && res?.refresh) {
+        await AuthStorage.saveTokens(res.access, res.refresh);
+        if (res.user) {
+          await AuthStorage.saveUser(res.user);
+        }
+      }
+
       transitionTo(2);
     } catch (err: any) {
-      const { Alert } = require('react-native');
-      Alert.alert(t('auth.register_error_title'), err.message ?? t('auth.register_error_msg'));
+      const detail =
+        err?.data?.detail ||
+        err?.data?.error ||
+        (typeof err?.data === 'object' && err?.data !== null
+          ? Object.entries(err.data).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('\n')
+          : null) ||
+        err?.message ||
+        t('auth.register_error_msg');
+      Alert.alert(t('auth.register_error_title'), detail);
     }
   };
 
-  const handleFinish = () => {
-    router.replace('/(auth)/auth-login' as any);
+  const handleFinish = async () => {
+    if (registeredAuth && registeredAuth.access) {
+      // Si seleccionó rol en el flujo opcional de onboarding, crear el perfil respectivo
+      if (selectedRole === 'player') {
+        try {
+          await api.post('/v1/players/', {
+            primary_position: selectedPosition || undefined,
+          }, { silent: true });
+        } catch (e) {
+          console.warn('Failed to create player profile on registration:', e);
+        }
+      } else if (selectedRole === 'spectator') {
+        try {
+          await api.post('/v1/spectator-profiles/', {}, { silent: true });
+        } catch (e) {
+          console.warn('Failed to create spectator profile on registration:', e);
+        }
+      }
+
+      // Iniciar sesión automáticamente (guarda tokens, usuario y navega a la app)
+      await signIn(registeredAuth);
+    } else {
+      router.replace('/(auth)/auth-login' as any);
+    }
   };
 
   const getBackAction = () => {

@@ -22,10 +22,10 @@ export interface AuthResponse {
   user: User;
 }
 
-export interface RegisterResponse {
-  id: string;
-  username: string;
-  email: string;
-  first_name: string;
-  last_name: string;
+export interface RegisterResponse extends AuthResponse {
+  id?: string;
+  username?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
 }

@@ -7,14 +7,15 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Settings, Calendar, Trophy } from "lucide-react-native";
+import { Settings, Calendar, Trophy, Plus } from "lucide-react-native";
 
 interface TournamentHeaderProps {
   tournament: Tournament;
   onEditPress?: () => void;
+  onAddPress?: () => void;
 }
 
-export function TournamentHeader({ tournament, onEditPress }: TournamentHeaderProps) {
+export function TournamentHeader({ tournament, onEditPress, onAddPress }: TournamentHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
@@ -90,13 +91,27 @@ export function TournamentHeader({ tournament, onEditPress }: TournamentHeaderPr
             </View>
           )}
 
-          <TouchableOpacity 
-            style={styles.editButton} 
-            onPress={onEditPress}
-            activeOpacity={0.7}
-          >
-            <Settings size={16} color={theme.primary} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {onAddPress && (
+              <TouchableOpacity 
+                style={styles.editButton} 
+                onPress={onAddPress}
+                activeOpacity={0.7}
+              >
+                <Plus size={16} color={theme.primary} />
+              </TouchableOpacity>
+            )}
+
+            {onEditPress && (
+              <TouchableOpacity 
+                style={styles.editButton} 
+                onPress={onEditPress}
+                activeOpacity={0.7}
+              >
+                <Settings size={16} color={theme.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Monumental Title */}

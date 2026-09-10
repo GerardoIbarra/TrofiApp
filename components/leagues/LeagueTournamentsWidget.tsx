@@ -223,11 +223,18 @@ export function LeagueTournamentsWidget({
         <CloneTournamentModal
           visible={!!tournamentToClone}
           tournamentId={tournamentToClone.id}
+          tournamentName={tournamentToClone.name}
           leagueId={leagueId}
           onClose={() => setTournamentToClone(null)}
-          onSuccess={() => {
+          onSuccess={(newTournament) => {
             fetchTournaments();
             setTournamentToClone(null);
+            if (newTournament?.id) {
+              router.push({
+                pathname: '/tournament-detail',
+                params: { id: newTournament.id },
+              });
+            }
           }}
         />
       )}

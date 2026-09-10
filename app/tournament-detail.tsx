@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
@@ -15,7 +15,7 @@ import { BracketWidget } from '@/components/tournaments/BracketWidget';
 import { TournamentDisciplineWidget } from '@/components/tournaments/TournamentDisciplineWidget';
 import { CloneTournamentModal } from '@/components/leagues/CloneTournamentModal';
 import { useOpenRegistration, useCloseRegistration } from '@/features/tournaments/services/tournamentApi';
-import { Trophy, Calendar, Clock, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight } from 'lucide-react-native';
+import { Trophy, Calendar, Clock, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function TournamentDetailScreen() {
@@ -38,6 +38,7 @@ export default function TournamentDetailScreen() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isCloneModalVisible, setIsCloneModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('STANDINGS');
 
@@ -109,6 +110,7 @@ export default function TournamentDetailScreen() {
           <TournamentHeader 
             tournament={tournament} 
             onEditPress={() => setIsEditModalVisible(true)}
+            onAddPress={() => setIsCreateModalVisible(true)}
           />
 
           {tournament.approval_status === 'pending' && (
@@ -174,6 +176,58 @@ export default function TournamentDetailScreen() {
               </TouchableOpacity>
             </View>
           )}
+
+          {/* BARRA DE ACCIÓN RÁPIDA: AGREGAR O CLONAR TORNEO */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            marginBottom: 10,
+          }}>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: theme.primary,
+                paddingVertical: 9,
+                paddingHorizontal: 12,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+              activeOpacity={0.8}
+              onPress={() => setIsCreateModalVisible(true)}
+            >
+              <Plus size={14} color="#001A2C" />
+              <Text style={{ fontSize: 12, fontWeight: '800', color: '#001A2C' }}>
+                Agregar Torneo
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                paddingVertical: 9,
+                paddingHorizontal: 12,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+              }}
+              activeOpacity={0.8}
+              onPress={() => setIsCloneModalVisible(true)}
+            >
+              <Copy size={14} color={theme.text} />
+              <Text style={{ fontSize: 12, fontWeight: '700', color: theme.text }}>
+                Clonar Temporada
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.tabContainer}>
             {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'DISCIPLINE', 'INFO'].map((tab) => (
@@ -296,6 +350,17 @@ export default function TournamentDetailScreen() {
                 </View>
 
                 <TouchableOpacity 
+                  style={[styles.rulesButton, { borderColor: theme.primary + '40', borderWidth: 1 }]} 
+                  activeOpacity={0.7}
+                  onPress={() => setIsCreateModalVisible(true)}
+                >
+                  <Plus size={18} color={theme.primary} />
+                  <Text style={[styles.rulesText, { color: theme.primary, fontWeight: '800' }]}>
+                    Crear Nuevo Torneo en esta Liga
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
                   style={styles.rulesButton} 
                   activeOpacity={0.7}
                   onPress={() => setIsCloneModalVisible(true)}
@@ -337,14 +402,36 @@ export default function TournamentDetailScreen() {
         initialData={tournament}
       />
 
+      <CreateTournamentModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onSuccess={(newTournament?: any) => {
+          fetchTournamentDetails();
+          if (newTournament?.id) {
+            router.push({
+              pathname: '/tournament-detail',
+              params: { id: newTournament.id },
+            });
+          }
+        }}
+        leagueId={tournament.league}
+        initialData={null}
+      />
+
       <CloneTournamentModal
         visible={isCloneModalVisible}
         onClose={() => setIsCloneModalVisible(false)}
-        onSuccess={() => {
+        onSuccess={(newTournament) => {
           fetchTournamentDetails();
-          // Ideally navigate to the new tournament, but staying here is ok for now.
+          if (newTournament?.id) {
+            router.push({
+              pathname: '/tournament-detail',
+              params: { id: newTournament.id },
+            });
+          }
         }}
         tournamentId={tournament.id}
+        tournamentName={tournament.name}
         leagueId={tournament.league}
       />
     </View>

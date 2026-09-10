@@ -44,7 +44,7 @@ import { router } from "expo-router";
 interface CreateTournamentModalProps {
   visible: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (newTournament?: any) => void;
   leagueId: string;
   initialData?: Tournament | null;
 }
@@ -173,18 +173,24 @@ export function CreateTournamentModal({
       if (isEditing && initialData) {
         await api.patch(`/v1/tournaments/${initialData.id}/`, payload);
         Alert.alert("¡Actualizado!", "Torneo actualizado correctamente.");
+        onSuccess(initialData);
       } else {
-        await api.post("/v1/tournaments/", payload);
+        const res = await api.post<any>("/v1/tournaments/", payload);
         metrics.trackTournamentCreated(data.format || "11v11", data.gender || "mens");
         Alert.alert("¡Éxito!", "Torneo creado correctamente.");
+        onSuccess(res);
       }
-      onSuccess();
       onClose();
     } catch (error: any) {
       console.error("Error saving tournament:", error);
       const detail =
-        error?.response?.data?.detail ||
-        error?.response?.data?.error ||
+        error?.data?.detail ||
+        error?.data?.error ||
+        (typeof error?.data === "object" && error?.data !== null
+          ? Object.entries(error.data)
+              .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+              .join("\n")
+          : null) ||
         error?.message ||
         "Ocurrió un problema al guardar el torneo.";
       Alert.alert("Error", detail);

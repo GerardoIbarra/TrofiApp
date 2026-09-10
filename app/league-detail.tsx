@@ -21,7 +21,7 @@ import { LeagueSponsorsWidget } from "@/components/leagues/LeagueSponsorsWidget"
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { League } from "@/features/leagues/types/league";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import {
   Award,
   CreditCard,
@@ -49,7 +49,10 @@ export default function LeagueDetailScreen() {
 
   const user = useAuthStore((state) => state.user);
   const isOwner = user?.id === league?.created_by;
-  const canManage = isOwner || Boolean(user?.is_staff || user?.is_superuser);
+  const isLeagueAdmin = league?.memberships?.some(
+    (m: any) => (m.user === user?.id || m.user_id === user?.id) && (m.role === 'admin' || m.role === 'owner')
+  );
+  const canManage = isOwner || isLeagueAdmin || Boolean(user?.is_staff || user?.is_superuser);
   const [refreshTournamentsKey, setRefreshTournamentsKey] = useState(0);
 
   const { theme, isDark } = useTheme();
@@ -264,9 +267,15 @@ export default function LeagueDetailScreen() {
       <CreateTournamentModal
         visible={isTournamentModalVisible}
         onClose={() => setIsTournamentModalVisible(false)}
-        onSuccess={() => {
+        onSuccess={(newTourney?: any) => {
           fetchLeagueDetails();
           setRefreshTournamentsKey((prev) => prev + 1);
+          if (newTourney?.id) {
+            router.push({
+              pathname: "/tournament-detail",
+              params: { id: newTourney.id },
+            });
+          }
         }}
         leagueId={league.id}
       />
