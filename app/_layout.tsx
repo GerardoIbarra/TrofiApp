@@ -35,9 +35,20 @@ Sentry.init({
   tracesSampleRate: 1.0,
   // profilesSampleRate is relative to tracesSampleRate (100% of transactions profiled)
   profilesSampleRate: 1.0,
+  replaysSessionSampleRate: 1.0,
+  replaysOnErrorSampleRate: 1.0,
   enableAutoSessionTracking: true,
   enableNativeFramesTracking: true,
-  integrations: [navigationIntegration],
+  integrations: [
+    navigationIntegration,
+    Sentry.mobileReplayIntegration({
+      maskAllText: true,
+      maskAllImages: true,
+      maskAllVectors: true,
+    }),
+    Sentry.hermesProfilingIntegration(),
+    Sentry.consoleLoggingIntegration(),
+  ],
   tracePropagationTargets: ["localhost", /^https:\/\/api\.trofi\.club/],
 });
 

@@ -9,6 +9,12 @@ class LoggerService {
   public info(category: string, message: string, data?: Record<string, any>) {
     console.log(`[${category.toUpperCase()}] ${message}`, data ? JSON.stringify(data) : '');
 
+    try {
+      if ((Sentry as any).logger?.info) {
+        (Sentry as any).logger.info(`[${category}] ${message}`, data);
+      }
+    } catch (_) {}
+
     Sentry.addBreadcrumb({
       category,
       message,
@@ -23,6 +29,12 @@ class LoggerService {
    */
   public warn(category: string, message: string, data?: Record<string, any>) {
     console.warn(`[${category.toUpperCase()}] ${message}`, data ? JSON.stringify(data) : '');
+
+    try {
+      if ((Sentry as any).logger?.warn) {
+        (Sentry as any).logger.warn(`[${category}] ${message}`, data);
+      }
+    } catch (_) {}
 
     Sentry.addBreadcrumb({
       category,
@@ -43,6 +55,12 @@ class LoggerService {
     data?: Record<string, any>
   ) {
     console.error(`[${category.toUpperCase()}] ${message}`, error, data ? JSON.stringify(data) : '');
+
+    try {
+      if ((Sentry as any).logger?.error) {
+        (Sentry as any).logger.error(`[${category}] ${message}`, { error, ...data });
+      }
+    } catch (_) {}
 
     Sentry.addBreadcrumb({
       category,
