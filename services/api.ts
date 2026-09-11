@@ -142,7 +142,11 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
       try {
         errorData = JSON.parse(text);
       } catch {
-        errorData = { message: text };
+        if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+          errorData = { message: `HTML Error (${response.status} ${response.statusText || 'Service Unavailable'})` };
+        } else {
+          errorData = { message: text };
+        }
       }
     }
 
