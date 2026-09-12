@@ -107,11 +107,11 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
         {/* Stats / KPI Row */}
         <View style={styles.statsRow}>
           <View style={styles.statLine}>
-            <Text style={styles.statLabel}>TORNEOS TOTALES</Text>
+            <Text style={styles.statLabel}>{t('league_detail.total_tournaments', 'TORNEOS TOTALES')}</Text>
             <Text style={styles.statKpi}>{league.tournament_count || "0"}</Text>
           </View>
           <View style={styles.statLine}>
-            <Text style={styles.statLabel}>MIEMBROS</Text>
+            <Text style={styles.statLabel}>{t('league_detail.members_stat', 'MIEMBROS')}</Text>
             <Text style={styles.statKpi}>
               {league.memberships?.length || "0"}
             </Text>

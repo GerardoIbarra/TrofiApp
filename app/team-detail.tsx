@@ -32,6 +32,7 @@ import {
   useGetTeamHistory,
 } from '@/features/teams/services/teamProfileApi';
 import { RecentFormItem } from '@/features/teams/types/teamProfile';
+import { useTranslation } from 'react-i18next';
 
 import { ChatBox } from '@/components/chat/ChatBox';
 
@@ -46,6 +47,7 @@ export default function TeamDetailScreen() {
   }>();
   const router = useRouter();
   const { theme, isDark } = useTheme();
+  const { t, i18n } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const [activeTab, setActiveTab] = useState<TabType>('STATS');
@@ -85,9 +87,9 @@ export default function TeamDetailScreen() {
   if (!team) {
     return (
       <NotFoundState
-        title="Equipo no encontrado"
-        message="Este equipo ya no existe o el enlace es inválido."
-        actionLabel="Volver"
+        title={t('team_detail.not_found_title', 'Equipo no encontrado')}
+        message={t('team_detail.not_found_message', 'Este equipo ya no existe o el enlace es inválido.')}
+        actionLabel={t('team_detail.back', 'Volver')}
         onAction={() => router.back()}
       />
     );
@@ -149,7 +151,7 @@ export default function TeamDetailScreen() {
               <View style={styles.highlightBadge}>
                 <Trophy size={14} color={theme.primary} />
                 <Text style={styles.highlightText}>
-                  Posición #{profile.position}
+                  {t('team_detail.position_prefix', 'Posición #')}{profile.position}
                 </Text>
               </View>
             )}
@@ -187,12 +189,11 @@ export default function TeamDetailScreen() {
                     },
                   ]}
                 >
-                  {streak.count}{' '}
                   {streak.type === 'W'
-                    ? 'Victorias seguidas'
+                    ? t('team_detail.consecutive_wins', { count: streak.count, defaultValue: `${streak.count} Victorias seguidas` })
                     : streak.type === 'D'
-                    ? 'Empates seguidos'
-                    : 'Derrotas seguidas'}
+                    ? t('team_detail.consecutive_draws', { count: streak.count, defaultValue: `${streak.count} Empates seguidos` })
+                    : t('team_detail.consecutive_losses', { count: streak.count, defaultValue: `${streak.count} Derrotas seguidas` })}
                 </Text>
               </View>
             )}
@@ -200,7 +201,7 @@ export default function TeamDetailScreen() {
             {/* Form */}
             {recentForm.length > 0 && (
               <View style={styles.formPillsRow}>
-                <Text style={styles.formLabel}>Forma:</Text>
+                <Text style={styles.formLabel}>{t('team_detail.form', 'Forma:')}</Text>
                 {recentForm.map((item, idx) => (
                   <View
                     key={idx}
@@ -230,7 +231,7 @@ export default function TeamDetailScreen() {
               onPress={() => setActiveTab('STATS')}
             >
               <Text style={[styles.tabText, activeTab === 'STATS' && styles.tabTextActive]}>
-                ESTADÍSTICAS
+                {t('team_detail.tab_stats', 'ESTADÍSTICAS')}
               </Text>
             </TouchableOpacity>
 
@@ -239,7 +240,7 @@ export default function TeamDetailScreen() {
               onPress={() => setActiveTab('ROSTER')}
             >
               <Text style={[styles.tabText, activeTab === 'ROSTER' && styles.tabTextActive]}>
-                PLANTILLA ({roster.length})
+                {t('team_detail.tab_roster', { count: roster.length, defaultValue: `PLANTILLA (${roster.length})` })}
               </Text>
             </TouchableOpacity>
 
@@ -248,7 +249,7 @@ export default function TeamDetailScreen() {
               onPress={() => setActiveTab('LINEUP')}
             >
               <Text style={[styles.tabText, activeTab === 'LINEUP' && styles.tabTextActive]}>
-                ALINEACIÓN
+                {t('team_detail.tab_lineup', 'ALINEACIÓN')}
               </Text>
             </TouchableOpacity>
 
@@ -257,7 +258,7 @@ export default function TeamDetailScreen() {
               onPress={() => setActiveTab('HISTORY')}
             >
               <Text style={[styles.tabText, activeTab === 'HISTORY' && styles.tabTextActive]}>
-                HISTORIAL
+                {t('team_detail.tab_history', 'HISTORIAL')}
               </Text>
             </TouchableOpacity>
 
@@ -266,7 +267,7 @@ export default function TeamDetailScreen() {
               onPress={() => setActiveTab('CHAT')}
             >
               <Text style={[styles.tabText, activeTab === 'CHAT' && styles.tabTextActive]}>
-                CHAT
+                {t('team_detail.tab_chat', 'CHAT')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -280,51 +281,51 @@ export default function TeamDetailScreen() {
                   <>
                     <View style={styles.statsGrid}>
                       <StatTile
-                        label="Jugados"
+                        label={t('team_detail.stat_played', 'Jugados')}
                         value={stats.played}
                         theme={theme}
                         isDark={isDark}
                       />
                       <StatTile
-                        label="Victorias"
+                        label={t('team_detail.stat_wins', 'Victorias')}
                         value={stats.wins}
                         color="#4ADE80"
                         theme={theme}
                         isDark={isDark}
                       />
                       <StatTile
-                        label="Empates"
+                        label={t('team_detail.stat_draws', 'Empates')}
                         value={stats.draws}
                         theme={theme}
                         isDark={isDark}
                       />
                       <StatTile
-                        label="Derrotas"
+                        label={t('team_detail.stat_losses', 'Derrotas')}
                         value={stats.losses}
                         color="#EF4444"
                         theme={theme}
                         isDark={isDark}
                       />
                       <StatTile
-                        label="Goles a Favor"
+                        label={t('team_detail.stat_goals_for', 'Goles a Favor')}
                         value={stats.goals_for}
                         theme={theme}
                         isDark={isDark}
                       />
                       <StatTile
-                        label="Goles en Contra"
+                        label={t('team_detail.stat_goals_against', 'Goles en Contra')}
                         value={stats.goals_against}
                         theme={theme}
                         isDark={isDark}
                       />
                       <StatTile
-                        label="Goles / Partido"
+                        label={t('team_detail.stat_goals_per_game', 'Goles / Partido')}
                         value={stats.goals_per_game?.toFixed(1) || '0.0'}
                         theme={theme}
                         isDark={isDark}
                       />
                       <StatTile
-                        label="Vallas Invictas"
+                        label={t('team_detail.stat_clean_sheets', 'Vallas Invictas')}
                         value={stats.clean_sheets}
                         color="#00F5FF"
                         theme={theme}
@@ -335,7 +336,7 @@ export default function TeamDetailScreen() {
                     {/* Recent Form Details */}
                     {recentForm.length > 0 && (
                       <View style={styles.sectionCard}>
-                        <Text style={styles.sectionTitle}>ÚLTIMOS PARTIDOS</Text>
+                        <Text style={styles.sectionTitle}>{t('team_detail.recent_matches', 'ÚLTIMOS PARTIDOS')}</Text>
                         {recentForm.map((match, idx) => (
                           <View key={idx} style={styles.recentMatchRow}>
                             <View
@@ -351,7 +352,7 @@ export default function TeamDetailScreen() {
                             <View style={styles.matchOpponentBox}>
                               <Text style={styles.opponentName}>{match.opponent_name}</Text>
                               <Text style={styles.matchDate}>
-                                {new Date(match.date).toLocaleDateString()}
+                                {new Date(match.date).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES')}
                               </Text>
                             </View>
                             <Text style={styles.matchScoreText}>
@@ -366,24 +367,24 @@ export default function TeamDetailScreen() {
                   <View style={styles.emptyCard}>
                     <Activity size={32} color={theme.textSecondary} opacity={0.4} />
                     <Text style={styles.emptyCardText}>
-                      No hay estadísticas registradas para este torneo aún.
+                      {t('team_detail.no_stats', 'No hay estadísticas registradas para este torneo aún.')}
                     </Text>
                   </View>
                 )}
 
                 {/* Info Club */}
                 <View style={styles.sectionCard}>
-                  <Text style={styles.sectionTitle}>INFORMACIÓN DEL CLUB</Text>
+                  <Text style={styles.sectionTitle}>{t('team_detail.club_info', 'INFORMACIÓN DEL CLUB')}</Text>
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Liga de Origen</Text>
+                    <Text style={styles.infoLabel}>{t('team_detail.origin_league', 'Liga de Origen')}</Text>
                     <Text style={styles.infoValue}>{team.league_name}</Text>
                   </View>
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Ciudad</Text>
-                    <Text style={styles.infoValue}>{team.city || 'No especificada'}</Text>
+                    <Text style={styles.infoLabel}>{t('team_detail.city', 'Ciudad')}</Text>
+                    <Text style={styles.infoValue}>{team.city || t('team_detail.not_specified', 'No especificada')}</Text>
                   </View>
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Propietario / Admin</Text>
+                    <Text style={styles.infoLabel}>{t('team_detail.owner', 'Propietario / Admin')}</Text>
                     <Text style={styles.infoValue}>{team.owner_name}</Text>
                   </View>
                 </View>
@@ -426,7 +427,7 @@ export default function TeamDetailScreen() {
                           )}
                         </View>
                         <Text style={styles.rosterPosition}>
-                          {player.position || 'Jugador'}
+                          {player.position || t('team_detail.default_position', 'Jugador')}
                         </Text>
                       </View>
                       <ChevronRight size={16} color={theme.textSecondary} />
@@ -436,7 +437,7 @@ export default function TeamDetailScreen() {
                   <View style={styles.emptyCard}>
                     <Users size={32} color={theme.textSecondary} opacity={0.4} />
                     <Text style={styles.emptyCardText}>
-                      No hay jugadores registrados en la plantilla de este torneo.
+                      {t('team_detail.no_roster', 'No hay jugadores registrados en la plantilla de este torneo.')}
                     </Text>
                   </View>
                 )}
@@ -451,20 +452,20 @@ export default function TeamDetailScreen() {
                     <View style={styles.lineupHeader}>
                       <Layers size={18} color={theme.primary} />
                       <Text style={styles.lineupTitle}>
-                        Alineación Activa: {lineup.formation_name || 'Por definir'}
+                        {t('team_detail.active_lineup', { name: lineup.formation_name || t('team_detail.tbd', 'Por definir'), defaultValue: `Alineación Activa: ${lineup.formation_name || 'Por definir'}` })}
                       </Text>
                     </View>
 
                     {lineup.starting_xi && lineup.starting_xi.length > 0 && (
                       <View style={{ marginTop: 12 }}>
-                        <Text style={styles.lineupSub}>Once Titular</Text>
+                        <Text style={styles.lineupSub}>{t('team_detail.starting_xi', 'Once Titular')}</Text>
                         {lineup.starting_xi.map((player: any, idx: number) => (
                           <View key={idx} style={styles.lineupPlayerRow}>
                             <Text style={styles.lineupPosText}>
                               {player.position || `${idx + 1}`}
                             </Text>
                             <Text style={styles.lineupPlayerName}>
-                              {player.player_name || player.name || `Jugador ${idx + 1}`}
+                              {player.player_name || player.name || `${t('team_detail.default_position', 'Jugador')} ${idx + 1}`}
                             </Text>
                           </View>
                         ))}
@@ -474,7 +475,7 @@ export default function TeamDetailScreen() {
                     {lineup.unavailable && lineup.unavailable.length > 0 && (
                       <View style={{ marginTop: 16 }}>
                         <Text style={[styles.lineupSub, { color: '#EF4444' }]}>
-                          No disponibles / Sancionados
+                          {t('team_detail.unavailable_players', 'No disponibles / Sancionados')}
                         </Text>
                         {lineup.unavailable.map((player: any, idx: number) => (
                           <View key={idx} style={styles.lineupPlayerRow}>
@@ -493,7 +494,7 @@ export default function TeamDetailScreen() {
                   <View style={styles.emptyCard}>
                     <Layers size={32} color={theme.textSecondary} opacity={0.4} />
                     <Text style={styles.emptyCardText}>
-                      Este equipo no tiene una alineación táctica activa definida.
+                      {t('team_detail.no_lineup', 'Este equipo no tiene una alineación táctica activa definida.')}
                     </Text>
                   </View>
                 )}
@@ -501,18 +502,18 @@ export default function TeamDetailScreen() {
                 {/* Lineup History */}
                 {lineupHistory.length > 0 && (
                   <View style={styles.sectionCard}>
-                    <Text style={styles.sectionTitle}>HISTORIAL DE ALINEACIONES</Text>
+                    <Text style={styles.sectionTitle}>{t('team_detail.lineup_history', 'HISTORIAL DE ALINEACIONES')}</Text>
                     {lineupHistory.map((item, idx) => (
                       <View key={idx} style={styles.lineupHistoryItem}>
                         <View>
                           <Text style={styles.lineupHistName}>{item.name}</Text>
                           <Text style={styles.lineupHistFormation}>
-                            Formación: {item.formation_name} • {item.player_count} jugadores
+                            {t('team_detail.formation', { name: item.formation_name, count: item.player_count, defaultValue: `Formación: ${item.formation_name} • ${item.player_count} jugadores` })}
                           </Text>
                         </View>
                         {item.is_active && (
                           <View style={styles.activePill}>
-                            <Text style={styles.activePillText}>ACTIVA</Text>
+                            <Text style={styles.activePillText}>{t('team_detail.active_pill', 'ACTIVA')}</Text>
                           </View>
                         )}
                       </View>
@@ -530,31 +531,31 @@ export default function TeamDetailScreen() {
                 ) : history ? (
                   <>
                     <View style={styles.historyCareerCard}>
-                      <Text style={styles.historyCareerTitle}>HISTORIAL DEL CLUB</Text>
+                      <Text style={styles.historyCareerTitle}>{t('team_detail.club_history', 'HISTORIAL DEL CLUB')}</Text>
                       <Text style={styles.historyCareerSub}>
-                        Desempeño acumulado en todos los torneos oficiales
+                        {t('team_detail.club_history_sub', 'Desempeño acumulado en todos los torneos oficiales')}
                       </Text>
 
                       <View style={styles.careerGrid}>
                         <View style={styles.careerTile}>
                           <Text style={styles.careerValue}>{history.tournaments_played}</Text>
-                          <Text style={styles.careerLabel}>Torneos</Text>
+                          <Text style={styles.careerLabel}>{t('team_detail.tournaments', 'Torneos')}</Text>
                         </View>
                         <View style={styles.careerTile}>
                           <Text style={styles.careerValue}>{history.career_stats.played}</Text>
-                          <Text style={styles.careerLabel}>Partidos</Text>
+                          <Text style={styles.careerLabel}>{t('team_detail.matches', 'Partidos')}</Text>
                         </View>
                         <View style={styles.careerTile}>
                           <Text style={[styles.careerValue, { color: '#4ADE80' }]}>
                             {history.career_stats.wins}
                           </Text>
-                          <Text style={styles.careerLabel}>Victorias</Text>
+                          <Text style={styles.careerLabel}>{t('team_detail.wins', 'Victorias')}</Text>
                         </View>
                         <View style={styles.careerTile}>
                           <Text style={[styles.careerValue, { color: '#00F5FF' }]}>
                             {history.career_stats.goals_for}
                           </Text>
-                          <Text style={styles.careerLabel}>Goles</Text>
+                          <Text style={styles.careerLabel}>{t('team_detail.goals', 'Goles')}</Text>
                         </View>
                       </View>
                     </View>
@@ -562,14 +563,14 @@ export default function TeamDetailScreen() {
                     {/* Achievements By Type */}
                     {history.achievements_by_type && (
                       <View style={styles.sectionCard}>
-                        <Text style={styles.sectionTitle}>PALMARÉS Y LOGROS</Text>
+                        <Text style={styles.sectionTitle}>{t('team_detail.honors', 'PALMARÉS Y LOGROS')}</Text>
                         <View style={styles.trophyRow}>
                           <View style={styles.trophyBox}>
                             <Trophy size={26} color="#F59E0B" />
                             <Text style={styles.trophyCount}>
                               {history.achievements_by_type.champion || 0}
                             </Text>
-                            <Text style={styles.trophyLabel}>Campeón</Text>
+                            <Text style={styles.trophyLabel}>{t('team_detail.champion', 'Campeón')}</Text>
                           </View>
 
                           <View style={styles.trophyBox}>
@@ -577,7 +578,7 @@ export default function TeamDetailScreen() {
                             <Text style={styles.trophyCount}>
                               {history.achievements_by_type.runner_up || 0}
                             </Text>
-                            <Text style={styles.trophyLabel}>Subcampeón</Text>
+                            <Text style={styles.trophyLabel}>{t('team_detail.runner_up', 'Subcampeón')}</Text>
                           </View>
 
                           <View style={styles.trophyBox}>
@@ -585,7 +586,7 @@ export default function TeamDetailScreen() {
                             <Text style={styles.trophyCount}>
                               {history.achievements_by_type.fair_play || 0}
                             </Text>
-                            <Text style={styles.trophyLabel}>Fair Play</Text>
+                            <Text style={styles.trophyLabel}>{t('team_detail.fair_play', 'Fair Play')}</Text>
                           </View>
                         </View>
                       </View>
@@ -594,15 +595,15 @@ export default function TeamDetailScreen() {
                     {/* Achievements List */}
                     {history.achievements && history.achievements.length > 0 && (
                       <View style={styles.sectionCard}>
-                        <Text style={styles.sectionTitle}>TODAS LAS DISTINCIONES</Text>
+                        <Text style={styles.sectionTitle}>{t('team_detail.all_honors', 'TODAS LAS DISTINCIONES')}</Text>
                         {history.achievements.map((ach, idx) => (
                           <View key={idx} style={styles.achRow}>
                             <Star size={16} color={theme.primary} />
                             <View style={{ flex: 1, marginLeft: 10 }}>
                               <Text style={styles.achTitle}>{ach.achievement_type}</Text>
                               <Text style={styles.achSub}>
-                                {ach.tournament_name || 'Competición oficial'} •{' '}
-                                {new Date(ach.created_at).toLocaleDateString()}
+                                {ach.tournament_name || t('team_detail.official_competition', 'Competición oficial')} •{' '}
+                                {new Date(ach.created_at).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES')}
                               </Text>
                             </View>
                           </View>
@@ -614,7 +615,7 @@ export default function TeamDetailScreen() {
                   <View style={styles.emptyCard}>
                     <Trophy size={32} color={theme.textSecondary} opacity={0.4} />
                     <Text style={styles.emptyCardText}>
-                      No hay historial registrado para este club aún.
+                      {t('team_detail.empty_history', 'No hay historial registrado para este club aún.')}
                     </Text>
                   </View>
                 )}
@@ -623,7 +624,7 @@ export default function TeamDetailScreen() {
 
             {/* 5. CHAT TAB */}
             {activeTab === 'CHAT' && (
-              <ChatBox teamId={team.id} title={`Chat de ${team.name}`} />
+              <ChatBox teamId={team.id} title={t('league_detail.chat_title', { name: team.name, defaultValue: `Chat de ${team.name}` })} />
             )}
           </View>
         </View>

@@ -8,6 +8,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { useTranslation } from "react-i18next";
 
 interface TeamHeaderProps {
   team: Team;
@@ -17,6 +18,7 @@ interface TeamHeaderProps {
 export function TeamHeader({ team, onEditPress }: TeamHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
@@ -58,7 +60,7 @@ export function TeamHeader({ team, onEditPress }: TeamHeaderProps) {
         {/* Info Tag */}
         <View style={styles.tagContainer}>
           <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>{team.league_name?.toUpperCase() || "SIN LIGA"}</Text>
+            <Text style={styles.categoryText}>{team.league_name?.toUpperCase() || t('team_detail.no_league', 'SIN LIGA')}</Text>
           </View>
           <Text style={styles.regionText}>
             {team.city.toUpperCase()}
@@ -87,11 +89,11 @@ export function TeamHeader({ team, onEditPress }: TeamHeaderProps) {
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statLine}>
-            <Text style={styles.statLabel}>TORNEOS ACTIVOS</Text>
+            <Text style={styles.statLabel}>{t('team_detail.active_tournaments', 'TORNEOS ACTIVOS')}</Text>
             <Text style={styles.statKpi}>{team.tournament_registrations?.length || "0"}</Text>
           </View>
           <View style={styles.statLine}>
-            <Text style={styles.statLabel}>GESTOR</Text>
+            <Text style={styles.statLabel}>{t('team_detail.manager', 'GESTOR')}</Text>
             <Text style={styles.statKpi} numberOfLines={1}>
               {team.owner_name?.split(" ")[0] || "---"}
             </Text>

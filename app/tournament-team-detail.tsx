@@ -9,11 +9,13 @@ import api from "@/services/api";
 import { useCreateJoinRequest, useApproveJoinRequest, useRejectJoinRequest } from "@/features/players/services/rosterApi";
 import { Users, UserPlus, Check, X, ShieldHalf, Star } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { useTranslation } from "react-i18next";
 
 export default function TournamentTeamDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { theme, isDark } = useTheme();
+  const { t, i18n } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
@@ -62,7 +64,10 @@ export default function TournamentTeamDetailScreen() {
 
   const handleJoinRequest = () => {
     if (!user || !user.player_profile_id) {
-      Alert.alert("Perfil Requerido", "Debes crear tu perfil de jugador primero.");
+      Alert.alert(
+        t("tournament_team.req_profile_title", "Perfil Requerido"),
+        t("tournament_team.req_profile_msg", "Debes crear tu perfil de jugador primero.")
+      );
       return;
     }
 
@@ -72,11 +77,17 @@ export default function TournamentTeamDetailScreen() {
       player: user.player_profile_id
     }, {
       onSuccess: () => {
-        Alert.alert("Solicitud Enviada", "El capitán debe aprobar tu solicitud.");
+        Alert.alert(
+          t("tournament_team.req_sent_title", "Solicitud Enviada"),
+          t("tournament_team.req_sent_msg", "El capitán debe aprobar tu solicitud.")
+        );
         fetchData();
       },
       onError: (err: any) => {
-        Alert.alert("Error", err.message || "No se pudo enviar la solicitud.");
+        Alert.alert(
+          t("tournament_team.error_title", "Error"),
+          err.message || t("tournament_team.error_send_msg", "No se pudo enviar la solicitud.")
+        );
       }
     });
   };
@@ -93,9 +104,9 @@ export default function TournamentTeamDetailScreen() {
   if (!teamInfo) {
     return (
       <NotFoundState
-        title="Equipo no encontrado"
-        message="Este equipo ya no existe en este torneo o el enlace es inválido."
-        actionLabel="Volver"
+        title={t("tournament_team.not_found_title", "Equipo no encontrado")}
+        message={t("tournament_team.not_found_message", "Este equipo ya no existe en este torneo o el enlace es inválido.")}
+        actionLabel={t("tournament_team.back", "Volver")}
         onAction={() => router.back()}
       />
     );
@@ -111,7 +122,7 @@ export default function TournamentTeamDetailScreen() {
             <ShieldHalf size={40} color={theme.primary} />
           </View>
           <Text style={styles.teamName}>{teamInfo.team_name}</Text>
-          <Text style={styles.tournamentName}>Plantel del Torneo</Text>
+          <Text style={styles.tournamentName}>{t("tournament_team.roster_title", "Plantel del Torneo")}</Text>
           
           {!isCaptain && (
             <TouchableOpacity 
@@ -120,19 +131,21 @@ export default function TournamentTeamDetailScreen() {
               disabled={joinMutation.isPending}
             >
               <UserPlus size={18} color="#001A2C" />
-              <Text style={styles.joinButtonText}>Solicitar Unirse</Text>
+              <Text style={styles.joinButtonText}>{t("tournament_team.request_join", "Solicitar Unirse")}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {isCaptain && joinRequests.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Solicitudes Pendientes</Text>
+            <Text style={styles.sectionTitle}>{t("tournament_team.pending_requests", "Solicitudes Pendientes")}</Text>
             {joinRequests.map(req => (
               <View key={req.id} style={styles.requestCard}>
                 <View style={styles.reqInfo}>
-                  <Text style={styles.reqName}>{req.player_name || 'Jugador'}</Text>
-                  <Text style={styles.reqDate}>{new Date(req.created_at).toLocaleDateString()}</Text>
+                  <Text style={styles.reqName}>{req.player_name || t("tournament_team.player_fallback", "Jugador")}</Text>
+                  <Text style={styles.reqDate}>
+                    {new Date(req.created_at).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'es-ES')}
+                  </Text>
                 </View>
                 <View style={styles.reqActions}>
                   <TouchableOpacity 
@@ -154,11 +167,11 @@ export default function TournamentTeamDetailScreen() {
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Jugadores ({roster.length})</Text>
+          <Text style={styles.sectionTitle}>{t("tournament_team.players_count", { count: roster.length, defaultValue: `Jugadores (${roster.length})` })}</Text>
           {roster.length === 0 ? (
             <View style={styles.emptyState}>
               <Users size={30} color={theme.textSecondary} opacity={0.5} />
-              <Text style={styles.emptyText}>No hay jugadores en el plantel aún.</Text>
+              <Text style={styles.emptyText}>{t("tournament_team.empty_roster", "No hay jugadores en el plantel aún.")}</Text>
             </View>
           ) : (
             <View style={styles.rosterGrid}>
@@ -181,7 +194,7 @@ export default function TournamentTeamDetailScreen() {
                   <View style={styles.playerInfo}>
                     <Text style={styles.playerName}>{item.player_name}</Text>
                     <Text style={styles.playerPosition}>
-                      {item.position ? item.position.toUpperCase() : 'SIN POSICIÓN'}
+                      {item.position ? item.position.toUpperCase() : t("tournament_team.no_position", "SIN POSICIÓN")}
                       {item.shirt_number ? ` • #${item.shirt_number}` : ''}
                     </Text>
                   </View>
