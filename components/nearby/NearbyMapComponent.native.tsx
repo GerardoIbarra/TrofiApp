@@ -3,9 +3,16 @@ import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '@/context/ThemeContext';
 import { NearbyMapProps } from './types';
-import { League } from '@/features/leagues/types/league';
-import { Venue } from '@/features/venues/types/venue';
-import { PickupSpot } from '@/features/pickup/types/pickup';
+
+interface MappableEntity {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  displayLat: number;
+  displayLng: number;
+  entityType: 'league' | 'venue' | 'spot';
+}
 
 // Safely extract coordinates from direct properties or nested venue properties
 const getEntityCoords = (item: any): { lat: number; lng: number } | null => {
@@ -30,6 +37,63 @@ const getEntityCoords = (item: any): { lat: number; lng: number } | null => {
   return { lat, lng };
 };
 
+// Separates markers that share the exact same coordinates (radial fan-out)
+function distributeOverlappingPoints(
+  items: Array<{ id: string; name: string; lat: number; lng: number; entityType: 'league' | 'venue' | 'spot' }>
+): MappableEntity[] {
+  const groups: Array<typeof items> = [];
+
+  items.forEach((item) => {
+    let placed = false;
+    for (const group of groups) {
+      const rep = group[0];
+      const dist = Math.hypot(item.lat - rep.lat, item.lng - rep.lng);
+      // If closer than ~25 meters, consider overlapping
+      if (dist < 0.0003) {
+        group.push(item);
+        placed = true;
+        break;
+      }
+    }
+    if (!placed) {
+      groups.push([item]);
+    }
+  });
+
+  const result: MappableEntity[] = [];
+
+  groups.forEach((group) => {
+    if (group.length === 1) {
+      result.push({
+        ...group[0],
+        displayLat: group[0].lat,
+        displayLng: group[0].lng,
+      });
+    } else {
+      const count = group.length;
+      const centerLat = group.reduce((sum, g) => sum + g.lat, 0) / count;
+      const centerLng = group.reduce((sum, g) => sum + g.lng, 0) / count;
+      // Offset radius ~ 35 meters in degrees
+      const radiusDeg = 0.00032;
+      const cosLat = Math.cos((centerLat * Math.PI) / 180) || 1;
+
+      group.forEach((item, index) => {
+        // Distribute points radially around the shared center
+        const angle = (2 * Math.PI * index) / count - Math.PI / 2;
+        const displayLat = centerLat + radiusDeg * Math.cos(angle);
+        const displayLng = centerLng + (radiusDeg / cosLat) * Math.sin(angle);
+        result.push({
+          ...item,
+          displayLat,
+          displayLng,
+        });
+      });
+    }
+  });
+
+  return result;
+}
+
 export default function NearbyMapComponent({
   userLatitude,
   userLongitude,
@@ -48,35 +112,38 @@ export default function NearbyMapComponent({
   const showVenues = filterType === 'all' || filterType === 'venues';
   const showSpots = filterType === 'all' || filterType === 'spots';
 
-  const validLeagues = useMemo(() => {
-    if (!showLeagues) return [];
-    return leagues
-      .map((l) => {
+  const mappableItems = useMemo(() => {
+    const rawList: Array<{
+      id: string;
+      name: string;
+      lat: number;
+      lng: number;
+      entityType: 'league' | 'venue' | 'spot';
+    }> = [];
+
+    if (showLeagues) {
+      leagues.forEach((l) => {
         const coords = getEntityCoords(l);
-        return coords ? { ...l, lat: coords.lat, lng: coords.lng } : null;
-      })
-      .filter(Boolean) as (League & { lat: number; lng: number })[];
-  }, [leagues, showLeagues]);
+        if (coords) rawList.push({ id: l.id, name: l.name, lat: coords.lat, lng: coords.lng, entityType: 'league' });
+      });
+    }
 
-  const validVenues = useMemo(() => {
-    if (!showVenues) return [];
-    return venues
-      .map((v) => {
+    if (showVenues) {
+      venues.forEach((v) => {
         const coords = getEntityCoords(v);
-        return coords ? { ...v, lat: coords.lat, lng: coords.lng } : null;
-      })
-      .filter(Boolean) as (Venue & { lat: number; lng: number })[];
-  }, [venues, showVenues]);
+        if (coords) rawList.push({ id: v.id, name: v.name, lat: coords.lat, lng: coords.lng, entityType: 'venue' });
+      });
+    }
 
-  const validSpots = useMemo(() => {
-    if (!showSpots) return [];
-    return pickupSpots
-      .map((s) => {
+    if (showSpots) {
+      pickupSpots.forEach((s) => {
         const coords = getEntityCoords(s);
-        return coords ? { ...s, lat: coords.lat, lng: coords.lng } : null;
-      })
-      .filter(Boolean) as (PickupSpot & { lat: number; lng: number })[];
-  }, [pickupSpots, showSpots]);
+        if (coords) rawList.push({ id: s.id, name: s.name, lat: coords.lat, lng: coords.lng, entityType: 'spot' });
+      });
+    }
+
+    return distributeOverlappingPoints(rawList);
+  }, [leagues, venues, pickupSpots, showLeagues, showVenues, showSpots]);
 
   // Handle messages from Leaflet webview
   const handleMessage = (event: any) => {
@@ -116,9 +183,6 @@ export default function NearbyMapComponent({
     }
   }, [selectedEntity]);
 
-  // 100% Free Tile Layer URLs without API keys or watermarks:
-  // - Dark: ESRI World Dark Gray Canvas (clean, dark navy/gray, zero watermarks)
-  // - Light: OpenStreetMap Standard (official OSM tiles, clean, zero watermarks)
   const tileUrl = isDark
     ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
     : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -127,33 +191,7 @@ export default function NearbyMapComponent({
   const pulseColor = isDark ? '#00F5FF' : '#0284C7';
   const circleColor = isDark ? '#00F5FF' : '#0284C7';
 
-  const leaguesJson = JSON.stringify(
-    validLeagues.map((l) => ({
-      id: l.id,
-      name: l.name,
-      lat: l.lat,
-      lng: l.lng,
-    }))
-  );
-
-  const venuesJson = JSON.stringify(
-    validVenues.map((v) => ({
-      id: v.id,
-      name: v.name,
-      lat: v.lat,
-      lng: v.lng,
-    }))
-  );
-
-  const spotsJson = JSON.stringify(
-    validSpots.map((s) => ({
-      id: s.id,
-      name: s.name,
-      lat: s.lat,
-      lng: s.lng,
-    }))
-  );
-
+  const itemsJson = JSON.stringify(mappableItems);
   const selectedId = selectedEntity?.item.id ?? null;
   const selectedType = selectedEntity?.type ?? null;
   const initialZoom = radiusKm <= 10 ? 13 : radiusKm <= 25 ? 12 : radiusKm <= 50 ? 11 : 10;
@@ -213,7 +251,6 @@ export default function NearbyMapComponent({
       border: 3px solid #FFF;
       box-shadow: 0 0 18px #00F5FF;
     }
-    /* Hide Leaflet bottom attribution flag and links */
     .leaflet-control-attribution {
       display: none !important;
     }
@@ -264,9 +301,7 @@ export default function NearbyMapComponent({
       postToRN({ type: 'DESELECT' });
     });
 
-    const leagues = ${leaguesJson};
-    const venues = ${venuesJson};
-    const spots = ${spotsJson};
+    const items = ${itemsJson};
     const selectedId = ${JSON.stringify(selectedId)};
     const selectedType = ${JSON.stringify(selectedType)};
 
@@ -275,65 +310,47 @@ export default function NearbyMapComponent({
       allPoints.push([${userLatitude}, ${userLongitude}]);
     }
 
-    leagues.forEach(l => {
-      if (l.lat && l.lng) {
-        allPoints.push([l.lat, l.lng]);
-        const isSel = selectedType === 'league' && selectedId === l.id;
-        const icon = L.divIcon({
-          className: '',
-          html: '<div class="pin-box league-pin ' + (isSel ? 'selected-pin' : '') + '" title="' + (l.name || 'Liga') + '">🏆</div>',
-          iconSize: [36, 36],
-          iconAnchor: [18, 18]
-        });
-        const m = L.marker([l.lat, l.lng], { icon }).addTo(map);
-        m.on('click', (e) => {
-          L.DomEvent.stopPropagation(e);
-          postToRN({ type: 'SELECT_NEARBY', entityType: 'league', id: l.id });
-        });
+    items.forEach(item => {
+      allPoints.push([item.displayLat, item.displayLng]);
+
+      // If item was offset from a shared coordinate, draw a subtle connector line
+      if (item.displayLat !== item.lat || item.displayLng !== item.lng) {
+        L.polyline(
+          [[item.lat, item.lng], [item.displayLat, item.displayLng]],
+          { color: '#64748B', weight: 1.5, dashArray: '3, 4', opacity: 0.7 }
+        ).addTo(map);
       }
+
+      const isSel = selectedType === item.entityType && selectedId === item.id;
+      let pinClass = 'league-pin';
+      let iconEmoji = '🏆';
+      if (item.entityType === 'venue') {
+        pinClass = 'venue-pin';
+        iconEmoji = '🏟️';
+      } else if (item.entityType === 'spot') {
+        pinClass = 'spot-pin';
+        iconEmoji = '⚽';
+      }
+
+      const icon = L.divIcon({
+        className: '',
+        html: '<div class="pin-box ' + pinClass + ' ' + (isSel ? 'selected-pin' : '') + '" title="' + (item.name || '') + '">' + iconEmoji + '</div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      });
+
+      const m = L.marker([item.displayLat, item.displayLng], { icon }).addTo(map);
+      m.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        postToRN({ type: 'SELECT_NEARBY', entityType: item.entityType, id: item.id });
+      });
     });
 
-    venues.forEach(v => {
-      if (v.lat && v.lng) {
-        allPoints.push([v.lat, v.lng]);
-        const isSel = selectedType === 'venue' && selectedId === v.id;
-        const icon = L.divIcon({
-          className: '',
-          html: '<div class="pin-box venue-pin ' + (isSel ? 'selected-pin' : '') + '" title="' + (v.name || 'Sede') + '">🏟️</div>',
-          iconSize: [36, 36],
-          iconAnchor: [18, 18]
-        });
-        const m = L.marker([v.lat, v.lng], { icon }).addTo(map);
-        m.on('click', (e) => {
-          L.DomEvent.stopPropagation(e);
-          postToRN({ type: 'SELECT_NEARBY', entityType: 'venue', id: v.id });
-        });
-      }
-    });
-
-    spots.forEach(s => {
-      if (s.lat && s.lng) {
-        allPoints.push([s.lat, s.lng]);
-        const isSel = selectedType === 'spot' && selectedId === s.id;
-        const icon = L.divIcon({
-          className: '',
-          html: '<div class="pin-box spot-pin ' + (isSel ? 'selected-pin' : '') + '" title="' + (s.name || 'Cancha') + '">⚽</div>',
-          iconSize: [36, 36],
-          iconAnchor: [18, 18]
-        });
-        const m = L.marker([s.lat, s.lng], { icon }).addTo(map);
-        m.on('click', (e) => {
-          L.DomEvent.stopPropagation(e);
-          postToRN({ type: 'SELECT_NEARBY', entityType: 'spot', id: s.id });
-        });
-      }
-    });
-
-    // Automatically zoom and center map to include all items and user location
+    // Automatically zoom and fit bounds so all markers are visible
     if (allPoints.length > 1) {
       try {
         const bounds = L.latLngBounds(allPoints);
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
       } catch (e) {
         // fallback
       }
