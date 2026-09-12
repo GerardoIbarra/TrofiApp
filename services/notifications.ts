@@ -3,12 +3,13 @@ import { Platform } from "react-native";
 import Constants from "expo-constants";
 import api from "./api";
 import { logger } from "./logger";
-declare const global: any;
-// Conditionally load expo-notifications only in a Development Client
+// Safe loader for expo-notifications: works in standalone APKs, gracefully fails in Expo Go
 let Notifications: typeof import("expo-notifications") | null = null;
-if ((global as any).__DEV_CLIENT__) {
+try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  Notifications = require("expo-notifications") as typeof import("expo-notifications");
+  Notifications = require("expo-notifications");
+} catch (_) {
+  Notifications = null;
 }
 
 const DEVICE_TOKEN_ID_KEY = "@device_token_id";

@@ -67,7 +67,6 @@
     "@babel/plugin-transform-private-methods": "^8.0.1",
     "@types/react": "~19.2.18",
     "babel-preset-expo": "^57.0.9",
-    "expo-dev-client": "~4.0.5",
     "eslint": "^10.8.1",
     "eslint-config-expo": "~57.0.2",
     "patch-package": "^8.0.1",
