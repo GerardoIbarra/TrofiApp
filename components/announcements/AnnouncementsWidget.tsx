@@ -23,6 +23,7 @@ import {
 } from '@/features/announcements/services/announcementsApi';
 import { Announcement } from '@/features/announcements/types/announcement';
 import { CreateAnnouncementModal } from './CreateAnnouncementModal';
+import { useTranslation } from 'react-i18next';
 
 interface AnnouncementsWidgetProps {
   leagueId?: string;
@@ -36,6 +37,7 @@ export function AnnouncementsWidget({
   canManage = false,
 }: AnnouncementsWidgetProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -60,12 +62,12 @@ export function AnnouncementsWidget({
 
   const handleDelete = (item: Announcement) => {
     Alert.alert(
-      'Eliminar Aviso',
-      `¿Deseas eliminar el comunicado "${item.title}"?`,
+      t('announcements.delete_title'),
+      t('announcements.delete_confirm', { title: item.title }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel', 'Cancelar'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common.delete', 'Eliminar'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -74,9 +76,9 @@ export function AnnouncementsWidget({
                 leagueId,
                 tournamentId,
               });
-              Alert.alert('Eliminado', 'El aviso ha sido eliminado.');
+              Alert.alert(t('common.done', 'Listo'), t('announcements.deleted_success'));
             } catch (err: any) {
-              Alert.alert('Error', err?.message || 'No se pudo eliminar el aviso.');
+              Alert.alert('Error', err?.message || t('announcements.deleted_error'));
             }
           },
         },
@@ -90,7 +92,7 @@ export function AnnouncementsWidget({
       <View style={styles.headerRow}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <BellRing size={18} color={theme.primary} />
-          <Text style={styles.title}>Avisos y Comunicados Oficiales</Text>
+          <Text style={styles.title}>{t('announcements.title')}</Text>
         </View>
 
         {canManage && (
@@ -100,7 +102,7 @@ export function AnnouncementsWidget({
             activeOpacity={0.8}
           >
             <Plus size={14} color="#001A2C" />
-            <Text style={styles.addBtnText}>Publicar Aviso</Text>
+            <Text style={styles.addBtnText}>{t('announcements.new_announcement')}</Text>
           </TouchableOpacity>
         )}
       </View>

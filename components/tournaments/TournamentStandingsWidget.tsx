@@ -102,7 +102,7 @@ export function TournamentStandingsWidget({
           activeOpacity={0.8}
         >
           <Share2 size={14} color="#001A2C" />
-          <Text style={styles.shareBtnText}>Compartir Tabla</Text>
+          <Text style={styles.shareBtnText}>{t('tournament.share_standings')}</Text>
         </TouchableOpacity>
 
         {isAdmin && tournament && (
@@ -112,7 +112,7 @@ export function TournamentStandingsWidget({
             activeOpacity={0.8}
           >
             <Settings2 size={14} color={theme.primary} />
-            <Text style={styles.adminBtnText}>Configurar Desempate</Text>
+            <Text style={styles.adminBtnText}>{t('tournament.config_tiebreaker')}</Text>
           </TouchableOpacity>
         )}
       </View>

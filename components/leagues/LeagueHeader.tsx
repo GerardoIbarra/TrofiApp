@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Settings, MapPin, Navigation } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { openInExternalMaps } from "@/services/mapLinking";
+import { useTranslation } from "react-i18next";
 
 interface LeagueHeaderProps {
   league: League;
@@ -18,6 +19,7 @@ interface LeagueHeaderProps {
 export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
@@ -68,7 +70,7 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
         {/* Region / Status Tag */}
         <View style={styles.seasonTagContainer}>
           <View style={styles.liveTag}>
-            <Text style={styles.liveText}>LIGA ACTIVA</Text>
+            <Text style={styles.liveText}>{t('leagues.live_league', 'LIGA ACTIVA')}</Text>
           </View>
           <TouchableOpacity
             style={styles.regionBtn}

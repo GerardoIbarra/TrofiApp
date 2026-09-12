@@ -161,7 +161,9 @@ export function LeagueTournamentsWidget({
                     {tournament.team_count !== undefined && (
                       <View style={styles.metaItem}>
                         <Trophy size={12} color={theme.textSecondary} />
-                        <Text style={styles.metaText}>{tournament.team_count} Equipos</Text>
+                        <Text style={styles.metaText}>
+                          {t('league_detail.teams_count', { count: tournament.team_count })}
+                        </Text>
                       </View>
                     )}
                   </View>

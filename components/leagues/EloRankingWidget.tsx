@@ -24,7 +24,7 @@ export function EloRankingWidget({ leagueId }: EloRankingWidgetProps) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator color={theme.primary} />
-        <Text style={styles.loadingText}>Cargando Rankings...</Text>
+        <Text style={styles.loadingText}>{t("league_detail.elo_loading")}</Text>
       </View>
     );
   }
@@ -33,7 +33,7 @@ export function EloRankingWidget({ leagueId }: EloRankingWidgetProps) {
     return (
       <View style={styles.emptyContainer}>
         <ShieldAlert size={40} color={theme.textSecondary} opacity={0.3} />
-        <Text style={styles.emptyText}>No hay suficientes datos de Elo para mostrar el ranking aún.</Text>
+        <Text style={styles.emptyText}>{t("league_detail.elo_empty")}</Text>
       </View>
     );
   }
@@ -43,8 +43,8 @@ export function EloRankingWidget({ leagueId }: EloRankingWidgetProps) {
       <View style={styles.header}>
         <TrendingUp size={20} color={theme.primary} />
         <View style={styles.headerTextContainer}>
-          <Text style={styles.title}>Power Ranking Global (ELO)</Text>
-          <Text style={styles.subtitle}>Clasificación actualizada en tiempo real tras cada partido.</Text>
+          <Text style={styles.title}>{t("league_detail.elo_title")}</Text>
+          <Text style={styles.subtitle}>{t("league_detail.elo_subtitle")}</Text>
         </View>
       </View>
 
@@ -52,8 +52,8 @@ export function EloRankingWidget({ leagueId }: EloRankingWidgetProps) {
         <View>
           <View style={styles.tableHeader}>
             <Text style={[styles.headerCell, styles.cellPos]}>#</Text>
-            <Text style={[styles.headerCell, styles.cellTeam]}>Equipo</Text>
-            <Text style={[styles.headerCell, styles.cellElo]}>Puntuación ELO</Text>
+            <Text style={[styles.headerCell, styles.cellTeam]}>{t("league_detail.elo_team")}</Text>
+            <Text style={[styles.headerCell, styles.cellElo]}>{t("league_detail.elo_score")}</Text>
           </View>
 
           {rankings.map((item, index) => {

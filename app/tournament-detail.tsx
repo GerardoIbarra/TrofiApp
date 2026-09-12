@@ -134,7 +134,7 @@ export default function TournamentDetailScreen() {
             }}>
               <Clock size={16} color="#F59E0B" />
               <Text style={{ fontSize: 12, color: '#F59E0B', fontWeight: '700', flex: 1 }}>
-                Torneo Pendiente de Aprobación por Staff de Trofi
+                {t('tournament.pending_approval')}
               </Text>
             </View>
           )}
@@ -156,10 +156,10 @@ export default function TournamentDetailScreen() {
                 <Clock size={18} color="#F59E0B" />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 13, color: '#F59E0B', fontWeight: '800' }}>
-                    Temporada Finalizada
+                    {t('tournament.season_finished')}
                   </Text>
                   <Text style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2 }}>
-                    Crea la nueva temporada clonando configuraciones y equipos.
+                    {t('tournament.season_finished_sub')}
                   </Text>
                 </View>
               </View>
@@ -178,7 +178,7 @@ export default function TournamentDetailScreen() {
               >
                 <Copy size={13} color="#001A2C" />
                 <Text style={{ fontSize: 11, fontWeight: '900', color: '#001A2C' }}>
-                  Nueva Temporada
+                  {t('tournament.new_season')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -208,7 +208,7 @@ export default function TournamentDetailScreen() {
             >
               <Plus size={14} color="#001A2C" />
               <Text style={{ fontSize: 11, fontWeight: '800', color: '#001A2C' }} numberOfLines={1}>
-                Agregar
+                {t('tournament.add')}
               </Text>
             </TouchableOpacity>
 
@@ -231,7 +231,7 @@ export default function TournamentDetailScreen() {
             >
               <Copy size={13} color={theme.text} />
               <Text style={{ fontSize: 11, fontWeight: '700', color: theme.text }} numberOfLines={1}>
-                Clonar
+                {t('tournament.clone')}
               </Text>
             </TouchableOpacity>
 
@@ -254,7 +254,7 @@ export default function TournamentDetailScreen() {
             >
               <Trophy size={13} color="#F59E0B" />
               <Text style={{ fontSize: 11, fontWeight: '800', color: '#F59E0B' }} numberOfLines={1}>
-                Premios
+                {t('tournament.awards')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -267,7 +267,7 @@ export default function TournamentDetailScreen() {
                 style={[styles.tabButton, activeTab === tab && styles.tabActive]}
               >
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {tab === 'AVISOS' ? 'Avisos' : t(`tournament.tab_${tab.toLowerCase()}`)}
+                  {tab === 'AVISOS' ? t('tournament.tab_announcements') : t(`tournament.tab_${tab.toLowerCase()}`)}
                 </Text>
               </TouchableOpacity>
             ))}

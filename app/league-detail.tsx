@@ -166,7 +166,7 @@ export default function LeagueDetailScreen() {
       case "NEWS":
         return <AnnouncementsWidget leagueId={league.id} canManage={canManage} />;
       case "CHAT":
-        return <ChatBox leagueId={league.id} title={`Chat de ${league.name}`} />;
+        return <ChatBox leagueId={league.id} title={t("league_detail.chat_title", { name: league.name })} />;
       default:
         return (
           <View style={styles.comingSoonBox}>
@@ -209,7 +209,7 @@ export default function LeagueDetailScreen() {
             }}>
               <Clock size={16} color="#F59E0B" />
               <Text style={{ fontSize: 12, color: '#F59E0B', fontWeight: '700', flex: 1 }}>
-                Liga Pendiente de Aprobación por Staff de Trofi
+                {t("league_detail.pending_approval")}
               </Text>
             </View>
           )}
@@ -229,7 +229,7 @@ export default function LeagueDetailScreen() {
             }}>
               <AlertTriangle size={16} color="#EF4444" />
               <Text style={{ fontSize: 12, color: '#EF4444', fontWeight: '700', flex: 1 }}>
-                Pago Vencido: Creación de nuevos torneos y calendarios bloqueada
+                {t("league_detail.payment_overdue")}
               </Text>
             </View>
           )}
@@ -246,7 +246,7 @@ export default function LeagueDetailScreen() {
               {leagueAchievements.map((ach) => {
                 const isSpotlight = ach.achievement_type === 'league_spotlight';
                 const isFastest = ach.achievement_type === 'fastest_growing_league';
-                const title = ach.title || (isSpotlight ? 'Liga Destacada de la Semana' : isFastest ? 'Liga de Mayor Crecimiento' : 'Insignia Oficial');
+                const title = ach.title || (isSpotlight ? t("league_detail.spotlight_badge") : isFastest ? t("league_detail.fastest_growing") : t("league_detail.official_badge"));
                 const badgeColor = isSpotlight ? '#F59E0B' : isFastest ? '#10B981' : '#3B82F6';
 
                 return (

@@ -145,7 +145,7 @@ export default function LeaguesExplorerScreen() {
               <View style={styles.searchBar}>
                 <Search size={20} color={theme.textSecondary} />
                 <TextInput
-                  placeholder={t("leagues.search_placeholder") || "Buscar ligas por nombre o ciudad..."}
+                  placeholder={t("leagues.search_placeholder")}
                   placeholderTextColor={theme.textSecondary}
                   style={styles.searchInput}
                   value={searchQuery}
@@ -238,7 +238,7 @@ export default function LeaguesExplorerScreen() {
                           <View style={styles.activeBadge}>
                             <View style={styles.activeDot} />
                             <Text style={styles.activeText}>
-                              {t("leagues.active_badge") || "ACTIVA"}
+                              {t("leagues.active_badge")}
                             </Text>
                           </View>
                         </View>
@@ -473,7 +473,7 @@ export default function LeaguesExplorerScreen() {
                             <View style={styles.metaItem}>
                               <MapPin size={12} color={theme.textSecondary} />
                               <Text style={styles.nearbyMeta} numberOfLines={1}>
-                                {item.city || "Sin ciudad"}
+                                {item.city || t("leagues.no_city")}
                               </Text>
                             </View>
                             {item.distance_km != null && (
@@ -519,11 +519,10 @@ export default function LeaguesExplorerScreen() {
                           style={{ marginBottom: 15 }}
                         />
                         <Text style={styles.emptyStateTitle}>
-                          Explora nuevas arenas
+                          {t("leagues.empty_explore_title")}
                         </Text>
                         <Text style={styles.emptyStateSub}>
-                          No encontramos ligas con ese nombre. Intenta con otra
-                          búsqueda.
+                          {t("leagues.empty_explore_sub")}
                         </Text>
                       </View>
                     )}

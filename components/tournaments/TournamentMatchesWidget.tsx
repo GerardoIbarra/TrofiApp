@@ -29,7 +29,8 @@ export function TournamentMatchesWidget({
   isAdmin,
 }: TournamentMatchesWidgetProps) {
   const { theme, isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'en' ? 'en-US' : 'es-ES';
   const styles = createStyles(theme, isDark);
   const router = useRouter();
 
@@ -107,10 +108,10 @@ export function TournamentMatchesWidget({
             )}
             <Text style={styles.matchDate}>
               {matchDate
-                .toLocaleDateString("es-ES", { day: "numeric", month: "short" })
+                .toLocaleDateString(locale, { day: "numeric", month: "short" })
                 .toUpperCase()}{" "}
               •{" "}
-              {matchDate.toLocaleTimeString("es-ES", {
+              {matchDate.toLocaleTimeString(locale, {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
@@ -212,14 +213,14 @@ export function TournamentMatchesWidget({
             onPress={() => setIsConfigModalVisible(true)}
           >
             <Settings size={14} color={theme.primary} />
-            <Text style={styles.adminBtnText}>Configurar</Text>
+            <Text style={styles.adminBtnText}>{t('tournament.config_schedule')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.adminBtn, { backgroundColor: theme.primary }]} 
             onPress={() => setIsGenerateModalVisible(true)}
           >
             <CalendarPlus size={14} color="#001A2C" />
-            <Text style={[styles.adminBtnText, { color: "#001A2C" }]}>Generar Fixture</Text>
+            <Text style={[styles.adminBtnText, { color: "#001A2C" }]}>{t('tournament.generate_fixture')}</Text>
           </TouchableOpacity>
         </View>
       )}

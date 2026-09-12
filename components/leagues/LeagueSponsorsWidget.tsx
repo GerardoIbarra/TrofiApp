@@ -12,6 +12,7 @@ import { useGetSponsorPlacements } from '@/features/sponsors/services/sponsorApi
 import { PlacementCard } from '@/components/sponsors/PlacementCard';
 import { CreatePlacementModal } from '@/components/sponsors/CreatePlacementModal';
 import { SponsorBanner } from '@/components/sponsors/SponsorBanner';
+import { useTranslation } from 'react-i18next';
 
 interface LeagueSponsorsWidgetProps {
   leagueId: string;
@@ -21,6 +22,7 @@ export const LeagueSponsorsWidget: React.FC<LeagueSponsorsWidgetProps> = ({
   leagueId,
 }) => {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,7 +45,7 @@ export const LeagueSponsorsWidget: React.FC<LeagueSponsorsWidgetProps> = ({
         <View style={styles.badgeRow}>
           <Award size={16} color="#F59E0B" />
           <Text style={[styles.headerTitle, { color: theme.text }]}>
-            Patrocinadores Oficiales
+            {t('league_detail.sponsors_official')}
           </Text>
         </View>
         <TouchableOpacity
@@ -51,7 +53,7 @@ export const LeagueSponsorsWidget: React.FC<LeagueSponsorsWidgetProps> = ({
           onPress={() => setIsModalOpen(true)}
         >
           <Plus size={14} color="#001A2C" />
-          <Text style={styles.applyBtnText}>Pautar Aquí</Text>
+          <Text style={styles.applyBtnText}>{t('league_detail.sponsors_apply')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -73,17 +75,17 @@ export const LeagueSponsorsWidget: React.FC<LeagueSponsorsWidgetProps> = ({
         <View style={[styles.emptyBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }]}>
           <Award size={36} color={theme.textSecondary} opacity={0.3} />
           <Text style={[styles.emptyTitle, { color: theme.text }]}>
-            Espacio disponible para tu marca
+            {t('league_detail.sponsors_empty_title')}
           </Text>
           <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
-            Esta liga tiene habilitada la red publicitaria. Promociona tu negocio o producto ante toda la comunidad.
+            {t('league_detail.sponsors_empty_desc')}
           </Text>
           <TouchableOpacity
             style={[styles.ctaBtn, { backgroundColor: theme.primary }]}
             onPress={() => setIsModalOpen(true)}
           >
             <Plus size={16} color="#001A2C" />
-            <Text style={styles.ctaBtnText}>Pedir Espacio Publicitario</Text>
+            <Text style={styles.ctaBtnText}>{t('league_detail.sponsors_cta')}</Text>
           </TouchableOpacity>
         </View>
       )}

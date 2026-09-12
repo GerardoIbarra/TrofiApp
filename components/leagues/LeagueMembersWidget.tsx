@@ -12,6 +12,7 @@ import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
 import { LeagueMembership } from "@/features/leagues/types/league";
 import { Image } from "expo-image";
+import { useTranslation } from "react-i18next";
 
 interface LeagueMembersWidgetProps {
   leagueId: string;
@@ -19,6 +20,7 @@ interface LeagueMembersWidgetProps {
 
 export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const [members, setMembers] = useState<LeagueMembership[]>([]);
@@ -47,7 +49,7 @@ export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
     return (
       <View style={styles.loader}>
         <ActivityIndicator color={theme.primary} />
-        <Text style={styles.loaderText}>Cargando comunidad...</Text>
+        <Text style={styles.loaderText}>{t("league_detail.members_loading")}</Text>
       </View>
     );
   }
@@ -72,7 +74,7 @@ export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{member.user_name}</Text>
         <Text style={styles.memberRole}>
-          {member.role === "admin" ? "Organizador" : "Jugador Oficial"}
+          {member.role === "admin" ? t("league_detail.role_admin") : t("league_detail.role_player")}
         </Text>
       </View>
       <ChevronRight size={18} color={theme.textSecondary} />
@@ -86,7 +88,7 @@ export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Shield size={18} color={theme.primary} />
-            <Text style={styles.sectionTitle}>DIRECTIVA Y STAFF</Text>
+            <Text style={styles.sectionTitle}>{t("league_detail.board_staff")}</Text>
           </View>
           {admins.map((admin) => (
             <RenderMemberItem key={admin.id} member={admin} />
@@ -98,7 +100,7 @@ export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Users size={18} color={theme.primary} />
-          <Text style={styles.sectionTitle}>JUGADORES REGISTRADOS</Text>
+          <Text style={styles.sectionTitle}>{t("league_detail.registered_players")}</Text>
         </View>
         {players.length > 0 ? (
           players.map((player) => (
@@ -107,7 +109,7 @@ export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
         ) : (
           <View style={styles.emptyBox}>
             <User size={30} color={theme.textSecondary} opacity={0.3} />
-            <Text style={styles.emptyText}>No hay jugadores inscritos en esta liga aún.</Text>
+            <Text style={styles.emptyText}>{t("league_detail.no_players")}</Text>
           </View>
         )}
       </View>

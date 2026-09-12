@@ -87,7 +87,7 @@ export function TournamentTeamsWidget({
           style={styles.enrollButton}
           onPress={() => setIsEnrollModalVisible(true)}
         >
-          <Text style={styles.enrollButtonText}>+ Inscribir Equipo</Text>
+          <Text style={styles.enrollButtonText}>{t('tournament.enroll_team', '+ Inscribir Equipo')}</Text>
         </TouchableOpacity>
       </View>
 

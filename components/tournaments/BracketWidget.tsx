@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useTheme } from "@/context/ThemeContext";
 import { useGetBracket } from "@/features/tournaments/services/playoffApi";
 import { Trophy, ChevronRight, Settings } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   tournamentId: string;
@@ -11,6 +12,7 @@ interface Props {
 
 export function BracketWidget({ tournamentId, isAdmin }: Props) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const { data: bracket, isLoading } = useGetBracket(tournamentId);
@@ -49,10 +51,10 @@ export function BracketWidget({ tournamentId, isAdmin }: Props) {
     return (
       <View style={styles.emptyBox}>
         <Trophy size={40} color={theme.textSecondary} opacity={0.3} />
-        <Text style={styles.emptyText}>El bracket aún no ha sido generado.</Text>
+        <Text style={styles.emptyText}>{t('tournament.bracket_empty')}</Text>
         {isAdmin && (
           <TouchableOpacity style={styles.generateBtn}>
-            <Text style={styles.generateBtnText}>Generar Bracket</Text>
+            <Text style={styles.generateBtnText}>{t('tournament.bracket_generate')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -79,7 +81,7 @@ export function BracketWidget({ tournamentId, isAdmin }: Props) {
                 {isAdmin && (
                   <TouchableOpacity style={styles.adminAssignBtn}>
                     <Settings size={10} color={theme.primary} />
-                    <Text style={styles.adminAssignText}>Editar Cruce</Text>
+                    <Text style={styles.adminAssignText}>{t('tournament.bracket_edit_slot')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
