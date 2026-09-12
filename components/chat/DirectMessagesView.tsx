@@ -24,11 +24,15 @@ import {
   MessageSquare,
   Wifi,
   WifiOff,
+  Flag,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { DirectMessage, ConversationItem, UserBlock } from '@/features/chat/types/chat';
+import { ReportModal } from '@/components/ui/feedback/ReportModal';
+import { EmptyState } from '@/components/ui/feedback/EmptyState';
 import {
   useGetConversations,
   useGetDirectMessages,
@@ -54,6 +58,8 @@ export function DirectMessagesView({
   showListBack = false,
 }: DirectMessagesViewProps) {
   const { theme, isDark } = useTheme();
+  const { i18n } = useTranslation();
+  const isEn = i18n.language?.startsWith('en');
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const currentUser = useAuthStore((state) => state.user);
 
@@ -65,6 +71,7 @@ export function DirectMessagesView({
   const [selectedPhotoBase64, setSelectedPhotoBase64] = useState<string | null>(null);
   const [selectedPhotoUri, setSelectedPhotoUri] = useState<string | null>(null);
   const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<{ id: string; authorId?: string; name?: string; targetType?: 'message' | 'user' } | null>(null);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -293,16 +300,32 @@ export function DirectMessagesView({
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[styles.blockBtn, currentBlockRecord && styles.blockBtnActive]}
-            onPress={handleToggleBlock}
-          >
-            {currentBlockRecord ? (
-              <ShieldAlert size={18} color="#EF4444" />
-            ) : (
-              <ShieldCheck size={18} color={theme.textSecondary} />
-            )}
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <TouchableOpacity
+              style={styles.blockBtn}
+              onPress={() => setReportTarget({
+                id: activeUser.id,
+                name: activeUser.name,
+                authorId: activeUser.id,
+                targetType: 'user',
+              })}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Flag size={18} color={theme.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.blockBtn, currentBlockRecord && styles.blockBtnActive]}
+              onPress={handleToggleBlock}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              {currentBlockRecord ? (
+                <ShieldAlert size={18} color="#EF4444" />
+              ) : (
+                <ShieldCheck size={18} color={theme.textSecondary} />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         {currentBlockRecord && (
@@ -488,19 +511,22 @@ export function DirectMessagesView({
         <Text style={styles.conversationsHeaderTitle}>Mensajes Directos</Text>
       </View>
 
-      {isLoadingConversations ? (
+      {/* Conversations List */}
+      {isLoadingConversations && (!conversations || (conversations as ConversationItem[]).length === 0) ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="small" color={theme.primary} />
-          <Text style={styles.loadingText}>Cargando conversaciones...</Text>
+          <Text style={styles.loadingText}>{isEn ? 'Loading conversations...' : 'Cargando conversaciones...'}</Text>
         </View>
-      ) : !conversations || conversations.length === 0 ? (
-        <View style={styles.centerContainer}>
-          <MessageSquare size={40} color={theme.textSecondary} />
-          <Text style={styles.emptyTitle}>Sin mensajes directos</Text>
-          <Text style={styles.emptySubtitle}>
-            Puedes iniciar un mensaje directo visitando el perfil de un jugador o árbitro.
-          </Text>
-        </View>
+      ) : !conversations || (conversations as ConversationItem[]).length === 0 ? (
+        <EmptyState
+          icon={MessageSquare}
+          title={isEn ? 'No direct messages' : 'Sin mensajes directos'}
+          description={
+            isEn
+              ? 'You can start a direct conversation by visiting a player, captain or referee profile.'
+              : 'Puedes iniciar un mensaje directo visitando el perfil de un jugador, capitán o árbitro.'
+          }
+        />
       ) : (
         <FlatList
           data={conversations}
@@ -548,6 +574,16 @@ export function DirectMessagesView({
           )}
         />
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        visible={Boolean(reportTarget)}
+        onClose={() => setReportTarget(null)}
+        targetType={reportTarget?.targetType || 'user'}
+        targetId={reportTarget?.id || ''}
+        targetName={reportTarget?.name}
+        authorId={reportTarget?.authorId}
+      />
     </View>
   );
 }

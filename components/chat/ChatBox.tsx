@@ -13,8 +13,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Send, Image as ImageIcon, X, AlertCircle, Wifi, WifiOff } from 'lucide-react-native';
+import { Send, Image as ImageIcon, X, AlertCircle, Wifi, WifiOff, MessageSquare, Flag } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { ChatMessage } from '@/features/chat/types/chat';
@@ -23,8 +24,11 @@ import {
   useSendTeamChatMessage,
   useGetLeagueChat,
   useSendLeagueChatMessage,
+  useBlockUser,
 } from '@/features/chat/services/chatApi';
 import { useChatWebSocket } from '@/features/chat/hooks/useChatWebSocket';
+import { ReportModal } from '@/components/ui/feedback/ReportModal';
+import { EmptyState } from '@/components/ui/feedback/EmptyState';
 
 interface ChatBoxProps {
   teamId?: string;
@@ -34,6 +38,8 @@ interface ChatBoxProps {
 
 export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
   const { theme, isDark } = useTheme();
+  const { i18n } = useTranslation();
+  const isEn = i18n.language?.startsWith('en');
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const currentUser = useAuthStore((state) => state.user);
 
@@ -41,7 +47,9 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
   const [selectedPhotoBase64, setSelectedPhotoBase64] = useState<string | null>(null);
   const [selectedPhotoUri, setSelectedPhotoUri] = useState<string | null>(null);
   const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<{ id: string; authorId?: string; name?: string } | null>(null);
 
+  const blockMutation = useBlockUser();
   const flatListRef = useRef<FlatList>(null);
 
   // 1. REST Queries
@@ -159,6 +167,61 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
     }
   };
 
+  const handleMessageOptions = (item: ChatMessage) => {
+    Alert.alert(
+      isEn ? 'Message Options' : 'Opciones del Mensaje',
+      item.sender_name ? `${isEn ? 'From' : 'De'}: ${item.sender_name}` : undefined,
+      [
+        {
+          text: isEn ? 'Report Message' : 'Reportar Mensaje',
+          style: 'destructive',
+          onPress: () => {
+            setReportTarget({
+              id: item.id,
+              authorId: item.sender !== 'me' ? item.sender : undefined,
+              name: item.body ? `"${item.body.slice(0, 30)}..."` : 'Mensaje multimedia',
+            });
+          },
+        },
+        {
+          text: isEn ? 'Block User' : 'Bloquear Usuario',
+          style: 'destructive',
+          onPress: () => {
+            if (item.sender && item.sender !== 'me') {
+              Alert.alert(
+                isEn ? 'Block User' : 'Bloquear Usuario',
+                isEn
+                  ? 'Are you sure you want to block this user?'
+                  : '¿Estás seguro de que deseas bloquear a este usuario?',
+                [
+                  { text: isEn ? 'Cancel' : 'Cancelar', style: 'cancel' },
+                  {
+                    text: isEn ? 'Block' : 'Bloquear',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        await blockMutation.mutateAsync({ blocked: item.sender });
+                        Alert.alert(
+                          isEn ? 'User Blocked' : 'Usuario Bloqueado',
+                          isEn
+                            ? 'You will no longer see messages from this user.'
+                            : 'Ya no verás mensajes de este usuario.'
+                        );
+                      } catch (_) {
+                        Alert.alert('Error', isEn ? 'Could not block user' : 'No se pudo bloquear');
+                      }
+                    },
+                  },
+                ]
+              );
+            }
+          },
+        },
+        { text: isEn ? 'Cancel' : 'Cancelar', style: 'cancel' },
+      ]
+    );
+  };
+
   if (isPermissionDenied) {
     return (
       <View style={styles.permissionCard}>
@@ -206,10 +269,11 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
           <Text style={styles.loadingText}>Cargando mensajes...</Text>
         </View>
       ) : allMessages.length === 0 ? (
-        <View style={styles.centerContainer}>
-          <Text style={styles.emptyTitle}>No hay mensajes aún</Text>
-          <Text style={styles.emptySubtitle}>Sé el primero en escribir en el chat.</Text>
-        </View>
+        <EmptyState
+          icon={MessageSquare}
+          title={isEn ? 'No messages yet' : 'No hay mensajes aún'}
+          description={isEn ? 'Be the first one to send a message to the group.' : 'Sé el primero en escribir en el chat.'}
+        />
       ) : (
         <FlatList
           ref={flatListRef}
@@ -225,13 +289,27 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
 
             return (
               <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
-                <View
+                <TouchableOpacity
+                  activeOpacity={isMe ? 1 : 0.85}
+                  onLongPress={!isMe ? () => handleMessageOptions(item) : undefined}
+                  delayLongPress={350}
                   style={[
                     styles.messageBubble,
                     isMe ? styles.messageBubbleMe : styles.messageBubbleOther,
                   ]}
                 >
-                  {!isMe && <Text style={styles.senderName}>{item.sender_name || 'Miembro'}</Text>}
+                  {!isMe && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={styles.senderName}>{item.sender_name || 'Miembro'}</Text>
+                      <TouchableOpacity
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        onPress={() => handleMessageOptions(item)}
+                        style={{ marginLeft: 8 }}
+                      >
+                        <Flag size={12} color={theme.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
 
                   {Boolean(item.photo) && (
                     <TouchableOpacity
@@ -265,7 +343,7 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
                   >
                     {timeStr}
                   </Text>
-                </View>
+                </TouchableOpacity>
               </View>
             );
           }}
@@ -349,6 +427,16 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
           )}
         </View>
       </Modal>
+
+      {/* Report Modal */}
+      <ReportModal
+        visible={Boolean(reportTarget)}
+        onClose={() => setReportTarget(null)}
+        targetType="message"
+        targetId={reportTarget?.id || ''}
+        targetName={reportTarget?.name}
+        authorId={reportTarget?.authorId}
+      />
     </KeyboardAvoidingView>
   );
 }
