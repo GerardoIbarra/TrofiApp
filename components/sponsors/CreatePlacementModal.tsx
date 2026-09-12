@@ -26,6 +26,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { PlacementType } from '@/features/sponsors/types/sponsor';
 import { useCreateSponsorPlacement } from '@/features/sponsors/services/sponsorApi';
+import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
 
 interface CreatePlacementModalProps {
@@ -46,6 +47,8 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
   preselectedTeamId,
 }) => {
   const { theme, isDark } = useTheme();
+  const { i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
@@ -160,19 +163,19 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
     if (targetType === 'league') {
       if (!selectedLeagueId) {
-        Alert.alert('Error', 'Debes seleccionar una liga.');
+        Alert.alert(isEn ? 'Error' : 'Error', isEn ? 'You must select a league.' : 'Debes seleccionar una liga.');
         return;
       }
       leagueTarget = selectedLeagueId;
     } else if (targetType === 'tournament') {
       if (!selectedTournamentId) {
-        Alert.alert('Error', 'Debes seleccionar un torneo.');
+        Alert.alert(isEn ? 'Error' : 'Error', isEn ? 'You must select a tournament.' : 'Debes seleccionar un torneo.');
         return;
       }
       tournamentTarget = selectedTournamentId;
     } else if (targetType === 'team') {
       if (!selectedTeamId) {
-        Alert.alert('Error', 'Debes seleccionar un equipo.');
+        Alert.alert(isEn ? 'Error' : 'Error', isEn ? 'You must select a team.' : 'Debes seleccionar un equipo.');
         return;
       }
       teamTarget = selectedTeamId;
@@ -181,8 +184,10 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
     // 2. Pre-check sponsors_enabled
     if (isSponsorsDisabled) {
       Alert.alert(
-        'Patrocinios Deshabilitados',
-        `La liga "${governingLeague?.name || ''}" no tiene habilitada la función de patrocinadores (sponsors_enabled = false). El pedido será rechazado con 400.`
+        isEn ? 'Sponsorships Disabled' : 'Patrocinios Deshabilitados',
+        isEn
+          ? `The league "${governingLeague?.name || ''}" does not have sponsorships enabled (sponsors_enabled = false).`
+          : `La liga "${governingLeague?.name || ''}" no tiene habilitada la función de patrocinadores (sponsors_enabled = false). El pedido será rechazado con 400.`
       );
       return;
     }
@@ -206,8 +211,10 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
     createMutation.mutate(payload, {
       onSuccess: () => {
         Alert.alert(
-          '¡Espacio Solicitado!',
-          'El espacio publicitario ha sido creado exitosamente con métricas activadas.'
+          isEn ? 'Placement Requested!' : '¡Espacio Solicitado!',
+          isEn
+            ? 'The sponsor placement has been requested successfully with active analytics.'
+            : 'El espacio publicitario ha sido creado exitosamente con métricas activadas.'
         );
         onClose();
       },
@@ -216,8 +223,8 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
           err?.response?.data?.detail ||
           err?.response?.data?.error ||
           err?.message ||
-          'Ocurrió un error al solicitar el espacio publicitario.';
-        Alert.alert('Error al solicitar patrocinio', detail);
+          (isEn ? 'An error occurred while requesting the sponsor placement.' : 'Ocurrió un error al solicitar el espacio publicitario.');
+        Alert.alert(isEn ? 'Error requesting sponsorship' : 'Error al solicitar patrocinio', detail);
       },
     });
   };
@@ -225,18 +232,24 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
   const PLACEMENT_TYPES: { type: PlacementType; label: string; desc: string }[] = [
     {
       type: 'standings_banner',
-      label: 'Banner en Tabla de Posiciones',
-      desc: 'Visible para todos los jugadores y fans al consultar clasificaciones.',
+      label: isEn ? 'Standings Table Banner' : 'Banner en Tabla de Posiciones',
+      desc: isEn
+        ? 'Visible to all players and fans browsing standings.'
+        : 'Visible para todos los jugadores y fans al consultar clasificaciones.',
     },
     {
       type: 'match_banner',
-      label: 'Banner en Detalle del Partido',
-      desc: 'Alta visibilidad durante convocatorias, alineaciones y resultados.',
+      label: isEn ? 'Match Detail Banner' : 'Banner en Detalle del Partido',
+      desc: isEn
+        ? 'High visibility during rosters, lineups, and match results.'
+        : 'Alta visibilidad durante convocatorias, alineaciones y resultados.',
     },
     {
       type: 'share_card',
-      label: 'Tarjeta Compartible',
-      desc: 'Presencia de marca al exportar y compartir tarjetas de partidos o equipos.',
+      label: isEn ? 'Shareable Card Sponsor' : 'Tarjeta Compartible',
+      desc: isEn
+        ? 'Brand presence when exporting and sharing match or team cards.'
+        : 'Presencia de marca al exportar y compartir tarjetas de partidos o equipos.',
     },
   ];
 
@@ -248,7 +261,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
             <View style={styles.headerTitleRow}>
               <Award size={22} color={theme.primary} />
               <Text style={[styles.title, { color: theme.text }]}>
-                Pedir Espacio Publicitario
+                {isEn ? 'Request Sponsor Placement' : 'Pedir Espacio Publicitario'}
               </Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -260,7 +273,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color={theme.primary} />
               <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-                Cargando ligas, torneos y equipos...
+                {isEn ? 'Loading leagues, tournaments, and teams...' : 'Cargando ligas, torneos y equipos...'}
               </Text>
             </View>
           ) : (
@@ -270,7 +283,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
             >
               {/* Target Type Selector: League | Tournament | Team */}
               <Text style={[styles.sectionTitle, { color: theme.text }]}>
-                1. ¿Dónde deseas pautar? (Exactamente uno)
+                {isEn ? '1. Where do you want to place ads? (Exactly one)' : '1. ¿Dónde deseas pautar? (Exactamente uno)'}
               </Text>
               <View style={styles.targetTypeRow}>
                 <TouchableOpacity
@@ -293,7 +306,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                       { color: targetType === 'league' ? '#001A2C' : theme.text },
                     ]}
                   >
-                    Liga
+                    {isEn ? 'League' : 'Liga'}
                   </Text>
                 </TouchableOpacity>
 
@@ -317,7 +330,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                       { color: targetType === 'tournament' ? '#001A2C' : theme.text },
                     ]}
                   >
-                    Torneo
+                    {isEn ? 'Tournament' : 'Torneo'}
                   </Text>
                 </TouchableOpacity>
 
@@ -341,7 +354,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                       { color: targetType === 'team' ? '#001A2C' : theme.text },
                     ]}
                   >
-                    Equipo
+                    {isEn ? 'Team' : 'Equipo'}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -351,7 +364,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                 {targetType === 'league' && (
                   <View>
                     <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>
-                      Selecciona la Liga:
+                      {isEn ? 'Select League:' : 'Selecciona la Liga:'}
                     </Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
                       {leaguesList.map((item) => {
@@ -386,7 +399,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                 {targetType === 'tournament' && (
                   <View>
                     <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>
-                      Selecciona el Torneo:
+                      {isEn ? 'Select Tournament:' : 'Selecciona el Torneo:'}
                     </Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
                       {tournamentsList.map((item) => {
@@ -421,7 +434,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                 {targetType === 'team' && (
                   <View>
                     <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>
-                      Selecciona el Equipo:
+                      {isEn ? 'Select Team:' : 'Selecciona el Equipo:'}
                     </Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
                       {teamsList.map((item) => {
@@ -459,9 +472,13 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                 <View style={styles.warningBanner}>
                   <AlertTriangle size={18} color="#EF4444" />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.warningTitle}>Patrocinios no disponibles</Text>
+                    <Text style={styles.warningTitle}>
+                      {isEn ? 'Sponsorships Unavailable' : 'Patrocinios no disponibles'}
+                    </Text>
                     <Text style={styles.warningDesc}>
-                      La liga dueña ({governingLeague?.name}) tiene desactivada la opción de patrocinadores (sponsors_enabled = false).
+                      {isEn
+                        ? `The governing league (${governingLeague?.name}) has sponsorships disabled (sponsors_enabled = false).`
+                        : `La liga dueña (${governingLeague?.name}) tiene desactivada la opción de patrocinadores (sponsors_enabled = false).`}
                     </Text>
                   </View>
                 </View>
@@ -469,7 +486,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
               {/* 2. Placement Type */}
               <Text style={[styles.sectionTitle, { color: theme.text, marginTop: 16 }]}>
-                2. Tipo de Espacio Publicitario
+                {isEn ? '2. Placement Type' : '2. Tipo de Espacio Publicitario'}
               </Text>
               <View style={styles.typesColumn}>
                 {PLACEMENT_TYPES.map((pt) => {
@@ -509,7 +526,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
               {/* 3. Duration */}
               <Text style={[styles.sectionTitle, { color: theme.text, marginTop: 16 }]}>
-                3. Duración del Contrato
+                {isEn ? '3. Contract Duration' : '3. Duración del Contrato'}
               </Text>
               <View style={styles.durationRow}>
                 {[30, 60, 90, 180].map((days) => {
@@ -529,7 +546,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                           { color: active ? '#001A2C' : theme.text },
                         ]}
                       >
-                        {days} días
+                        {days} {isEn ? 'days' : 'días'}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -538,12 +555,12 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
               {/* 4. Creative Details */}
               <Text style={[styles.sectionTitle, { color: theme.text, marginTop: 16 }]}>
-                4. Detalles de la Publicidad (Opcional)
+                {isEn ? '4. Ad Creative Details (Optional)' : '4. Detalles de la Publicidad (Opcional)'}
               </Text>
 
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                  Título Promocional o Eslogan
+                  {isEn ? 'Promotional Title or Slogan' : 'Título Promocional o Eslogan'}
                 </Text>
                 <TextInput
                   style={[
@@ -553,7 +570,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
                     },
                   ]}
-                  placeholder="Ej: Gatorade - Hidratación Oficial"
+                  placeholder={isEn ? 'e.g. Gatorade - Official Hydration' : 'Ej: Gatorade - Hidratación Oficial'}
                   placeholderTextColor={theme.textSecondary}
                   value={title}
                   onChangeText={setTitle}
@@ -562,7 +579,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                  URL de Imagen / Banner
+                  {isEn ? 'Image / Banner URL' : 'URL de Imagen / Banner'}
                 </Text>
                 <TextInput
                   style={[
@@ -582,7 +599,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                  URL de Redirección al Tocar (Click)
+                  {isEn ? 'Click Redirect URL' : 'URL de Redirección al Tocar (Click)'}
                 </Text>
                 <TextInput
                   style={[
@@ -592,7 +609,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
                     },
                   ]}
-                  placeholder="https://marca.com/promo"
+                  placeholder="https://brand.com/promo"
                   placeholderTextColor={theme.textSecondary}
                   value={redirectUrl}
                   onChangeText={setRedirectUrl}
@@ -612,7 +629,9 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
                 {createMutation.isPending ? (
                   <ActivityIndicator size="small" color="#001A2C" />
                 ) : (
-                  <Text style={styles.submitBtnText}>Confirmar y Pedir Espacio</Text>
+                  <Text style={styles.submitBtnText}>
+                    {isEn ? 'Confirm & Request Placement' : 'Confirmar y Pedir Espacio'}
+                  </Text>
                 )}
               </TouchableOpacity>
             </ScrollView>

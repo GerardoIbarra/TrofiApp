@@ -55,17 +55,17 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
 
   const handleCreate = () => {
     if (!league) {
-      Alert.alert('Error', t('market.error_no_league'));
+      Alert.alert(t('common.error', 'Error'), t('market.error_no_league'));
       return;
     }
     
     if (listingType === 'team_seeking_player' && !team) {
-      Alert.alert('Error', t('market.error_no_team'));
+      Alert.alert(t('common.error', 'Error'), t('market.error_no_team'));
       return;
     }
     
     if (listingType === 'player_seeking_team' && !(user as any)?.player_profile_id) {
-      Alert.alert('Error', t('market.error_no_player_profile'));
+      Alert.alert(t('common.error', 'Error'), t('market.error_no_player_profile'));
       return;
     }
 
@@ -80,11 +80,11 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
       },
       {
         onSuccess: () => {
-          Alert.alert('Éxito', t('market.success_msg'));
+          Alert.alert(t('common.success', 'Éxito'), t('market.success_msg'));
           onClose();
         },
         onError: (err: any) => {
-          Alert.alert('Error', err?.response?.data?.detail || t('market.error_creation'));
+          Alert.alert(t('common.error', 'Error'), err?.response?.data?.detail || t('market.error_creation'));
         }
       }
     );

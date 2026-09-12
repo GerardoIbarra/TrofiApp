@@ -31,10 +31,13 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useGetSponsorPlacements } from '@/features/sponsors/services/sponsorApi';
 import { PlacementCard } from '@/components/sponsors/PlacementCard';
 import { CreatePlacementModal } from '@/components/sponsors/CreatePlacementModal';
+import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
 
 export default function SponsorPlacementsScreen() {
   const { theme, isDark } = useTheme();
+  const { i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
@@ -59,7 +62,10 @@ export default function SponsorPlacementsScreen() {
   const handleCreateSponsorProfile = async () => {
     const trimmed = companyName.trim();
     if (!trimmed) {
-      Alert.alert('Nombre requerido', 'Por favor ingresa el nombre de tu empresa o marca.');
+      Alert.alert(
+        isEn ? 'Name required' : 'Nombre requerido',
+        isEn ? 'Please enter your company or brand name.' : 'Por favor ingresa el nombre de tu empresa o marca.'
+      );
       return;
     }
 
@@ -72,13 +78,16 @@ export default function SponsorPlacementsScreen() {
       useAuthStore.setState({ user: meRes });
       setIsSponsorModalVisible(false);
       setCompanyName('');
-      Alert.alert('¡Perfil Creado!', 'Ya tienes tu perfil de Sponsor activo.');
+      Alert.alert(
+        isEn ? 'Profile Created!' : '¡Perfil Creado!',
+        isEn ? 'Your Sponsor profile is now active.' : 'Ya tienes tu perfil de Sponsor activo.'
+      );
     } catch (err: any) {
       const errMsg =
         err?.response?.data?.company_name?.[0] ||
         err?.response?.data?.detail ||
-        'Hubo un error al crear tu perfil de sponsor.';
-      Alert.alert('Error', errMsg);
+        (isEn ? 'There was an error creating your sponsor profile.' : 'Hubo un error al crear tu perfil de sponsor.');
+      Alert.alert(isEn ? 'Error' : 'Error', errMsg);
     } finally {
       setIsCreatingProfile(false);
     }
@@ -107,7 +116,7 @@ export default function SponsorPlacementsScreen() {
             onPress={() => setIsCreateModalVisible(true)}
           >
             <Plus size={18} color="#001A2C" />
-            <Text style={styles.addBtnText}>Nuevo</Text>
+            <Text style={styles.addBtnText}>{isEn ? 'New' : 'Nuevo'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -117,17 +126,19 @@ export default function SponsorPlacementsScreen() {
             <Megaphone size={20} color={theme.primary} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.onboardingTitle, { color: theme.text }]}>
-                Perfil de Sponsor
+                {isEn ? 'Sponsor Profile' : 'Perfil de Sponsor'}
               </Text>
               <Text style={[styles.onboardingText, { color: theme.textSecondary }]}>
-                Para asociar tus marcas y solicitar patrocinios necesitas activar tu perfil de Sponsor.
+                {isEn
+                  ? 'To link your brands and request sponsorships, you need to activate your Sponsor profile.'
+                  : 'Para asociar tus marcas y solicitar patrocinios necesitas activar tu perfil de Sponsor.'}
               </Text>
             </View>
             <TouchableOpacity
               style={[styles.createProfileBtn, { backgroundColor: theme.primary }]}
               onPress={() => setIsSponsorModalVisible(true)}
             >
-              <Text style={styles.createProfileBtnText}>Activar</Text>
+              <Text style={styles.createProfileBtnText}>{isEn ? 'Activate' : 'Activar'}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -154,7 +165,7 @@ export default function SponsorPlacementsScreen() {
                 { color: filterType === 'my' ? theme.primary : theme.textSecondary },
               ]}
             >
-              Mis Espacios
+              {isEn ? 'My Placements' : 'Mis Espacios'}
             </Text>
           </TouchableOpacity>
 
@@ -178,7 +189,7 @@ export default function SponsorPlacementsScreen() {
                 { color: filterType === 'all' ? theme.primary : theme.textSecondary },
               ]}
             >
-              Explorar Activos
+              {isEn ? 'Explore Active' : 'Explorar Activos'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -189,7 +200,7 @@ export default function SponsorPlacementsScreen() {
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-            Cargando espacios publicitarios...
+            {isEn ? 'Loading sponsor placements...' : 'Cargando espacios publicitarios...'}
           </Text>
         </View>
       ) : (
@@ -208,19 +219,25 @@ export default function SponsorPlacementsScreen() {
             <View style={styles.emptyContainer}>
               <Award size={48} color={theme.textSecondary} opacity={0.3} />
               <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                No hay espacios publicitarios
+                {isEn ? 'No sponsor placements' : 'No hay espacios publicitarios'}
               </Text>
               <Text style={[styles.emptySubtitle, { color: theme.textSecondary }]}>
                 {filterType === 'my'
-                  ? 'Aún no has solicitado ningún espacio publicitario. Toca en "Nuevo" para comenzar.'
-                  : 'No se encontraron espacios publicitarios activos.'}
+                  ? (isEn
+                      ? 'You have not requested any sponsor placement yet. Tap "New" to start.'
+                      : 'Aún no has solicitado ningún espacio publicitario. Toca en "Nuevo" para comenzar.')
+                  : (isEn
+                      ? 'No active sponsor placements found.'
+                      : 'No se encontraron espacios publicitarios activos.')}
               </Text>
               <TouchableOpacity
                 style={[styles.emptyBtn, { backgroundColor: theme.primary }]}
                 onPress={() => setIsCreateModalVisible(true)}
               >
                 <Plus size={16} color="#001A2C" />
-                <Text style={styles.emptyBtnText}>Pedir Espacio Publicitario</Text>
+                <Text style={styles.emptyBtnText}>
+                  {isEn ? 'Request Placement' : 'Pedir Espacio Publicitario'}
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -252,7 +269,7 @@ export default function SponsorPlacementsScreen() {
               <View style={styles.modalTitleRow}>
                 <Building2 size={20} color={theme.primary} />
                 <Text style={[styles.modalTitle, { color: theme.text }]}>
-                  Activar Perfil Sponsor
+                  {isEn ? 'Activate Sponsor Profile' : 'Activar Perfil Sponsor'}
                 </Text>
               </View>
               <TouchableOpacity
@@ -264,12 +281,14 @@ export default function SponsorPlacementsScreen() {
             </View>
 
             <Text style={[styles.modalSubtitle, { color: theme.textSecondary }]}>
-              Ingresa el nombre de tu empresa o marca patrocinadora.
+              {isEn
+                ? 'Enter your company or brand name.'
+                : 'Ingresa el nombre de tu empresa o marca patrocinadora.'}
             </Text>
 
             <View style={styles.inputContainer}>
               <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                Nombre de la Empresa *
+                {isEn ? 'Company Name *' : 'Nombre de la Empresa *'}
               </Text>
               <TextInput
                 style={[
@@ -280,7 +299,7 @@ export default function SponsorPlacementsScreen() {
                     borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
                   },
                 ]}
-                placeholder="Ej. Nike, Deportes Express, etc."
+                placeholder={isEn ? 'e.g. Nike, Sports Express, etc.' : 'Ej. Nike, Deportes Express, etc.'}
                 placeholderTextColor={theme.textSecondary}
                 value={companyName}
                 onChangeText={setCompanyName}
@@ -298,7 +317,7 @@ export default function SponsorPlacementsScreen() {
                 disabled={isCreatingProfile}
               >
                 <Text style={[styles.modalCancelText, { color: theme.textSecondary }]}>
-                  Cancelar
+                  {isEn ? 'Cancel' : 'Cancelar'}
                 </Text>
               </TouchableOpacity>
 
@@ -310,7 +329,9 @@ export default function SponsorPlacementsScreen() {
                 {isCreatingProfile ? (
                   <ActivityIndicator size="small" color="#001A2C" />
                 ) : (
-                  <Text style={styles.modalSubmitText}>Activar Perfil</Text>
+                  <Text style={styles.modalSubmitText}>
+                    {isEn ? 'Activate Profile' : 'Activar Perfil'}
+                  </Text>
                 )}
               </TouchableOpacity>
             </View>
