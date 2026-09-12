@@ -1,6 +1,6 @@
 import { QueryClient, QueryCache, MutationCache, onlineManager } from '@tanstack/react-query';
 import NetInfo from '@react-native-community/netinfo';
-import { logger } from './logger';
+import { logger, isCancellationError } from './logger';
 
 // Configure online manager for React Native
 onlineManager.setEventListener((setOnline) => {
@@ -12,6 +12,9 @@ onlineManager.setEventListener((setOnline) => {
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
+      if (isCancellationError(error)) {
+        return;
+      }
       logger.error('query', `Query failed: ${JSON.stringify(query.queryKey)}`, error, {
         queryKey: query.queryKey,
       });
@@ -19,6 +22,9 @@ export const queryClient = new QueryClient({
   }),
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
+      if (isCancellationError(error)) {
+        return;
+      }
       const key = mutation.options.mutationKey ? JSON.stringify(mutation.options.mutationKey) : 'mutation';
       logger.error('mutation', `Mutation failed: ${key}`, error);
     },

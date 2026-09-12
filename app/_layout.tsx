@@ -27,6 +27,7 @@ LogBox.ignoreLogs([
 import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
 import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
 import * as Sentry from "@sentry/react-native";
+import { isCancellationError } from "@/services/logger";
 
 const isNativeSentryAvailable = Boolean(
   typeof NativeModules !== "undefined" &&
@@ -50,6 +51,36 @@ try {
     replaysSessionSampleRate: isNativeSentryAvailable ? 1.0 : 0,
     replaysOnErrorSampleRate: isNativeSentryAvailable ? 1.0 : 0,
     enableAutoSessionTracking: true,
+    ignoreErrors: [
+      "UnexpectedException: cancelled",
+      "cancelled (at ExpoModulesCore/Promise.swift:56)",
+      /UnexpectedException:\s*cancelled/i,
+      /ExpoModulesCore\/Promise\.swift/i,
+      /AbortError/i,
+      /The operation was cancelled/i,
+      /The operation was canceled/i,
+      /NSURLErrorDomain error -999/i,
+    ],
+    beforeSend(event, hint) {
+      const error = hint?.originalException;
+      if (isCancellationError(error)) {
+        return null;
+      }
+      const values = event.exception?.values || [];
+      for (const val of values) {
+        if (
+          val.value &&
+          (/cancelled/i.test(val.value) &&
+            (/ExpoModulesCore/i.test(val.value) ||
+              /UnexpectedException/i.test(val.value) ||
+              /fetch failed/i.test(val.value) ||
+              /Promise\.swift/i.test(val.value)))
+        ) {
+          return null;
+        }
+      }
+      return event;
+    },
     integrations: [
       navigationIntegration,
       ...(isNativeSentryAvailable ? [
@@ -85,10 +116,14 @@ function useUpdateGate() {
 
       try {
         const check = (async () => {
-          const { isAvailable } = await Updates.checkForUpdateAsync();
-          if (isAvailable) {
-            await Updates.fetchUpdateAsync();
-            await Updates.reloadAsync();
+          try {
+            const { isAvailable } = await Updates.checkForUpdateAsync();
+            if (isAvailable) {
+              await Updates.fetchUpdateAsync();
+              await Updates.reloadAsync();
+            }
+          } catch (updateErr) {
+            console.warn("OTA update check skipped/failed:", updateErr);
           }
         })();
 

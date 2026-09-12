@@ -2,6 +2,46 @@ import * as Sentry from '@sentry/react-native';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
+/**
+ * Detects harmless network/lifecycle cancellations (unmounted components, aborted queries, iOS NSURLSession cancellation).
+ */
+export function isCancellationError(error: unknown): boolean {
+  if (!error) return false;
+
+  const err = error as any;
+
+  if (err.name === 'AbortError' || err.name === 'CanceledError' || err.code === 'ERR_CANCELED') {
+    return true;
+  }
+
+  const checkText = (text: unknown): boolean => {
+    if (typeof text !== 'string') return false;
+    const lower = text.toLowerCase();
+    return (
+      lower.includes('unexpectedexception: cancelled') ||
+      lower.includes('expomodulescore/promise.swift') ||
+      lower.includes('the operation was cancelled') ||
+      lower.includes('the operation was canceled') ||
+      lower.includes('nsurlerrordomain error -999') ||
+      lower.includes('aborterror') ||
+      lower.includes('the user aborted a request') ||
+      lower.includes('operation aborted') ||
+      (lower.includes('fetch failed') && lower.includes('cancelled'))
+    );
+  };
+
+  if (checkText(err.message)) return true;
+  if (checkText(err.description)) return true;
+  if (checkText(err.reason)) return true;
+  if (checkText(String(error))) return true;
+
+  if (err.cause && isCancellationError(err.cause)) {
+    return true;
+  }
+
+  return false;
+}
+
 class LoggerService {
   /**
    * Log informational event and add breadcrumb to Sentry.
@@ -58,6 +98,13 @@ class LoggerService {
     error?: unknown,
     data?: Record<string, any>
   ) {
+    if (isCancellationError(error)) {
+      if (__DEV__ && process.env.EXPO_PUBLIC_DEBUG_LOGS === 'true') {
+        console.log(`[${category.toUpperCase()}] Ignored cancellation: ${message}`);
+      }
+      return;
+    }
+
     console.error(`[${category.toUpperCase()}] ${message}`, error, data ? JSON.stringify(data) : '');
 
     try {

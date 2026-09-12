@@ -1,6 +1,6 @@
 import { AuthStorage } from '@/features/auth/services/authStorage';
 import { LocationService } from './locationService';
-import { logger } from './logger';
+import { logger, isCancellationError } from './logger';
 import { metrics } from './metrics';
 
 /**
@@ -82,7 +82,15 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     hasBody: Boolean(body),
   });
 
-  let response = await fetchRequest();
+  let response: Response;
+  try {
+    response = await fetchRequest();
+  } catch (fetchErr: any) {
+    if (isCancellationError(fetchErr)) {
+      logger.info('http', `Request cancelled: ${method} ${endpoint}`);
+    }
+    throw fetchErr;
+  }
   metrics.trackApiRequest(endpoint, method, Date.now() - startTime, response.status);
 
   // 2. Handle Unauthorized (401) - Silent Refresh
@@ -200,7 +208,7 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     error.status = response.status;
     error.data = errorData || { message: errorMessage };
 
-    if (!options.silent) {
+    if (!options.silent && !isCancellationError(error)) {
       logger.error('api', `[API ${response.status}] ${endpoint}: ${errorMessage}`, error, {
         status: response.status,
         endpoint,

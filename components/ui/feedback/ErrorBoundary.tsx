@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AlertCircle, RefreshCw } from 'lucide-react-native';
 import * as Updates from 'expo-updates';
 import * as Sentry from '@sentry/react-native';
+import { isCancellationError } from '@/services/logger';
 
 interface Props {
   children: ReactNode;
@@ -38,7 +39,9 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("[Global Error]", error, errorInfo);
     try {
-      Sentry.captureException(error, { extra: errorInfo as any });
+      if (!isCancellationError(error)) {
+        Sentry.captureException(error, { extra: errorInfo as any });
+      }
     } catch (_) {}
   }
 
