@@ -142,21 +142,63 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
       try {
         errorData = JSON.parse(text);
       } catch {
-        if (text.includes('<!DOCTYPE') || text.includes('<html')) {
-          errorData = { message: `HTML Error (${response.status} ${response.statusText || 'Service Unavailable'})` };
-        } else {
-          errorData = { message: text };
+        errorData = null;
+      }
+    }
+
+    let errorMessage = '';
+    if (errorData && typeof errorData === 'object') {
+      if (typeof errorData.detail === 'string') {
+        errorMessage = errorData.detail;
+      } else if (typeof errorData.message === 'string') {
+        errorMessage = errorData.message;
+      } else {
+        // Django validation errors: { field: ["msg"] } or { non_field_errors: [...] }
+        const parts = Object.entries(errorData)
+          .map(([key, value]) => {
+            const val = Array.isArray(value)
+              ? value.join(', ')
+              : typeof value === 'object'
+              ? JSON.stringify(value)
+              : String(value);
+            return key === 'non_field_errors' ? val : `${key}: ${val}`;
+          })
+          .filter(Boolean);
+        if (parts.length > 0) {
+          errorMessage = parts.join('\n');
         }
       }
     }
 
-    const errorMessage = typeof errorData === 'object' && errorData !== null
-      ? Object.entries(errorData).map(([key, value]) => `${key}: ${value}`).join(', ')
-      : errorData.message || errorData.detail;
+    const isHtml =
+      /<[^>]+>/i.test(text) ||
+      (response.headers.get('content-type')?.includes('text/html') ?? false);
 
-    const error = new Error(errorMessage || `API Error ${response.status}`) as any;
+    if (!errorMessage) {
+      if (isHtml) {
+        if (response.status >= 500) {
+          errorMessage = `Error en el servidor (${response.status}). Por favor, intenta de nuevo más tarde.`;
+        } else if (response.status === 404) {
+          errorMessage = 'El recurso solicitado no fue encontrado.';
+        } else if (response.status === 403) {
+          errorMessage = 'No tienes permisos para realizar esta acción.';
+        } else {
+          const titleMatch = text.match(/<title>([^<]+)<\/title>/i);
+          errorMessage = titleMatch && titleMatch[1] ? titleMatch[1].trim() : `Error (${response.status})`;
+        }
+      } else if (text && text.trim().length > 0) {
+        errorMessage = text.trim();
+      } else {
+        errorMessage = `Error en la solicitud (${response.status})`;
+      }
+    }
+
+    // Strip any residual HTML tags
+    errorMessage = errorMessage.replace(/<[^>]+>/g, '').trim();
+
+    const error = new Error(errorMessage) as any;
     error.status = response.status;
-    error.data = errorData;
+    error.data = errorData || { message: errorMessage };
 
     if (!options.silent) {
       logger.error('api', `[API ${response.status}] ${endpoint}: ${errorMessage}`, error, {

@@ -23,6 +23,7 @@ import { RateRefereeModal } from '@/components/referees/RateRefereeModal';
 import { FanCheckInModal } from '@/components/matches/FanCheckInModal';
 import { MatchMVPVoteWidget } from '@/components/matches/MatchMVPVoteWidget';
 import { metrics } from '@/services/metrics';
+import { shareMatch } from '@/features/share/services/shareService';
 import {
   ChevronLeft, 
   ChevronRight,
@@ -38,7 +39,8 @@ import {
   Star,
   ArrowRightLeft,
   AlertCircle,
-  Video
+  Video,
+  Share2
 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -453,7 +455,17 @@ export default function MatchDetailScreen() {
           <ChevronLeft size={28} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{match?.tournament_name}</Text>
-        <View style={{ width: 28 }} />
+        {match ? (
+          <TouchableOpacity
+            onPress={() => shareMatch(match.id)}
+            style={styles.backButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Share2 size={22} color={theme.primary} />
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 28 }} />
+        )}
       </SafeAreaView>
 
       {/* Match Score Area */}

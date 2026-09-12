@@ -14,9 +14,10 @@ import {
 
 import { Tournament } from "@/features/tournaments/types/tournament";
 import { TiebreakerConfigModal } from "./modals/TiebreakerConfigModal";
-import { Settings2 } from "lucide-react-native";
+import { Settings2, Share2 } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
 import { SponsorBanner } from "@/components/sponsors/SponsorBanner";
+import { shareStandings } from "@/features/share/services/shareService";
 
 interface TournamentStandingsWidgetProps {
   tournamentId: string;
@@ -94,17 +95,27 @@ export function TournamentStandingsWidget({
         style={{ marginHorizontal: 12, marginTop: 10, marginBottom: 4 }}
       />
 
-      {isAdmin && tournament && (
-        <View style={styles.adminActionRow}>
+      <View style={styles.actionRow}>
+        <TouchableOpacity 
+          style={styles.shareBtn} 
+          onPress={() => shareStandings(tournamentId)}
+          activeOpacity={0.8}
+        >
+          <Share2 size={14} color="#001A2C" />
+          <Text style={styles.shareBtnText}>Compartir Tabla</Text>
+        </TouchableOpacity>
+
+        {isAdmin && tournament && (
           <TouchableOpacity 
             style={styles.adminBtn} 
             onPress={() => setIsConfigVisible(true)}
+            activeOpacity={0.8}
           >
             <Settings2 size={14} color={theme.primary} />
             <Text style={styles.adminBtnText}>Configurar Desempate</Text>
           </TouchableOpacity>
-        </View>
-      )}
+        )}
+      </View>
 
       <ScrollView
         horizontal
@@ -238,12 +249,28 @@ const createStyles = (theme: any, isDark: boolean) =>
       borderWidth: 1,
       borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
     },
-    adminActionRow: {
+    actionRow: {
       flexDirection: "row",
-      justifyContent: "flex-end",
+      justifyContent: "space-between",
+      alignItems: "center",
       padding: 12,
       borderBottomWidth: 1,
       borderBottomColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      gap: 10,
+    },
+    shareBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      backgroundColor: theme.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 8,
+    },
+    shareBtnText: {
+      fontSize: 11,
+      fontWeight: "900",
+      color: "#001A2C",
     },
     adminBtn: {
       flexDirection: "row",
