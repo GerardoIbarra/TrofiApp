@@ -91,12 +91,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
 // Configuración global para errores de JS fuera de React
 if (!__DEV__) {
-  const defaultHandler = ErrorUtils.getGlobalHandler();
-  ErrorUtils.setGlobalHandler((error, isFatal) => {
-    console.error("Global JS Error:", error, isFatal);
-    Sentry.captureException(error);
-    defaultHandler(error, isFatal);
-  });
+  const globalErrorUtils = typeof globalThis !== 'undefined' ? (globalThis as any).ErrorUtils : undefined;
+  if (globalErrorUtils) {
+    const defaultHandler = globalErrorUtils.getGlobalHandler();
+    globalErrorUtils.setGlobalHandler((error: any, isFatal: boolean) => {
+      console.error("Global JS Error:", error, isFatal);
+      Sentry.captureException(error);
+      if (defaultHandler) {
+        defaultHandler(error, isFatal);
+      }
+    });
+  }
 }
 
 const styles = StyleSheet.create({
