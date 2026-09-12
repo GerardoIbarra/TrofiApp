@@ -36,13 +36,21 @@ export const useGetNearby = ({
         throw new Error('Coordinates are required for nearby query');
       }
 
+      const query = new URLSearchParams({
+        latitude: latitude!.toString(),
+        longitude: longitude!.toString(),
+        radius: (radius ?? 50).toString(),
+        lat: latitude!.toString(),
+        lng: longitude!.toString(),
+      }).toString();
+
       const headers: Record<string, string> = {
         'X-Latitude': latitude!.toString(),
         'X-Longitude': longitude!.toString(),
         'X-Radius': (radius ?? 50).toString(),
       };
 
-      const response = await api.get<NearbyResponse>('/v1/nearby/', {
+      const response = await api.get<NearbyResponse>(`/v1/nearby/?${query}`, {
         headers,
       });
 

@@ -35,7 +35,22 @@ import { League } from '@/features/leagues/types/league';
 import { Venue } from '@/features/venues/types/venue';
 import { PickupSpot } from '@/features/pickup/types/pickup';
 
-const RADIUS_OPTIONS = [10, 25, 50, 100];
+const RADIUS_OPTIONS = [5, 10, 25, 50, 100];
+
+// Calculate distance in kilometers using the Haversine formula
+function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 export default function NearbyMapScreen() {
   const { theme, isDark } = useTheme();
@@ -89,6 +104,40 @@ export default function NearbyMapScreen() {
   const venues = data?.venues || [];
   const pickupSpots = data?.pickup_spots || [];
 
+  // Filter items strictly by selectedRadius (using distance_km or computing it via Haversine)
+  const filteredLeagues = useMemo(() => {
+    return leagues.filter((l) => {
+      const dist =
+        l.distance_km ??
+        (location && l.latitude && l.longitude
+          ? calculateDistanceKm(location.latitude, location.longitude, Number(l.latitude), Number(l.longitude))
+          : null);
+      return dist == null || dist <= selectedRadius;
+    });
+  }, [leagues, selectedRadius, location]);
+
+  const filteredVenues = useMemo(() => {
+    return venues.filter((v) => {
+      const dist =
+        v.distance_km ??
+        (location && v.latitude && v.longitude
+          ? calculateDistanceKm(location.latitude, location.longitude, Number(v.latitude), Number(v.longitude))
+          : null);
+      return dist == null || dist <= selectedRadius;
+    });
+  }, [venues, selectedRadius, location]);
+
+  const filteredSpots = useMemo(() => {
+    return pickupSpots.filter((s) => {
+      const dist =
+        s.distance_km ??
+        (location && s.latitude && s.longitude
+          ? calculateDistanceKm(location.latitude, location.longitude, Number(s.latitude), Number(s.longitude))
+          : null);
+      return dist == null || dist <= selectedRadius;
+    });
+  }, [pickupSpots, selectedRadius, location]);
+
   // Filter and sort items for list view
   const combinedItems = useMemo(() => {
     const items: Array<{
@@ -97,13 +146,13 @@ export default function NearbyMapScreen() {
     }> = [];
 
     if (filterType === 'all' || filterType === 'leagues') {
-      leagues.forEach((l) => items.push({ type: 'league', item: l }));
+      filteredLeagues.forEach((l) => items.push({ type: 'league', item: l }));
     }
     if (filterType === 'all' || filterType === 'venues') {
-      venues.forEach((v) => items.push({ type: 'venue', item: v }));
+      filteredVenues.forEach((v) => items.push({ type: 'venue', item: v }));
     }
     if (filterType === 'all' || filterType === 'spots') {
-      pickupSpots.forEach((s) => items.push({ type: 'spot', item: s }));
+      filteredSpots.forEach((s) => items.push({ type: 'spot', item: s }));
     }
 
     return items.sort((a, b) => {
@@ -111,12 +160,12 @@ export default function NearbyMapScreen() {
       const distB = b.item.distance_km ?? 9999;
       return distA - distB;
     });
-  }, [leagues, venues, pickupSpots, filterType]);
+  }, [filteredLeagues, filteredVenues, filteredSpots, filterType]);
 
   const totalCount =
-    (filterType === 'all' || filterType === 'leagues' ? leagues.length : 0) +
-    (filterType === 'all' || filterType === 'venues' ? venues.length : 0) +
-    (filterType === 'all' || filterType === 'spots' ? pickupSpots.length : 0);
+    (filterType === 'all' || filterType === 'leagues' ? filteredLeagues.length : 0) +
+    (filterType === 'all' || filterType === 'venues' ? filteredVenues.length : 0) +
+    (filterType === 'all' || filterType === 'spots' ? filteredSpots.length : 0);
 
   return (
     <View style={GlobalStyles.container}>
@@ -176,7 +225,7 @@ export default function NearbyMapScreen() {
                   filterType === 'all' && styles.chipTextActive,
                 ]}
               >
-                {t('nearby.filter_all', { count: leagues.length + venues.length + pickupSpots.length })}
+                {t('nearby.filter_all', { count: filteredLeagues.length + filteredVenues.length + filteredSpots.length })}
               </Text>
             </TouchableOpacity>
 
@@ -197,7 +246,7 @@ export default function NearbyMapScreen() {
                   filterType === 'leagues' && styles.chipTextActive,
                 ]}
               >
-                {t('nearby.filter_leagues', { count: leagues.length })}
+                {t('nearby.filter_leagues', { count: filteredLeagues.length })}
               </Text>
             </TouchableOpacity>
 
@@ -218,7 +267,7 @@ export default function NearbyMapScreen() {
                   filterType === 'venues' && styles.chipTextActiveVenue,
                 ]}
               >
-                {t('nearby.filter_venues', { count: venues.length })}
+                {t('nearby.filter_venues', { count: filteredVenues.length })}
               </Text>
             </TouchableOpacity>
 
@@ -239,7 +288,7 @@ export default function NearbyMapScreen() {
                   filterType === 'spots' && styles.chipTextActiveSpot,
                 ]}
               >
-                {t('nearby.filter_spots', { count: pickupSpots.length })}
+                {t('nearby.filter_spots', { count: filteredSpots.length })}
               </Text>
             </TouchableOpacity>
 
@@ -334,9 +383,9 @@ export default function NearbyMapScreen() {
                 userLatitude={location.latitude}
                 userLongitude={location.longitude}
                 radiusKm={selectedRadius}
-                leagues={leagues}
-                venues={venues}
-                pickupSpots={pickupSpots}
+                leagues={filteredLeagues}
+                venues={filteredVenues}
+                pickupSpots={filteredSpots}
                 selectedEntity={selectedEntity}
                 onSelectEntity={setSelectedEntity}
                 filterType={filterType}
