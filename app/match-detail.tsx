@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
+import { NotFoundState } from '@/components/ui/feedback/NotFoundState';
 import api from '@/services/api';
 import { Match } from '@/features/tournaments/types/match';
 import { MatchLineupResponse, MatchHeadToHeadResponse, MatchTimelineResponse, MatchEvent } from '@/features/tournaments/types/matchDetail';
@@ -459,6 +460,17 @@ export default function MatchDetailScreen() {
         <BackgroundGradient />
         <ActivityIndicator color={theme.primary} size="large" />
       </View>
+    );
+  }
+
+  if (!match) {
+    return (
+      <NotFoundState
+        title={t('match_detail.not_found_title')}
+        message={t('match_detail.not_found_text')}
+        actionLabel={t('match_detail.go_back')}
+        onAction={() => router.back()}
+      />
     );
   }
 

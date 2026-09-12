@@ -162,7 +162,9 @@
     "pickup_sub": "Live check-ins, map, crews and neighborhood challenges"
   },
   "tournament": {
+    "not_found_title": "Tournament not found",
     "not_found": "Tournament information not found.",
+    "go_back": "Go back",
     "tab_standings": "STANDINGS",
     "tab_matches": "MATCHES",
     "tab_playoffs": "PLAYOFFS",
@@ -216,6 +218,9 @@
     "new_season_clone": "New Season"
   },
   "league_detail": {
+    "not_found_title": "League not found",
+    "not_found_text": "This league no longer exists or the link is invalid.",
+    "go_back": "Go back",
     "stats_available_soon": "The statistics and results of {{tab}} will be available once the tournament starts.",
     "payments_coming_soon": "The secure payments module is being configured by the league administrator.",
     "competitions": "COMPETITIONS",
@@ -295,6 +300,9 @@
     "footer_scroll": "Swipe horizontally to see detailed statistics."
   },
   "match_detail": {
+    "not_found_title": "Match not found",
+    "not_found_text": "This match no longer exists or the link is invalid.",
+    "go_back": "Go back",
     "tab_summary": "SUMMARY",
     "tab_lineup": "LINEUP",
     "tab_stats": "STATISTICS",

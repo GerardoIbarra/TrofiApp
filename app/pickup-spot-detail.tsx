@@ -35,6 +35,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
+import { NotFoundState } from '@/components/ui/feedback/NotFoundState';
 import { openInExternalMaps } from '@/services/mapLinking';
 import {
   useGetPickupSpot,
@@ -185,12 +186,23 @@ export default function PickupSpotDetailScreen() {
     }
   };
 
-  if (isLoading || !spot) {
+  if (isLoading) {
     return (
       <View style={[GlobalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <BackgroundGradient />
         <ActivityIndicator size="large" color={theme.primary} />
       </View>
+    );
+  }
+
+  if (!spot) {
+    return (
+      <NotFoundState
+        title="Reta no encontrada"
+        message="Esta reta ya no existe o el enlace es inválido."
+        actionLabel="Volver"
+        onAction={() => router.back()}
+      />
     );
   }
 

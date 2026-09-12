@@ -24,6 +24,7 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
+import { NotFoundState } from '@/components/ui/feedback/NotFoundState';
 import { TeamHeader } from '@/components/teams/TeamHeader';
 import { CreateTeamModal } from '@/components/teams/CreateTeamModal';
 import {
@@ -83,12 +84,12 @@ export default function TeamDetailScreen() {
 
   if (!team) {
     return (
-      <View style={[GlobalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <BackgroundGradient />
-        <Text style={{ color: theme.textSecondary }}>
-          No se encontró la información del equipo.
-        </Text>
-      </View>
+      <NotFoundState
+        title="Equipo no encontrado"
+        message="Este equipo ya no existe o el enlace es inválido."
+        actionLabel="Volver"
+        onAction={() => router.back()}
+      />
     );
   }
 

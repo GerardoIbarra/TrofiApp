@@ -18,6 +18,7 @@ import { LeagueTabsList } from "@/components/leagues/LeagueTabsList";
 import { LeagueTournamentsWidget } from "@/components/leagues/LeagueTournamentsWidget";
 import { EloRankingWidget } from "@/components/leagues/EloRankingWidget";
 import { LeagueSponsorsWidget } from "@/components/leagues/LeagueSponsorsWidget";
+import { NotFoundState } from "@/components/ui/feedback/NotFoundState";
 import { AnnouncementsWidget } from "@/components/announcements/AnnouncementsWidget";
 import { ChatBox } from "@/components/chat/ChatBox";
 import api from "@/services/api";
@@ -126,7 +127,16 @@ export default function LeagueDetailScreen() {
     );
   }
 
-  if (!league) return null;
+  if (!league) {
+    return (
+      <NotFoundState
+        title={t("league_detail.not_found_title")}
+        message={t("league_detail.not_found_text")}
+        actionLabel={t("league_detail.go_back")}
+        onAction={() => router.back()}
+      />
+    );
+  }
 
   const renderTabContent = () => {
     switch (activeTab) {

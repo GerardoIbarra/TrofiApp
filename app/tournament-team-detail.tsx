@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { GlobalStyles } from "@/constants/GlobalStyles";
+import { NotFoundState } from "@/components/ui/feedback/NotFoundState";
 import api from "@/services/api";
 import { useCreateJoinRequest, useApproveJoinRequest, useRejectJoinRequest } from "@/features/players/services/rosterApi";
 import { Users, UserPlus, Check, X, ShieldHalf, Star } from "lucide-react-native";
@@ -91,9 +92,12 @@ export default function TournamentTeamDetailScreen() {
 
   if (!teamInfo) {
     return (
-      <View style={[GlobalStyles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <Text style={{ color: theme.textSecondary }}>Equipo no encontrado en este torneo.</Text>
-      </View>
+      <NotFoundState
+        title="Equipo no encontrado"
+        message="Este equipo ya no existe en este torneo o el enlace es inválido."
+        actionLabel="Volver"
+        onAction={() => router.back()}
+      />
     );
   }
 

@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
+import { NotFoundState } from '@/components/ui/feedback/NotFoundState';
 import {
   ChevronLeft,
   Share2,
@@ -78,6 +79,17 @@ export default function PlayerDetailScreen() {
         <BackgroundGradient />
         <ActivityIndicator size="large" color={theme.primary} />
       </View>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <NotFoundState
+        title="Jugador no encontrado"
+        message="Este perfil ya no existe o el enlace es inválido."
+        actionLabel="Volver"
+        onAction={() => router.back()}
+      />
     );
   }
 

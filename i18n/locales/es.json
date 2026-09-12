@@ -162,7 +162,9 @@
     "pickup_sub": "Check-ins en vivo, mapa, crews y desafíos de barrio"
   },
   "tournament": {
+    "not_found_title": "Torneo no encontrado",
     "not_found": "No se encontró la información del torneo.",
+    "go_back": "Volver",
     "tab_standings": "POSICIONES",
     "tab_matches": "PARTIDOS",
     "tab_playoffs": "LIGUILLA",
@@ -216,6 +218,9 @@
     "new_season_clone": "Nueva Temporada"
   },
   "league_detail": {
+    "not_found_title": "Liga no encontrada",
+    "not_found_text": "Esta liga ya no existe o el enlace es inválido.",
+    "go_back": "Volver",
     "stats_available_soon": "Las estadísticas y resultados de {{tab}} estarán disponibles una vez que inicie el torneo.",
     "payments_coming_soon": "El módulo de pagos seguros está siendo configurado por el administrador de la liga.",
     "competitions": "COMPETICIONES",
@@ -295,6 +300,9 @@
     "footer_scroll": "Desliza lateralmente para ver estadísticas detalladas."
   },
   "match_detail": {
+    "not_found_title": "Partido no encontrado",
+    "not_found_text": "Este partido ya no existe o el enlace es inválido.",
+    "go_back": "Volver",
     "tab_summary": "RESUMEN",
     "tab_lineup": "ALINEACIÓN",
     "tab_stats": "ESTADÍSTICAS",

@@ -4,6 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
+import { NotFoundState } from '@/components/ui/feedback/NotFoundState';
 import api from '@/services/api';
 import { Tournament } from '@/features/tournaments/types/tournament';
 import { TournamentHeader } from '@/components/leagues/TournamentHeader';
@@ -91,10 +92,12 @@ export default function TournamentDetailScreen() {
 
   if (!tournament) {
     return (
-      <View style={[GlobalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <BackgroundGradient />
-        <Text style={{ color: theme.textSecondary }}>{t("tournament.not_found")}</Text>
-      </View>
+      <NotFoundState
+        title={t("tournament.not_found_title")}
+        message={t("tournament.not_found")}
+        actionLabel={t("tournament.go_back")}
+        onAction={() => router.back()}
+      />
     );
   }
 
