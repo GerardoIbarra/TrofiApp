@@ -51,7 +51,7 @@ export default function ExploreScreen() {
                 activeOpacity={0.8}
               >
                 <MapIcon size={18} color="#000" />
-                <Text style={styles.mapButtonText}>Ver mapa</Text>
+                <Text style={styles.mapButtonText}>{t('leagues.view_map')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.filterButton}>
                 <SlidersHorizontal size={20} color={theme.text} />
@@ -88,11 +88,11 @@ export default function ExploreScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={styles.retasBadge}>
-                    <Text style={styles.retasBadgeText}>FÚTBOL INFORMAL</Text>
+                    <Text style={styles.retasBadgeText}>{t('explore.pickup_badge')}</Text>
                   </View>
-                  <Text style={styles.retasBannerTitle}>Retas & Canchas Libres</Text>
+                  <Text style={styles.retasBannerTitle}>{t('explore.pickup_title')}</Text>
                   <Text style={styles.retasBannerSub} numberOfLines={1}>
-                    Check-ins en vivo, mapa, crews y desafíos de barrio
+                    {t('explore.pickup_sub')}
                   </Text>
                 </View>
               </View>

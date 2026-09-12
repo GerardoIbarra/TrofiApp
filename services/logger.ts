@@ -7,7 +7,9 @@ class LoggerService {
    * Log informational event and add breadcrumb to Sentry.
    */
   public info(category: string, message: string, data?: Record<string, any>) {
-    console.log(`[${category.toUpperCase()}] ${message}`, data ? JSON.stringify(data) : '');
+    if (__DEV__ && process.env.EXPO_PUBLIC_DEBUG_LOGS === 'true') {
+      console.log(`[${category.toUpperCase()}] ${message}`, data ? JSON.stringify(data) : '');
+    }
 
     try {
       if ((Sentry as any).logger?.info) {
@@ -28,7 +30,9 @@ class LoggerService {
    * Log warning event, send breadcrumb and warning capture to Sentry.
    */
   public warn(category: string, message: string, data?: Record<string, any>) {
-    console.warn(`[${category.toUpperCase()}] ${message}`, data ? JSON.stringify(data) : '');
+    if (__DEV__ && process.env.EXPO_PUBLIC_DEBUG_LOGS === 'true') {
+      console.warn(`[${category.toUpperCase()}] ${message}`, data ? JSON.stringify(data) : '');
+    }
 
     try {
       if ((Sentry as any).logger?.warn) {
@@ -88,7 +92,9 @@ class LoggerService {
    * Track high-level user or lifecycle events (e.g., match_created, filter_applied).
    */
   public event(eventName: string, data?: Record<string, any>) {
-    console.log(`[EVENT] ${eventName}`, data ? JSON.stringify(data) : '');
+    if (__DEV__ && process.env.EXPO_PUBLIC_DEBUG_LOGS === 'true') {
+      console.log(`[EVENT] ${eventName}`, data ? JSON.stringify(data) : '');
+    }
 
     Sentry.addBreadcrumb({
       category: 'user_action',

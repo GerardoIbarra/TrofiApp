@@ -25,19 +25,17 @@ export function useMatchLiveUpdate(matchId: string | undefined, isLive: boolean)
         const token = await AuthStorage.getAccessToken();
         const wsUrl = `${WS_BASE_URL}/matches/${matchId}/?token=${token}`;
         
-        console.log(`[WS] Connecting to ${wsUrl}`);
         const socket = new WebSocket(wsUrl);
         socketRef.current = socket;
 
         socket.onopen = () => {
-          console.log(`[WS] Connected to match ${matchId}`);
+          // Connected
         };
 
         socket.onmessage = (event) => {
           if (!isMounted) return;
           try {
             const data = JSON.parse(event.data);
-            console.log(`[WS] Update for ${matchId}:`, data);
             
             if (data.match) {
               setLiveMatch(data.match);
@@ -47,20 +45,20 @@ export function useMatchLiveUpdate(matchId: string | undefined, isLive: boolean)
               setTimeline(data.timeline);
             }
           } catch (err) {
-            console.error('[WS] Error parsing message:', err);
+            // ignore JSON parse error silently
           }
         };
 
-        socket.onclose = (e) => {
-          console.log(`[WS] Disconnected from match ${matchId}`, e.reason);
+        socket.onclose = () => {
+          // Closed
         };
 
-        socket.onerror = (err) => {
-          console.error(`[WS] Error in match ${matchId}:`, err);
+        socket.onerror = () => {
+          // Error
         };
 
       } catch (err) {
-        console.error('[WS] Connection error:', err);
+        // Connection error
       }
     }
 

@@ -3,7 +3,8 @@ import { AuthStorage } from '@/features/auth/services/authStorage';
 import { ChatMessage, DirectMessage } from '../types/chat';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
-const WS_BASE_URL = API_URL.replace('http', 'ws').replace('/api', '/ws');
+const cleanApiUrl = API_URL.replace(/\/+$/, '');
+const WS_BASE_URL = cleanApiUrl.replace(/^http/, 'ws').replace(/\/api$/, '/ws');
 
 export type ChatStreamType = 'team' | 'league' | 'direct';
 
@@ -63,13 +64,11 @@ export function useChatWebSocket({
         const wsUrl = getWsUrl(token);
         if (!wsUrl) return;
 
-        console.log(`[ChatWS] Connecting to ${wsUrl}`);
         const socket = new WebSocket(wsUrl);
         socketRef.current = socket;
 
         socket.onopen = () => {
           if (!isMounted) return;
-          console.log(`[ChatWS] Connected (${type}:${targetId ?? 'global'})`);
           setIsConnected(true);
           setConnectionError(null);
         };
@@ -78,7 +77,6 @@ export function useChatWebSocket({
           if (!isMounted) return;
           try {
             const data = JSON.parse(event.data);
-            console.log(`[ChatWS] Message:`, data);
 
             // 1. Snapshot handling (last 25 messages)
             if (data.type === 'snapshot') {
@@ -107,19 +105,17 @@ export function useChatWebSocket({
               }
             }
           } catch (err) {
-            console.error('[ChatWS] Error parsing message:', err);
+            // ignore JSON parse errors silently
           }
         };
 
-        socket.onerror = (err) => {
+        socket.onerror = () => {
           if (!isMounted) return;
-          console.error('[ChatWS] Socket error:', err);
           setConnectionError('Error en conexión de chat');
         };
 
         socket.onclose = (event) => {
           if (!isMounted) return;
-          console.log(`[ChatWS] Closed: ${event.code} ${event.reason}`);
           setIsConnected(false);
           if (event.code === 4403 || event.code === 403) {
             setConnectionError('No tienes permiso para acceder a este chat');
@@ -127,7 +123,6 @@ export function useChatWebSocket({
         };
       } catch (err: any) {
         if (!isMounted) return;
-        console.error('[ChatWS] Setup error:', err);
         setConnectionError(err?.message || 'Error de conexión');
       }
     }

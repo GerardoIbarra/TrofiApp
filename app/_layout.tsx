@@ -1,6 +1,6 @@
 import { ThemeProvider } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import "@/i18n";
+import { loadSavedLanguage } from "@/i18n";
 import { LocationService } from "@/services/locationService";
 import {
   registerDeviceToken,
@@ -15,9 +15,13 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Updates from "expo-updates";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { Platform } from "react-native";
+import { Platform, LogBox } from "react-native";
 import "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
+
+LogBox.ignoreLogs([
+  "Cannot connect to Expo CLI",
+]);
 
 import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
 import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
@@ -30,8 +34,7 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || "https://e1a140813db3ac1cda5643b6e7d8ffae@o4512019969802240.ingest.us.sentry.io/4512019974389760",
   debug: false,
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
+  enableLogs: false,
   tracesSampleRate: 1.0,
   // profilesSampleRate is relative to tracesSampleRate (100% of transactions profiled)
   profilesSampleRate: 1.0,
@@ -41,13 +44,21 @@ Sentry.init({
   enableNativeFramesTracking: true,
   integrations: [
     navigationIntegration,
-    Sentry.mobileReplayIntegration({
-      maskAllText: true,
-      maskAllImages: true,
-      maskAllVectors: true,
-    }),
-    Sentry.hermesProfilingIntegration(),
-    Sentry.consoleLoggingIntegration(),
+    // mobileReplayIntegration requires a native build — disabled in DEV (Expo Go)
+    ...(__DEV__ ? [] : [
+      Sentry.mobileReplayIntegration({
+        maskAllText: true,
+        maskAllImages: true,
+        maskAllVectors: true,
+      }),
+    ]),
+    // hermesProfilingIntegration requires the native Sentry client to be ready
+    // Guard it to avoid "Native Client is not available" at module load time
+    ...(!__DEV__ && typeof Sentry.hermesProfilingIntegration === 'function' ? [Sentry.hermesProfilingIntegration()] : []),
+    // consoleLoggingIntegration patches console.* globally at init — this causes
+    // "Native Client is not available" errors on every console call before the native
+    // bridge is ready, which crashes _layout.tsx module evaluation in Expo Go.
+    // Disabled entirely to fix the ErrorBoundary crash.
   ],
   tracePropagationTargets: ["localhost", /^https:\/\/api\.trofi\.club/],
 });
@@ -110,6 +121,7 @@ function InitialNavigation() {
 
   useEffect(() => {
     initialize();
+    loadSavedLanguage();
     requestLocation();
   }, []);
 

@@ -15,6 +15,7 @@ export default function MarketScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const user = useAuthStore(state => state.user);
+  const styles = React.useMemo(() => createStyles(theme, isDark), [theme, isDark]);
 
   const [activeTab, setActiveTab] = useState<'team_seeking_player' | 'player_seeking_team'>('team_seeking_player');
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,8 +61,12 @@ export default function MarketScreen() {
         <TouchableOpacity 
           style={[styles.tabItem, activeTab === 'team_seeking_player' && styles.tabItemActive]}
           onPress={() => setActiveTab('team_seeking_player')}
+          activeOpacity={0.8}
         >
-          <Users size={18} color={activeTab === 'team_seeking_player' ? theme.primary : theme.textSecondary} />
+          <Users 
+            size={18} 
+            color={activeTab === 'team_seeking_player' ? (isDark ? theme.primary : '#00A3AC') : (isDark ? theme.textSecondary : '#64748B')} 
+          />
           <Text style={[styles.tabLabel, activeTab === 'team_seeking_player' && styles.tabLabelActive]}>
             {t('market.tab_teams')}
           </Text>
@@ -69,8 +74,12 @@ export default function MarketScreen() {
         <TouchableOpacity 
           style={[styles.tabItem, activeTab === 'player_seeking_team' && styles.tabItemActive]}
           onPress={() => setActiveTab('player_seeking_team')}
+          activeOpacity={0.8}
         >
-          <User size={18} color={activeTab === 'player_seeking_team' ? theme.primary : theme.textSecondary} />
+          <User 
+            size={18} 
+            color={activeTab === 'player_seeking_team' ? (isDark ? theme.primary : '#00A3AC') : (isDark ? theme.textSecondary : '#64748B')} 
+          />
           <Text style={[styles.tabLabel, activeTab === 'player_seeking_team' && styles.tabLabelActive]}>
             {t('market.tab_players')}
           </Text>
@@ -156,7 +165,8 @@ export default function MarketScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean) =>
+  StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 10,
@@ -203,8 +213,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 15,
     borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
     padding: 4,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
   },
   tabItem: {
     flex: 1,
@@ -216,15 +228,23 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tabItemActive: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: isDark ? 'rgba(0, 245, 255, 0.15)' : '#FFFFFF',
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(0, 245, 255, 0.3)' : 'rgba(0, 0, 0, 0.08)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: isDark ? 0 : 0.08,
+    shadowRadius: 4,
+    elevation: isDark ? 0 : 2,
   },
   tabLabel: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#888',
+    fontSize: 13,
+    fontWeight: '700',
+    color: isDark ? theme.textSecondary : '#64748B',
   },
   tabLabelActive: {
-    color: '#FFF',
+    fontWeight: '800',
+    color: isDark ? theme.primary : '#001A2C',
   },
   listContainer: {
     flex: 1,
@@ -243,7 +263,7 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: 15,
     fontSize: 14,
-    color: '#888',
+    color: theme.textSecondary,
     textAlign: 'center',
   },
   listingCard: {
@@ -261,7 +281,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -309,5 +329,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 12,
     alignSelf: 'flex-end',
-  }
+  },
 });

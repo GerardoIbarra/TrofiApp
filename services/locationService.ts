@@ -10,6 +10,7 @@ export interface UserLocation {
 }
 
 let currentUserLocation: UserLocation | null = null;
+let defaultRadius: number = 50;
 
 export const LocationService = {
   /**
@@ -19,7 +20,7 @@ export const LocationService = {
     currentUserLocation = {
       latitude: lat,
       longitude: lng,
-      radius: radius ?? currentUserLocation?.radius ?? 50,
+      radius: radius ?? currentUserLocation?.radius ?? defaultRadius,
     };
   },
 
@@ -27,10 +28,9 @@ export const LocationService = {
    * Set search radius (km).
    */
   setRadius: (radius: number) => {
+    defaultRadius = radius;
     if (currentUserLocation) {
       currentUserLocation.radius = radius;
-    } else {
-      currentUserLocation = { latitude: 0, longitude: 0, radius };
     }
   },
 

@@ -25,6 +25,8 @@ import { NotificationPreferencesModal } from "@/components/notifications/Notific
 import { AchievementsModal } from "@/components/achievements/AchievementsModal";
 import { ProfileSettingsMenu } from "@/components/profile/ProfileSettingsMenu";
 import { ProfileLanguageModal } from "@/components/profile/ProfileLanguageModal";
+import { PrivacySecurityModal } from "@/components/profile/PrivacySecurityModal";
+import { AppSettingsModal } from "@/components/profile/AppSettingsModal";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -71,6 +73,8 @@ export default function ProfileScreen() {
   const [showLangModal, setShowLangModal] = useState(false);
   const [showNotificationPrefsModal, setShowNotificationPrefsModal] = useState(false);
   const [showAchievementsModal, setShowAchievementsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showAppSettingsModal, setShowAppSettingsModal] = useState(false);
 
   const currentLanguage = i18n.language;
 
@@ -525,6 +529,8 @@ export default function ProfileScreen() {
                 onOpenLanguage={() => setShowLangModal(true)}
                 onOpenNotifications={() => setShowNotificationPrefsModal(true)}
                 onOpenAchievements={() => setShowAchievementsModal(true)}
+                onOpenPrivacy={() => setShowPrivacyModal(true)}
+                onOpenAppSettings={() => setShowAppSettingsModal(true)}
               />
             )}
           </View>
@@ -548,6 +554,18 @@ export default function ProfileScreen() {
         onClose={() => setShowAchievementsModal(false)}
         userId={profile?.id || user?.id}
         userName={fullName}
+      />
+
+      <PrivacySecurityModal
+        visible={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+        onOpenNotifications={() => setShowNotificationPrefsModal(true)}
+      />
+
+      <AppSettingsModal
+        visible={showAppSettingsModal}
+        onClose={() => setShowAppSettingsModal(false)}
+        onOpenLanguage={() => setShowLangModal(true)}
       />
     </View>
   );

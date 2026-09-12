@@ -44,12 +44,14 @@ interface DirectMessagesViewProps {
   initialWithUserId?: string;
   initialWithUserName?: string;
   onBack?: () => void;
+  showListBack?: boolean;
 }
 
 export function DirectMessagesView({
   initialWithUserId,
   initialWithUserName,
   onBack,
+  showListBack = false,
 }: DirectMessagesViewProps) {
   const { theme, isDark } = useTheme();
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
@@ -478,7 +480,7 @@ export function DirectMessagesView({
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.threadHeader}>
-        {onBack && (
+        {showListBack && onBack && (
           <TouchableOpacity style={styles.backBtn} onPress={onBack}>
             <ChevronLeft size={24} color={theme.text} />
           </TouchableOpacity>

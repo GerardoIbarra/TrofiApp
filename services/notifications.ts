@@ -18,23 +18,7 @@ const DEVICE_TOKEN_ID_KEY = "@device_token_id";
  * Requiere build nativo con Firebase para funcionar.
  */
 export async function registerDeviceToken() {
-  // TODO: Activar cuando se tenga build nativo con Firebase
-  // try {
-  //   const messaging = require('@react-native-firebase/messaging').default;
-  //   const authStatus = await messaging().requestPermission();
-  //   const enabled =
-  //     authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-  //     authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-  //   if (!enabled) return;
-  //   const token = await messaging().getToken();
-  //   const response = await api.post<any>('/v1/device-tokens/', { token, platform: Platform.OS });
-  //   if (response?.id) {
-  //     await AsyncStorage.setItem(DEVICE_TOKEN_ID_KEY, response.id.toString());
-  //   }
-  // } catch (error) {
-  //   console.error('Error al registrar device token:', error);
-  // }
-  console.log('[Notifications] registerDeviceToken: stub (requiere build nativo)');
+  // Stub for Expo Go - push notifications require native Firebase build
 }
 
 /**
@@ -42,19 +26,7 @@ export async function registerDeviceToken() {
  * Requiere build nativo con Firebase para funcionar.
  */
 export async function unregisterDeviceToken() {
-  // TODO: Activar cuando se tenga build nativo con Firebase
-  // try {
-  //   const tokenId = await AsyncStorage.getItem(DEVICE_TOKEN_ID_KEY);
-  //   if (tokenId) {
-  //     await api.delete(`/v1/device-tokens/${tokenId}/`);
-  //     await AsyncStorage.removeItem(DEVICE_TOKEN_ID_KEY);
-  //   }
-  //   const messaging = require('@react-native-firebase/messaging').default;
-  //   await messaging().deleteToken();
-  // } catch (error) {
-  //   console.error('Error al desregistrar device token:', error);
-  // }
-  console.log('[Notifications] unregisterDeviceToken: stub (requiere build nativo)');
+  // Stub for Expo Go
 }
 
 /**
@@ -66,14 +38,6 @@ export async function unregisterDeviceToken() {
 export function setupNotifications(
   navigate: (screen: string, params: any) => void,
 ): () => void {
-  // TODO: Activar cuando se tenga build nativo con Firebase
-  // const messaging = require('@react-native-firebase/messaging').default;
-  // const unsubscribe = messaging().onMessage(async (msg) => { ... });
-  // messaging().onNotificationOpenedApp((msg) => handleNotificationData(msg.data, navigate));
-  // messaging().getInitialNotification().then((msg) => { if (msg) handleNotificationData(msg.data, navigate); });
-  // messaging().onTokenRefresh(async (token) => { await api.post('/v1/device-tokens/', { token, platform: Platform.OS }); });
-  // return unsubscribe;
-  console.log('[Notifications] setupNotifications: stub (requiere build nativo)');
   return () => {}; // noop unsubscribe
 }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,10 +7,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { changePasswordSchema, ChangePasswordSchema } from '@/features/auth/schemas/authSchemas';
@@ -26,6 +28,21 @@ export default function ChangePasswordScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
   const signOut = useAuthStore((state) => state.signOut);
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
+
+  const handleBack = () => {
+    router.replace('/(tabs)/profile' as any);
+  };
+
+  useEffect(() => {
+    const onBackPress = () => {
+      handleBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, []);
 
   const {
     control,
@@ -40,14 +57,19 @@ export default function ChangePasswordScreen() {
     try {
       await api.post('/v1/auth/change-password/', data);
       Alert.alert(
-        'Contraseña actualizada', 
-        'Tu contraseña se ha actualizado correctamente. Se ha cerrado tu sesión en otros dispositivos. Deberás iniciar sesión de nuevo aquí.',
+        isEn ? 'Password Updated' : 'Contraseña actualizada', 
+        isEn
+          ? 'Your password has been updated successfully. You have been logged out of other devices. Please sign in again here.'
+          : 'Tu contraseña se ha actualizado correctamente. Se ha cerrado tu sesión en otros dispositivos. Deberás iniciar sesión de nuevo aquí.',
         [
-          { text: 'Aceptar', onPress: () => signOut() }
+          { text: isEn ? 'OK' : 'Aceptar', onPress: () => signOut() }
         ]
       );
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'La contraseña actual es incorrecta o hubo un error.');
+      Alert.alert(
+        isEn ? 'Error' : 'Error', 
+        err.message || (isEn ? 'The current password is wrong or an error occurred.' : 'La contraseña actual es incorrecta o hubo un error.')
+      );
     }
   };
 
@@ -61,10 +83,12 @@ export default function ChangePasswordScreen() {
           style={styles.keyboardView}
         >
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
               <ChevronLeft size={28} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>CAMBIAR CONTRASEÑA</Text>
+            <Text style={styles.headerTitle}>
+              {isEn ? 'CHANGE PASSWORD' : 'CAMBIAR CONTRASEÑA'}
+            </Text>
             <View style={{ width: 28 }} />
           </View>
 
@@ -72,31 +96,31 @@ export default function ChangePasswordScreen() {
             <FormInput
               control={control}
               name="old_password"
-              label="CONTRASEÑA ACTUAL"
-              placeholder="Tu contraseña actual"
+              label={isEn ? 'CURRENT PASSWORD' : 'CONTRASEÑA ACTUAL'}
+              placeholder={isEn ? 'Your current password' : 'Tu contraseña actual'}
               required
               isPassword
             />
             <FormInput
               control={control}
               name="new_password"
-              label="NUEVA CONTRASEÑA"
-              placeholder="Tu nueva contraseña"
+              label={isEn ? 'NEW PASSWORD' : 'NUEVA CONTRASEÑA'}
+              placeholder={isEn ? 'Your new password' : 'Tu nueva contraseña'}
               required
               isPassword
             />
             <FormInput
               control={control}
               name="new_password2"
-              label="CONFIRMAR NUEVA CONTRASEÑA"
-              placeholder="Repite la nueva contraseña"
+              label={isEn ? 'CONFIRM NEW PASSWORD' : 'CONFIRMAR NUEVA CONTRASEÑA'}
+              placeholder={isEn ? 'Repeat new password' : 'Repite la nueva contraseña'}
               required
               isPassword
             />
 
             <View style={styles.buttonContainer}>
               <PrimaryButton
-                label="Cambiar Contraseña"
+                label={isEn ? 'Change Password' : 'Cambiar Contraseña'}
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 isLoading={isSubmitting}

@@ -8,10 +8,12 @@ import {
   Platform,
   Alert,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Camera } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as ImagePicker from 'expo-image-picker';
@@ -30,6 +32,21 @@ export default function EditProfileScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
+
+  const handleBack = () => {
+    router.replace('/(tabs)/profile' as any);
+  };
+
+  useEffect(() => {
+    const onBackPress = () => {
+      handleBack();
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, []);
 
   const [previewUri, setPreviewUri] = useState<string | null>(user?.photo || null);
 
@@ -151,11 +168,16 @@ export default function EditProfileScreen() {
       useAuthStore.setState({ user: freshUser });
       await AuthStorage.saveUser(freshUser);
 
-      Alert.alert('Éxito', 'Tu perfil ha sido actualizado.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      Alert.alert(
+        isEn ? 'Success' : 'Éxito',
+        isEn ? 'Your profile has been updated.' : 'Tu perfil ha sido actualizado.',
+        [{ text: 'OK', onPress: handleBack }]
+      );
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'No se pudo actualizar el perfil. Revisa los datos.');
+      Alert.alert(
+        isEn ? 'Error' : 'Error',
+        err.message || (isEn ? 'Could not update profile.' : 'No se pudo actualizar el perfil. Revisa los datos.')
+      );
     }
   };
 
@@ -169,10 +191,12 @@ export default function EditProfileScreen() {
           style={styles.keyboardView}
         >
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
               <ChevronLeft size={28} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>EDITAR PERFIL</Text>
+            <Text style={styles.headerTitle}>
+              {isEn ? 'EDIT PROFILE' : 'EDITAR PERFIL'}
+            </Text>
             <View style={{ width: 28 }} />
           </View>
 
@@ -193,39 +217,41 @@ export default function EditProfileScreen() {
                   <Camera size={32} color={theme.textSecondary} />
                 )}
               </View>
-              <Text style={{ color: theme.primary, marginTop: 8, fontWeight: '600' }}>Cambiar foto</Text>
+              <Text style={{ color: theme.primary, marginTop: 8, fontWeight: '600' }}>
+                {isEn ? 'Change photo' : 'Cambiar foto'}
+              </Text>
             </TouchableOpacity>
 
             <FormInput
               control={control}
               name="first_name"
-              label="NOMBRE"
-              placeholder="Tu nombre"
+              label={isEn ? 'FIRST NAME' : 'NOMBRE'}
+              placeholder={isEn ? 'Your first name' : 'Tu nombre'}
             />
             <FormInput
               control={control}
               name="last_name"
-              label="APELLIDO"
-              placeholder="Tu apellido"
+              label={isEn ? 'LAST NAME' : 'APELLIDO'}
+              placeholder={isEn ? 'Your last name' : 'Tu apellido'}
             />
             <FormInput
               control={control}
               name="email"
-              label="CORREO ELECTRÓNICO"
+              label={isEn ? 'EMAIL' : 'CORREO ELECTRÓNICO'}
               placeholder="correo@ejemplo.com"
               keyboardType="email-address"
             />
             <FormInput
               control={control}
               name="phone"
-              label="TELÉFONO"
+              label={isEn ? 'PHONE' : 'TELÉFONO'}
               placeholder="+123456789"
               keyboardType="phone-pad"
             />
 
             <View style={styles.buttonContainer}>
               <PrimaryButton
-                label="Guardar Cambios"
+                label={isEn ? 'Save Changes' : 'Guardar Cambios'}
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 isLoading={isSubmitting}

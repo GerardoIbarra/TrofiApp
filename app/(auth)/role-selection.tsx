@@ -28,6 +28,7 @@ const ROLES = [
 export default function RoleSelectionScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const user = useAuthStore((state) => state.user);
   const [selectedRole, setSelectedRole] = useState<typeof ROLES[0] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -36,7 +37,16 @@ export default function RoleSelectionScreen() {
     setIsSubmitting(true);
     try {
       // API call to create profile
-      await api.post(selectedRole.endpoint, {});
+      const payload =
+        selectedRole.id === 'sponsor'
+          ? {
+              company_name:
+                `${user?.first_name || ''} ${user?.last_name || ''}`.trim() ||
+                user?.username ||
+                'Mi Empresa',
+            }
+          : {};
+      await api.post(selectedRole.endpoint, payload);
       metrics.trackRoleSelected(selectedRole.id);
       
       // Update me

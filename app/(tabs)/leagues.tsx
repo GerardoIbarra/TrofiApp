@@ -53,10 +53,10 @@ const getLeagueImage = (index: number) =>
   FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 
 const GAME_FORMATS = [
-  { id: "1", name: "FÚTBOL 7", icon: CircleDot },
-  { id: "2", name: "FÚTBOL 11", icon: Layout },
-  { id: "3", name: "WOMEN'S", icon: Venus },
-  { id: "4", name: "VETERAN", icon: Medal },
+  { id: "1", nameKey: "leagues.format_7", icon: CircleDot },
+  { id: "2", nameKey: "leagues.format_11", icon: Layout },
+  { id: "3", nameKey: "leagues.format_women", icon: Venus },
+  { id: "4", nameKey: "leagues.format_veteran", icon: Medal },
 ];
 
 export default function LeaguesExplorerScreen() {
@@ -171,7 +171,7 @@ export default function LeaguesExplorerScreen() {
                 activeOpacity={0.8}
               >
                 <MapIcon size={16} color="#000" />
-                <Text style={styles.mapButtonText}>Ver mapa</Text>
+                <Text style={styles.mapButtonText}>{t("leagues.view_map")}</Text>
               </TouchableOpacity>
             </View>
 
@@ -180,11 +180,11 @@ export default function LeaguesExplorerScreen() {
               <View style={styles.searchResultsContainer}>
                 <View style={styles.sectionHeader}>
                   <View>
-                    <Text style={styles.sectionOverline}>BÚSQUEDA</Text>
+                    <Text style={styles.sectionOverline}>{t("leagues.search_overline")}</Text>
                     <Text style={styles.sectionTitle}>
                       {isSearching
-                        ? "Buscando ligas..."
-                        : `Resultados (${leagues.length})`}
+                        ? t("leagues.searching")
+                        : t("leagues.search_results", { count: leagues.length })}
                     </Text>
                   </View>
                 </View>
@@ -193,7 +193,7 @@ export default function LeaguesExplorerScreen() {
                   <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={theme.primary} />
                     <Text style={styles.loadingText}>
-                      Buscando en el servidor...
+                      {t("leagues.searching_server")}
                     </Text>
                   </View>
                 ) : leagues.length > 0 ? (
@@ -231,7 +231,9 @@ export default function LeaguesExplorerScreen() {
                       </View>
                       <View style={styles.nearbyInfo}>
                         <View style={styles.nameStatusRow}>
-                          <Text style={styles.nearbyName}>{item.name}</Text>
+                          <Text style={styles.nearbyName} numberOfLines={1}>
+                            {item.name}
+                          </Text>
                           <View style={styles.activeBadge}>
                             <View style={styles.activeDot} />
                             <Text style={styles.activeText}>
@@ -242,8 +244,8 @@ export default function LeaguesExplorerScreen() {
                         <View style={styles.nearbyMetaRow}>
                           <View style={styles.metaItem}>
                             <MapPin size={12} color={theme.textSecondary} />
-                            <Text style={styles.nearbyMeta}>
-                              {item.city || "Sin ciudad"}
+                            <Text style={styles.nearbyMeta} numberOfLines={1}>
+                              {item.city || t("leagues.no_city")}
                             </Text>
                           </View>
                           {item.country && (
@@ -278,9 +280,9 @@ export default function LeaguesExplorerScreen() {
                       opacity={0.3}
                       style={{ marginBottom: 15 }}
                     />
-                    <Text style={styles.emptyStateTitle}>Sin resultados</Text>
+                    <Text style={styles.emptyStateTitle}>{t("leagues.no_search_results")}</Text>
                     <Text style={styles.emptyStateSub}>
-                      No encontramos ligas con "{debouncedSearch}". Intenta con otro término.
+                      {t("leagues.no_search_results_sub", { query: debouncedSearch })}
                     </Text>
                   </View>
                 )}
@@ -399,7 +401,7 @@ export default function LeaguesExplorerScreen() {
                           color={theme.primary}
                           style={{ marginBottom: 8 }}
                         />
-                        <Text style={styles.formatName}>{format.name}</Text>
+                        <Text style={styles.formatName}>{t(format.nameKey)}</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -418,7 +420,7 @@ export default function LeaguesExplorerScreen() {
                     activeOpacity={0.8}
                   >
                     <MapIcon size={14} color={theme.primary} />
-                    <Text style={styles.mapLinkText}>Ver mapa</Text>
+                    <Text style={styles.mapLinkText}>{t("leagues.view_map")}</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -456,7 +458,9 @@ export default function LeaguesExplorerScreen() {
                         </View>
                         <View style={styles.nearbyInfo}>
                           <View style={styles.nameStatusRow}>
-                            <Text style={styles.nearbyName}>{item.name}</Text>
+                            <Text style={styles.nearbyName} numberOfLines={1}>
+                              {item.name}
+                            </Text>
                             <View style={styles.activeBadge}>
                               <View style={styles.activeDot} />
                               <Text style={styles.activeText}>
@@ -467,13 +471,8 @@ export default function LeaguesExplorerScreen() {
                           <View style={styles.nearbyMetaRow}>
                             <View style={styles.metaItem}>
                               <MapPin size={12} color={theme.textSecondary} />
-                              <Text style={styles.nearbyMeta}>{item.city}</Text>
-                            </View>
-                            <Text style={styles.metaDivider}>•</Text>
-                            <View style={styles.metaItem}>
-                              <Calendar size={12} color={theme.textSecondary} />
-                              <Text style={styles.nearbyMeta}>
-                                {new Date(item.created_at).toLocaleDateString()}
+                              <Text style={styles.nearbyMeta} numberOfLines={1}>
+                                {item.city || "Sin ciudad"}
                               </Text>
                             </View>
                             {item.distance_km != null && (
@@ -522,7 +521,7 @@ export default function LeaguesExplorerScreen() {
           activeOpacity={0.8}
           onPress={() => setIsModalVisible(true)}
         >
-          <Plus size={28} color="#001A2C" />
+          <Plus size={26} color="#001A2C" />
         </TouchableOpacity>
 
         {/* Create League Modal */}
@@ -541,7 +540,7 @@ export default function LeaguesExplorerScreen() {
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     scrollContent: {
-      paddingBottom: 100,
+      paddingBottom: 150,
     },
     webContainer: {
       width: "100%",
@@ -590,6 +589,19 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: "#000",
       fontWeight: "800",
       fontSize: 12,
+    },
+    addLeagueButton: {
+      width: 50,
+      height: 50,
+      borderRadius: 20,
+      backgroundColor: theme.primary,
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 3,
     },
     mapLink: {
       flexDirection: "row",
@@ -794,16 +806,19 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     nearbyInfo: {
       flex: 1,
+      minWidth: 0,
       justifyContent: "center",
-      paddingRight: 10,
+      paddingRight: 6,
     },
     nameStatusRow: {
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "space-between",
       gap: 8,
       marginBottom: 4,
     },
     nearbyName: {
+      flex: 1,
       fontSize: 16,
       fontWeight: "800",
       color: theme.text,
@@ -834,7 +849,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     nearbyMetaRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 10,
+      gap: 8,
     },
     metaItem: {
       flexDirection: "row",
@@ -857,7 +872,9 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "700",
     },
     nearbyStatusColumn: {
-      paddingLeft: 5,
+      paddingLeft: 8,
+      justifyContent: "center",
+      alignItems: "center",
     },
     emptyState: {
       paddingVertical: 40,
@@ -879,15 +896,16 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     fab: {
       position: "absolute",
-      bottom: 24,
-      right: 24,
+      bottom: 90,
+      right: 20,
       width: 56,
       height: 56,
       borderRadius: 28,
       backgroundColor: theme.primary,
       justifyContent: "center",
       alignItems: "center",
-      elevation: 6,
+      zIndex: 999,
+      elevation: 8,
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,

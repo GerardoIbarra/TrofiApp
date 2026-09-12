@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { Trophy, MapPin, ChevronRight, Navigation, Flame, Users } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import { League } from '@/features/leagues/types/league';
 import { Venue } from '@/features/venues/types/venue';
 import { PickupSpot } from '@/features/pickup/types/pickup';
@@ -23,6 +24,7 @@ export function NearbyItemCard({
   isCardSelected = false,
 }: NearbyItemCardProps) {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark, isCardSelected, type);
 
   const isLeague = type === 'league';
@@ -53,9 +55,9 @@ export function NearbyItemCard({
   };
 
   const getBadgeText = () => {
-    if (isSpot) return '⚽ RETA INFORMAL';
-    if (isLeague) return '🏆 LIGA';
-    return '🏟️ CANCHA / SEDE';
+    if (isSpot) return t('nearby.badge_spot');
+    if (isLeague) return t('nearby.badge_league');
+    return t('nearby.badge_venue');
   };
 
   return (
@@ -91,7 +93,9 @@ export function NearbyItemCard({
           {isSpot && spot?.estimated_headcount != null && spot.estimated_headcount > 0 && (
             <View style={styles.activePlayersBadge}>
               <Users size={11} color="#F59E0B" />
-              <Text style={styles.activePlayersText}>{spot.estimated_headcount} jugando</Text>
+              <Text style={styles.activePlayersText}>
+                {t('nearby.playing_now', { count: spot.estimated_headcount })}
+              </Text>
             </View>
           )}
 
@@ -114,7 +118,7 @@ export function NearbyItemCard({
         <View style={styles.metaRow}>
           <MapPin size={12} color={theme.textSecondary} />
           <Text style={styles.metaText} numberOfLines={1}>
-            {city || (isSpot ? (spot?.spot_type || 'Cancha libre') : 'Ubicación disponible')}
+            {city || (isSpot ? (spot?.spot_type || t('nearby.legend_spots')) : t('leagues.no_city'))}
             {country ? ` • ${country}` : ''}
           </Text>
         </View>

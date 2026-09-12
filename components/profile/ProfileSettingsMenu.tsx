@@ -22,18 +22,27 @@ interface ProfileSettingsMenuProps {
   onOpenLanguage: () => void;
   onOpenNotifications: () => void;
   onOpenAchievements: () => void;
+  onOpenPrivacy?: () => void;
+  onOpenAppSettings?: () => void;
 }
 
 export const ProfileSettingsMenu = React.memo(function ProfileSettingsMenu({
   onOpenLanguage,
   onOpenNotifications,
   onOpenAchievements,
+  onOpenPrivacy,
+  onOpenAppSettings,
 }: ProfileSettingsMenuProps) {
   const { theme, isDark, toggleTheme } = useTheme();
   const { t, i18n } = useTranslation();
   const signOut = useAuthStore((state) => state.signOut);
+  const user = useAuthStore((state) => state.user);
   const styles = createStyles(theme, isDark);
   const currentLanguage = i18n.language;
+
+  const isStaff = Boolean(user?.is_staff || user?.is_superuser);
+  const isSponsor = Boolean(user?.sponsor_profile || isStaff);
+  const isReferee = Boolean(user?.referee_profile || isStaff);
 
   return (
     <View style={styles.container}>
@@ -80,24 +89,34 @@ export const ProfileSettingsMenu = React.memo(function ProfileSettingsMenu({
         theme={theme}
         onPress={() => router.push('/(tabs)/edit-profile' as any)}
       />
-      <MenuItemRow
-        icon={<Award size={20} color="#F59E0B" />}
-        label="Espacios Publicitarios (Sponsors)"
-        theme={theme}
-        onPress={() => router.push('/sponsor-placements' as any)}
-      />
-      <MenuItemRow
-        icon={<Award size={20} color="#10B981" />}
-        label="Mercado de Árbitros"
-        theme={theme}
-        onPress={() => router.push('/referee-marketplace' as any)}
-      />
-      <MenuItemRow
-        icon={<ShieldAlert size={20} color="#EF4444" />}
-        label="Super Admin (Trofi Staff)"
-        theme={theme}
-        onPress={() => router.push('/super-admin' as any)}
-      />
+
+      {isSponsor && (
+        <MenuItemRow
+          icon={<Award size={20} color="#F59E0B" />}
+          label={t('profile.sponsors')}
+          theme={theme}
+          onPress={() => router.push('/sponsor-placements' as any)}
+        />
+      )}
+
+      {isReferee && (
+        <MenuItemRow
+          icon={<Award size={20} color="#10B981" />}
+          label={t('profile.referee_marketplace')}
+          theme={theme}
+          onPress={() => router.push('/referee-marketplace' as any)}
+        />
+      )}
+
+      {isStaff && (
+        <MenuItemRow
+          icon={<ShieldAlert size={20} color="#EF4444" />}
+          label={t('profile.super_admin')}
+          theme={theme}
+          onPress={() => router.push('/super-admin' as any)}
+        />
+      )}
+
       <MenuItemRow
         icon={<Award size={20} color={theme.primary} />}
         label={t('profile.achievements')}
@@ -108,16 +127,17 @@ export const ProfileSettingsMenu = React.memo(function ProfileSettingsMenu({
         icon={<Shield size={20} color={theme.primary} />}
         label={t('profile.privacy')}
         theme={theme}
+        onPress={onOpenPrivacy}
       />
       <MenuItemRow
         icon={<Lock size={20} color={theme.primary} />}
-        label="Cambiar Contraseña"
+        label={t('profile.change_password')}
         theme={theme}
         onPress={() => router.push('/(tabs)/change-password' as any)}
       />
       <MenuItemRow
         icon={<Bell size={20} color={theme.primary} />}
-        label="Preferencias de Notificaciones"
+        label={t('profile.notification_preferences')}
         theme={theme}
         onPress={onOpenNotifications}
       />
@@ -125,6 +145,7 @@ export const ProfileSettingsMenu = React.memo(function ProfileSettingsMenu({
         icon={<Settings size={20} color={theme.primary} />}
         label={t('profile.app_settings')}
         theme={theme}
+        onPress={onOpenAppSettings}
       />
 
       {/* Logout */}

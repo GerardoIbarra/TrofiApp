@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -19,6 +21,8 @@ import {
   Megaphone,
   Briefcase,
   Layers,
+  Building2,
+  X,
 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
@@ -37,6 +41,8 @@ export default function SponsorPlacementsScreen() {
   const [filterType, setFilterType] = useState<'my' | 'all'>('my');
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+  const [isSponsorModalVisible, setIsSponsorModalVisible] = useState(false);
+  const [companyName, setCompanyName] = useState('');
 
   // If user has sponsor_profile or sponsor_id
   const sponsorId = user?.sponsor_profile?.id || (user?.sponsor_profile as any);
@@ -51,17 +57,28 @@ export default function SponsorPlacementsScreen() {
   );
 
   const handleCreateSponsorProfile = async () => {
+    const trimmed = companyName.trim();
+    if (!trimmed) {
+      Alert.alert('Nombre requerido', 'Por favor ingresa el nombre de tu empresa o marca.');
+      return;
+    }
+
     setIsCreatingProfile(true);
     try {
-      await api.post('/v1/sponsor-profiles/', {});
+      await api.post('/v1/sponsor-profiles/', {
+        company_name: trimmed,
+      });
       const meRes = await api.get<any>('/v1/me/');
       useAuthStore.setState({ user: meRes });
+      setIsSponsorModalVisible(false);
+      setCompanyName('');
       Alert.alert('¡Perfil Creado!', 'Ya tienes tu perfil de Sponsor activo.');
     } catch (err: any) {
-      Alert.alert(
-        'Error',
-        err?.response?.data?.detail || 'Hubo un error al crear tu perfil de sponsor.'
-      );
+      const errMsg =
+        err?.response?.data?.company_name?.[0] ||
+        err?.response?.data?.detail ||
+        'Hubo un error al crear tu perfil de sponsor.';
+      Alert.alert('Error', errMsg);
     } finally {
       setIsCreatingProfile(false);
     }
@@ -108,14 +125,9 @@ export default function SponsorPlacementsScreen() {
             </View>
             <TouchableOpacity
               style={[styles.createProfileBtn, { backgroundColor: theme.primary }]}
-              onPress={handleCreateSponsorProfile}
-              disabled={isCreatingProfile}
+              onPress={() => setIsSponsorModalVisible(true)}
             >
-              {isCreatingProfile ? (
-                <ActivityIndicator size="small" color="#001A2C" />
-              ) : (
-                <Text style={styles.createProfileBtnText}>Activar</Text>
-              )}
+              <Text style={styles.createProfileBtnText}>Activar</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -226,6 +238,85 @@ export default function SponsorPlacementsScreen() {
           refetch();
         }}
       />
+
+      {/* Activate Sponsor Profile Modal */}
+      <Modal
+        visible={isSponsorModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsSponsorModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: isDark ? '#0D1E36' : '#FFFFFF' }]}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalTitleRow}>
+                <Building2 size={20} color={theme.primary} />
+                <Text style={[styles.modalTitle, { color: theme.text }]}>
+                  Activar Perfil Sponsor
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setIsSponsorModalVisible(false)}
+                style={styles.modalCloseBtn}
+              >
+                <X size={18} color={theme.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.modalSubtitle, { color: theme.textSecondary }]}>
+              Ingresa el nombre de tu empresa o marca patrocinadora.
+            </Text>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                Nombre de la Empresa *
+              </Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    color: theme.text,
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#F1F5F9',
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E2E8F0',
+                  },
+                ]}
+                placeholder="Ej. Nike, Deportes Express, etc."
+                placeholderTextColor={theme.textSecondary}
+                value={companyName}
+                onChangeText={setCompanyName}
+                autoFocus
+              />
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[
+                  styles.modalCancelBtn,
+                  { borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : '#CBD5E1' },
+                ]}
+                onPress={() => setIsSponsorModalVisible(false)}
+                disabled={isCreatingProfile}
+              >
+                <Text style={[styles.modalCancelText, { color: theme.textSecondary }]}>
+                  Cancelar
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalSubmitBtn, { backgroundColor: theme.primary }]}
+                onPress={handleCreateSponsorProfile}
+                disabled={isCreatingProfile}
+              >
+                {isCreatingProfile ? (
+                  <ActivityIndicator size="small" color="#001A2C" />
+                ) : (
+                  <Text style={styles.modalSubmitText}>Activar Perfil</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -355,6 +446,94 @@ const createStyles = (theme: any, isDark: boolean) =>
       borderRadius: 12,
     },
     emptyBtnText: {
+      fontSize: 13,
+      fontWeight: '800',
+      color: '#001A2C',
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.65)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 20,
+    },
+    modalCard: {
+      width: '100%',
+      maxWidth: 400,
+      borderRadius: 18,
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.3,
+      shadowRadius: 20,
+      elevation: 10,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 10,
+    },
+    modalTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    modalTitle: {
+      fontSize: 17,
+      fontWeight: '800',
+    },
+    modalCloseBtn: {
+      padding: 4,
+    },
+    modalSubtitle: {
+      fontSize: 13,
+      lineHeight: 18,
+      marginBottom: 18,
+    },
+    inputContainer: {
+      marginBottom: 20,
+    },
+    inputLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      marginBottom: 8,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    textInput: {
+      height: 48,
+      borderRadius: 12,
+      borderWidth: 1,
+      paddingHorizontal: 14,
+      fontSize: 14,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      gap: 12,
+      justifyContent: 'flex-end',
+    },
+    modalCancelBtn: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderRadius: 12,
+      borderWidth: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    modalCancelText: {
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    modalSubmitBtn: {
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      minWidth: 120,
+    },
+    modalSubmitText: {
       fontSize: 13,
       fontWeight: '800',
       color: '#001A2C',

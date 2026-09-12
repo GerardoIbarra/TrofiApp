@@ -33,16 +33,17 @@ i18n
     }
   });
 
-// 3. Cargar idioma guardado de forma asíncrona (sin bloquear el inicio)
-const loadSavedLanguage = async () => {
-  if (typeof window === 'undefined') return;
+// 3. Cargar idioma guardado de forma asíncrona
+export const loadSavedLanguage = async () => {
   try {
     const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
-    if (savedLanguage && savedLanguage !== i18n.language) {
-      await i18n.changeLanguage(savedLanguage);
+    if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'es')) {
+      if (savedLanguage !== i18n.language) {
+        await i18n.changeLanguage(savedLanguage);
+      }
     }
   } catch (error) {
-    console.log('AsyncStorage not ready or error loading language:', error);
+    console.log('AsyncStorage error loading language:', error);
   }
 };
 
@@ -50,3 +51,4 @@ loadSavedLanguage();
 
 export default i18n;
 export { LANGUAGE_KEY };
+

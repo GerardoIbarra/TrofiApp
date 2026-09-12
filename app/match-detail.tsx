@@ -102,19 +102,19 @@ export default function MatchDetailScreen() {
       try {
         const lineupData = await api.get<MatchLineupResponse>(`/v1/matches/${id}/lineup/`);
         setLineup(lineupData);
-      } catch (e) { console.log('Alineación no disponible'); }
+      } catch (e) { /* Alineación opcional */ }
 
       // 3. Cargar Head to Head
       try {
         const h2hData = await api.get<MatchHeadToHeadResponse>(`/v1/matches/${id}/head-to-head/`);
         setH2h(h2hData);
-      } catch (e) { console.log('Estadísticas no disponibles'); }
+      } catch (e) { /* Estadísticas opcionales */ }
 
       // 4. Cargar Timeline
       try {
         const timelineData = await api.get<MatchTimelineResponse>(`/v1/matches/${id}/timeline/`);
         setTimeline(timelineData);
-      } catch (e) { console.log('Timeline no disponible'); }
+      } catch (e) { /* Timeline opcional */ }
 
     } catch (error) {
       console.error('Error fetching match data:', error);

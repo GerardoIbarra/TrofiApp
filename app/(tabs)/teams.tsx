@@ -158,7 +158,7 @@ export default function TeamsScreen() {
           activeOpacity={0.8}
           onPress={() => setIsModalVisible(true)}
         >
-          <Plus size={28} color="#001A2C" />
+          <Plus size={26} color="#001A2C" />
         </TouchableOpacity>
 
         {/* Create Team Modal */}
@@ -326,19 +326,20 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     fab: {
       position: "absolute",
-      bottom: 115,
+      bottom: 90,
       right: 20,
-      width: 60,
-      height: 60,
-      borderRadius: 16,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
       backgroundColor: theme.primary,
       justifyContent: "center",
       alignItems: "center",
-      elevation: 10,
-      shadowColor: theme.primary,
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: isDark ? 0.3 : 0.6,
-      shadowRadius: 12,
+      zIndex: 999,
+      elevation: 8,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 6,
     },
     emptyContainer: {
       marginTop: 60,

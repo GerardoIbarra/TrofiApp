@@ -23,6 +23,7 @@ import {
   Flame,
 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { LocationService, UserLocation } from '@/services/locationService';
@@ -38,6 +39,7 @@ const RADIUS_OPTIONS = [10, 25, 50, 100];
 
 export default function NearbyMapScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
   const [location, setLocation] = useState<UserLocation | null>(
@@ -68,11 +70,19 @@ export default function NearbyMapScreen() {
     }
   };
 
+  const hasValidCoords =
+    !!location &&
+    typeof location.latitude === 'number' &&
+    typeof location.longitude === 'number' &&
+    !isNaN(location.latitude) &&
+    !isNaN(location.longitude) &&
+    (location.latitude !== 0 || location.longitude !== 0);
+
   const { data, isLoading, refetch, isRefetching } = useGetNearby({
     latitude: location?.latitude,
     longitude: location?.longitude,
     radius: selectedRadius,
-    enabled: !!location?.latitude && !!location?.longitude,
+    enabled: hasValidCoords,
   });
 
   const leagues = data?.leagues || [];
@@ -123,11 +133,11 @@ export default function NearbyMapScreen() {
           </TouchableOpacity>
 
           <View style={styles.headerTitleBox}>
-            <Text style={styles.headerTitle}>MAPA CERCA DE TI</Text>
+            <Text style={styles.headerTitle}>{t('nearby.title')}</Text>
             <Text style={styles.headerSubtitle}>
               {location
-                ? `${totalCount} resultados en ${selectedRadius} km`
-                : 'Buscando tu ubicación...'}
+                ? t('nearby.results_count', { count: totalCount, radius: selectedRadius })
+                : t('nearby.getting_gps')}
             </Text>
           </View>
 
@@ -166,7 +176,7 @@ export default function NearbyMapScreen() {
                   filterType === 'all' && styles.chipTextActive,
                 ]}
               >
-                Todos ({leagues.length + venues.length + pickupSpots.length})
+                {t('nearby.filter_all', { count: leagues.length + venues.length + pickupSpots.length })}
               </Text>
             </TouchableOpacity>
 
@@ -187,7 +197,7 @@ export default function NearbyMapScreen() {
                   filterType === 'leagues' && styles.chipTextActive,
                 ]}
               >
-                Ligas ({leagues.length})
+                {t('nearby.filter_leagues', { count: leagues.length })}
               </Text>
             </TouchableOpacity>
 
@@ -208,7 +218,7 @@ export default function NearbyMapScreen() {
                   filterType === 'venues' && styles.chipTextActiveVenue,
                 ]}
               >
-                Canchas ({venues.length})
+                {t('nearby.filter_venues', { count: venues.length })}
               </Text>
             </TouchableOpacity>
 
@@ -229,7 +239,7 @@ export default function NearbyMapScreen() {
                   filterType === 'spots' && styles.chipTextActiveSpot,
                 ]}
               >
-                Retas ({pickupSpots.length})
+                {t('nearby.filter_spots', { count: pickupSpots.length })}
               </Text>
             </TouchableOpacity>
 
@@ -294,28 +304,27 @@ export default function NearbyMapScreen() {
 
         {/* Content Area */}
         <View style={styles.contentContainer}>
-          {!location ? (
+          {!hasValidCoords ? (
             <View style={styles.centeredMessage}>
               <Compass size={48} color={theme.primary} />
               <Text style={styles.noLocationTitle}>
-                Obteniendo ubicación GPS...
+                {t('nearby.getting_gps')}
               </Text>
               <Text style={styles.noLocationSub}>
-                Necesitamos tus coordenadas para mostrarte las ligas y canchas
-                más cercanas.
+                {t('nearby.gps_needed')}
               </Text>
               <TouchableOpacity
                 style={styles.retryLocationBtn}
                 onPress={handleRefreshLocation}
               >
-                <Text style={styles.retryLocationText}>Detectar Ubicación</Text>
+                <Text style={styles.retryLocationText}>{t('nearby.detect_location')}</Text>
               </TouchableOpacity>
             </View>
           ) : isLoading || isRefetching ? (
             <View style={styles.centeredLoading}>
               <ActivityIndicator size="large" color={theme.primary} />
               <Text style={styles.loadingText}>
-                Buscando ligas y canchas en un radio de {selectedRadius} km...
+                {t('nearby.searching', { radius: selectedRadius })}
               </Text>
             </View>
           ) : viewMode === 'map' ? (
@@ -337,15 +346,15 @@ export default function NearbyMapScreen() {
               <View style={styles.legendBox}>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: '#00F5FF' }]} />
-                  <Text style={styles.legendText}>Ligas</Text>
+                  <Text style={styles.legendText}>{t('nearby.legend_leagues')}</Text>
                 </View>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-                  <Text style={styles.legendText}>Canchas</Text>
+                  <Text style={styles.legendText}>{t('nearby.legend_venues')}</Text>
                 </View>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
-                  <Text style={styles.legendText}>Retas</Text>
+                  <Text style={styles.legendText}>{t('nearby.legend_spots')}</Text>
                 </View>
               </View>
 
@@ -391,11 +400,10 @@ export default function NearbyMapScreen() {
                 <View style={styles.emptyListContainer}>
                   <MapPin size={48} color={theme.textSecondary} opacity={0.3} />
                   <Text style={styles.emptyListTitle}>
-                    No hay resultados cercanos
+                    {t('nearby.no_results')}
                   </Text>
                   <Text style={styles.emptyListSub}>
-                    No encontramos ligas ni canchas con coordenadas en un radio
-                    de {selectedRadius} km. Intenta aumentar el radio a 100 km.
+                    {t('nearby.no_results_sub', { radius: selectedRadius })}
                   </Text>
                   <TouchableOpacity
                     style={styles.expandRadiusBtn}
@@ -405,7 +413,7 @@ export default function NearbyMapScreen() {
                     }}
                   >
                     <Text style={styles.expandRadiusText}>
-                      Buscar en radio de 100 km
+                      {t('nearby.expand_radius')}
                     </Text>
                   </TouchableOpacity>
                 </View>
