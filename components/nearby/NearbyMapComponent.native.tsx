@@ -1,8 +1,34 @@
 import React, { useEffect, useRef, useMemo } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useTheme } from '@/context/ThemeContext';
 import { NearbyMapProps } from './types';
+import { League } from '@/features/leagues/types/league';
+import { Venue } from '@/features/venues/types/venue';
+import { PickupSpot } from '@/features/pickup/types/pickup';
+
+// Safely extract coordinates from direct properties or nested venue properties
+const getEntityCoords = (item: any): { lat: number; lng: number } | null => {
+  if (!item) return null;
+  const rawLat =
+    item.latitude ??
+    item.lat ??
+    item.venue?.latitude ??
+    item.venues?.[0]?.latitude ??
+    item.location?.latitude;
+  const rawLng =
+    item.longitude ??
+    item.lng ??
+    item.venue?.longitude ??
+    item.venues?.[0]?.longitude ??
+    item.location?.longitude;
+
+  if (rawLat == null || rawLng == null) return null;
+  const lat = typeof rawLat === 'number' ? rawLat : parseFloat(rawLat);
+  const lng = typeof rawLng === 'number' ? rawLng : parseFloat(rawLng);
+  if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return null;
+  return { lat, lng };
+};
 
 export default function NearbyMapComponent({
   userLatitude,
@@ -22,18 +48,35 @@ export default function NearbyMapComponent({
   const showVenues = filterType === 'all' || filterType === 'venues';
   const showSpots = filterType === 'all' || filterType === 'spots';
 
-  const validLeagues = useMemo(
-    () => (showLeagues ? leagues.filter((l) => l.latitude != null && l.longitude != null) : []),
-    [leagues, showLeagues]
-  );
-  const validVenues = useMemo(
-    () => (showVenues ? venues.filter((v) => v.latitude != null && v.longitude != null) : []),
-    [venues, showVenues]
-  );
-  const validSpots = useMemo(
-    () => (showSpots ? pickupSpots.filter((s) => s.latitude != null && s.longitude != null) : []),
-    [pickupSpots, showSpots]
-  );
+  const validLeagues = useMemo(() => {
+    if (!showLeagues) return [];
+    return leagues
+      .map((l) => {
+        const coords = getEntityCoords(l);
+        return coords ? { ...l, lat: coords.lat, lng: coords.lng } : null;
+      })
+      .filter(Boolean) as (League & { lat: number; lng: number })[];
+  }, [leagues, showLeagues]);
+
+  const validVenues = useMemo(() => {
+    if (!showVenues) return [];
+    return venues
+      .map((v) => {
+        const coords = getEntityCoords(v);
+        return coords ? { ...v, lat: coords.lat, lng: coords.lng } : null;
+      })
+      .filter(Boolean) as (Venue & { lat: number; lng: number })[];
+  }, [venues, showVenues]);
+
+  const validSpots = useMemo(() => {
+    if (!showSpots) return [];
+    return pickupSpots
+      .map((s) => {
+        const coords = getEntityCoords(s);
+        return coords ? { ...s, lat: coords.lat, lng: coords.lng } : null;
+      })
+      .filter(Boolean) as (PickupSpot & { lat: number; lng: number })[];
+  }, [pickupSpots, showSpots]);
 
   // Handle messages from Leaflet webview
   const handleMessage = (event: any) => {
@@ -61,12 +104,11 @@ export default function NearbyMapComponent({
   // Fly to selected entity when it changes
   useEffect(() => {
     if (selectedEntity && webViewRef.current) {
-      const lat = selectedEntity.item.latitude;
-      const lng = selectedEntity.item.longitude;
-      if (lat != null && lng != null) {
+      const coords = getEntityCoords(selectedEntity.item);
+      if (coords) {
         webViewRef.current.injectJavaScript(`
           if (window.map) {
-            window.map.flyTo([${lat}, ${lng}], 15, { animate: true, duration: 0.8 });
+            window.map.flyTo([${coords.lat}, ${coords.lng}], 15, { animate: true, duration: 0.8 });
           }
           true;
         `);
@@ -74,10 +116,12 @@ export default function NearbyMapComponent({
     }
   }, [selectedEntity]);
 
-  // Tile layer URL based on theme (CartoDB Dark Matter vs Voyager - 100% free, no API key required)
+  // 100% Free Tile Layer URLs without API keys or watermarks:
+  // - Dark: ESRI World Dark Gray Canvas (clean, dark navy/gray, zero watermarks)
+  // - Light: OpenStreetMap Standard (official OSM tiles, clean, zero watermarks)
   const tileUrl = isDark
-    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
+    : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   const bgColor = isDark ? '#0A192F' : '#F1F5F9';
   const pulseColor = isDark ? '#00F5FF' : '#0284C7';
@@ -87,8 +131,8 @@ export default function NearbyMapComponent({
     validLeagues.map((l) => ({
       id: l.id,
       name: l.name,
-      lat: Number(l.latitude),
-      lng: Number(l.longitude),
+      lat: l.lat,
+      lng: l.lng,
     }))
   );
 
@@ -96,8 +140,8 @@ export default function NearbyMapComponent({
     validVenues.map((v) => ({
       id: v.id,
       name: v.name,
-      lat: Number(v.latitude),
-      lng: Number(v.longitude),
+      lat: v.lat,
+      lng: v.lng,
     }))
   );
 
@@ -105,15 +149,13 @@ export default function NearbyMapComponent({
     validSpots.map((s) => ({
       id: s.id,
       name: s.name,
-      lat: Number(s.latitude),
-      lng: Number(s.longitude),
+      lat: s.lat,
+      lng: s.lng,
     }))
   );
 
   const selectedId = selectedEntity?.item.id ?? null;
   const selectedType = selectedEntity?.type ?? null;
-
-  // Compute zoom level based on radius
   const initialZoom = radiusKm <= 10 ? 13 : radiusKm <= 25 ? 12 : radiusKm <= 50 ? 11 : 10;
 
   const htmlContent = `
@@ -125,7 +167,7 @@ export default function NearbyMapComponent({
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    * { -webkit-tap-highlight-color: transparent; }
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     body, html, #map {
       margin: 0;
       padding: 0;
@@ -148,14 +190,14 @@ export default function NearbyMapComponent({
       100% { box-shadow: 0 0 0 0 rgba(0, 245, 255, 0); }
     }
     .pin-box {
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      font-size: 17px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.45);
       cursor: pointer;
       border: 2px solid #FFF;
       transition: transform 0.2s;
@@ -169,15 +211,11 @@ export default function NearbyMapComponent({
     .selected-pin {
       transform: scale(1.25);
       border: 3px solid #FFF;
-      box-shadow: 0 0 16px #00F5FF;
+      box-shadow: 0 0 18px #00F5FF;
     }
+    /* Hide Leaflet bottom attribution flag and links */
     .leaflet-control-attribution {
-      font-size: 9px !important;
-      background: rgba(0,0,0,0.4) !important;
-      color: #94A3B8 !important;
-    }
-    .leaflet-control-attribution a {
-      color: #38BDF8 !important;
+      display: none !important;
     }
   </style>
 </head>
@@ -186,7 +224,7 @@ export default function NearbyMapComponent({
   <script>
     const map = L.map('map', {
       zoomControl: false,
-      attributionControl: true
+      attributionControl: false
     }).setView([${userLatitude}, ${userLongitude}], ${initialZoom});
 
     window.map = map;
@@ -194,8 +232,7 @@ export default function NearbyMapComponent({
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     L.tileLayer('${tileUrl}', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; <a href="https://www.openstreetmap.org/">OSM</a>'
+      maxZoom: 19
     }).addTo(map);
 
     // User radius circle
@@ -223,7 +260,7 @@ export default function NearbyMapComponent({
       }
     };
 
-    map.on('click', (e) => {
+    map.on('click', () => {
       postToRN({ type: 'DESELECT' });
     });
 
@@ -233,50 +270,74 @@ export default function NearbyMapComponent({
     const selectedId = ${JSON.stringify(selectedId)};
     const selectedType = ${JSON.stringify(selectedType)};
 
+    const allPoints = [];
+    if (${userLatitude} && ${userLongitude}) {
+      allPoints.push([${userLatitude}, ${userLongitude}]);
+    }
+
     leagues.forEach(l => {
-      const isSel = selectedType === 'league' && selectedId === l.id;
-      const icon = L.divIcon({
-        className: '',
-        html: '<div class="pin-box league-pin ' + (isSel ? 'selected-pin' : '') + '">🏆</div>',
-        iconSize: [34, 34],
-        iconAnchor: [17, 17]
-      });
-      const m = L.marker([l.lat, l.lng], { icon }).addTo(map);
-      m.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
-        postToRN({ type: 'SELECT_NEARBY', entityType: 'league', id: l.id });
-      });
+      if (l.lat && l.lng) {
+        allPoints.push([l.lat, l.lng]);
+        const isSel = selectedType === 'league' && selectedId === l.id;
+        const icon = L.divIcon({
+          className: '',
+          html: '<div class="pin-box league-pin ' + (isSel ? 'selected-pin' : '') + '" title="' + (l.name || 'Liga') + '">🏆</div>',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
+        });
+        const m = L.marker([l.lat, l.lng], { icon }).addTo(map);
+        m.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          postToRN({ type: 'SELECT_NEARBY', entityType: 'league', id: l.id });
+        });
+      }
     });
 
     venues.forEach(v => {
-      const isSel = selectedType === 'venue' && selectedId === v.id;
-      const icon = L.divIcon({
-        className: '',
-        html: '<div class="pin-box venue-pin ' + (isSel ? 'selected-pin' : '') + '">🏟️</div>',
-        iconSize: [34, 34],
-        iconAnchor: [17, 17]
-      });
-      const m = L.marker([v.lat, v.lng], { icon }).addTo(map);
-      m.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
-        postToRN({ type: 'SELECT_NEARBY', entityType: 'venue', id: v.id });
-      });
+      if (v.lat && v.lng) {
+        allPoints.push([v.lat, v.lng]);
+        const isSel = selectedType === 'venue' && selectedId === v.id;
+        const icon = L.divIcon({
+          className: '',
+          html: '<div class="pin-box venue-pin ' + (isSel ? 'selected-pin' : '') + '" title="' + (v.name || 'Sede') + '">🏟️</div>',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
+        });
+        const m = L.marker([v.lat, v.lng], { icon }).addTo(map);
+        m.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          postToRN({ type: 'SELECT_NEARBY', entityType: 'venue', id: v.id });
+        });
+      }
     });
 
     spots.forEach(s => {
-      const isSel = selectedType === 'spot' && selectedId === s.id;
-      const icon = L.divIcon({
-        className: '',
-        html: '<div class="pin-box spot-pin ' + (isSel ? 'selected-pin' : '') + '">⚽</div>',
-        iconSize: [34, 34],
-        iconAnchor: [17, 17]
-      });
-      const m = L.marker([s.lat, s.lng], { icon }).addTo(map);
-      m.on('click', (e) => {
-        L.DomEvent.stopPropagation(e);
-        postToRN({ type: 'SELECT_NEARBY', entityType: 'spot', id: s.id });
-      });
+      if (s.lat && s.lng) {
+        allPoints.push([s.lat, s.lng]);
+        const isSel = selectedType === 'spot' && selectedId === s.id;
+        const icon = L.divIcon({
+          className: '',
+          html: '<div class="pin-box spot-pin ' + (isSel ? 'selected-pin' : '') + '" title="' + (s.name || 'Cancha') + '">⚽</div>',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
+        });
+        const m = L.marker([s.lat, s.lng], { icon }).addTo(map);
+        m.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          postToRN({ type: 'SELECT_NEARBY', entityType: 'spot', id: s.id });
+        });
+      }
     });
+
+    // Automatically zoom and center map to include all items and user location
+    if (allPoints.length > 1) {
+      try {
+        const bounds = L.latLngBounds(allPoints);
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+      } catch (e) {
+        // fallback
+      }
+    }
   </script>
 </body>
 </html>
