@@ -2,7 +2,7 @@
   "expo": {
     "name": "TROFI",
     "slug": "TrofiApp",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": [
@@ -22,6 +22,7 @@
     },
     "android": {
       "package": "com.jugardo.trofiapp",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#0A192F",
         "foregroundImage": "./assets/images/adaptive-icon.png"
