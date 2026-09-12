@@ -43,6 +43,22 @@ export interface PlayerStreak {
   count: number;
 }
 
+export interface PlayerPickupStats {
+  check_in_count: number;
+  distinct_spot_count: number;
+  achievements?: Array<{
+    badge: string;
+    name: string;
+    unlocked_at: string;
+  }>;
+  tier?: {
+    name: string;
+    level: number;
+    next_tier?: string | null;
+    check_ins_needed?: number | null;
+  };
+}
+
 export interface PlayerProfileResponse {
   player: {
     id: string;
@@ -66,4 +82,5 @@ export interface PlayerProfileResponse {
   achievements: PlayerAchievementItem[];
   offensive_streak: PlayerStreak | null;
   defensive_streak: PlayerStreak | null;
+  pickup_stats?: PlayerPickupStats | null;
 }

@@ -1,16 +1,17 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import { Trophy, MapPin, ChevronRight, Navigation, Shield } from 'lucide-react-native';
+import { Trophy, MapPin, ChevronRight, Navigation, Flame, Users } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { League } from '@/features/leagues/types/league';
 import { Venue } from '@/features/venues/types/venue';
+import { PickupSpot } from '@/features/pickup/types/pickup';
 import { NearbyItemType } from './types';
 
 interface NearbyItemCardProps {
   type: NearbyItemType;
-  item: League | Venue;
+  item: League | Venue | PickupSpot;
   onPress?: () => void;
   isCardSelected?: boolean;
 }
@@ -25,11 +26,13 @@ export function NearbyItemCard({
   const styles = createStyles(theme, isDark, isCardSelected, type);
 
   const isLeague = type === 'league';
+  const isSpot = type === 'spot';
   const league = isLeague ? (item as League) : null;
-  const venue = !isLeague ? (item as Venue) : null;
+  const venue = type === 'venue' ? (item as Venue) : null;
+  const spot = isSpot ? (item as PickupSpot) : null;
 
   const title = item.name;
-  const city = isLeague ? league?.city : venue?.city;
+  const city = isLeague ? league?.city : (venue?.city || spot?.city);
   const country = isLeague ? league?.country : undefined;
   const distanceKm = item.distance_km;
 
@@ -39,9 +42,20 @@ export function NearbyItemCard({
         pathname: '/league-detail',
         params: { id: item.id },
       });
+    } else if (isSpot) {
+      router.push({
+        pathname: '/pickup-spot-detail',
+        params: { id: item.id },
+      });
     } else if (onPress) {
       onPress();
     }
+  };
+
+  const getBadgeText = () => {
+    if (isSpot) return '⚽ RETA INFORMAL';
+    if (isLeague) return '🏆 LIGA';
+    return '🏟️ CANCHA / SEDE';
   };
 
   return (
@@ -60,6 +74,8 @@ export function NearbyItemCard({
             />
           ) : isLeague ? (
             <Trophy size={20} color={theme.primary} />
+          ) : isSpot ? (
+            <Flame size={20} color="#F59E0B" />
           ) : (
             <MapPin size={20} color="#10B981" />
           )}
@@ -69,10 +85,15 @@ export function NearbyItemCard({
       <View style={styles.contentColumn}>
         <View style={styles.topRow}>
           <View style={styles.typeBadge}>
-            <Text style={styles.typeBadgeText}>
-              {isLeague ? '🏆 LIGA' : '🏟️ CANCHA / SEDE'}
-            </Text>
+            <Text style={styles.typeBadgeText}>{getBadgeText()}</Text>
           </View>
+
+          {isSpot && spot?.estimated_headcount != null && spot.estimated_headcount > 0 && (
+            <View style={styles.activePlayersBadge}>
+              <Users size={11} color="#F59E0B" />
+              <Text style={styles.activePlayersText}>{spot.estimated_headcount} jugando</Text>
+            </View>
+          )}
 
           {distanceKm != null && (
             <View style={styles.distanceBadge}>
@@ -93,7 +114,7 @@ export function NearbyItemCard({
         <View style={styles.metaRow}>
           <MapPin size={12} color={theme.textSecondary} />
           <Text style={styles.metaText} numberOfLines={1}>
-            {city || 'Ubicación disponible'}
+            {city || (isSpot ? (spot?.spot_type || 'Cancha libre') : 'Ubicación disponible')}
             {country ? ` • ${country}` : ''}
           </Text>
         </View>
@@ -128,6 +149,8 @@ const createStyles = (
       borderColor: isSelected
         ? type === 'league'
           ? theme.primary
+          : type === 'spot'
+          ? '#F59E0B'
           : '#10B981'
         : isDark
         ? 'rgba(255, 255, 255, 0.06)'
@@ -150,6 +173,10 @@ const createStyles = (
           ? isDark
             ? 'rgba(0, 245, 255, 0.08)'
             : 'rgba(0, 245, 255, 0.12)'
+          : type === 'spot'
+          ? isDark
+            ? 'rgba(245, 158, 11, 0.12)'
+            : 'rgba(245, 158, 11, 0.16)'
           : isDark
           ? 'rgba(16, 185, 129, 0.12)'
           : 'rgba(16, 185, 129, 0.16)',
@@ -159,6 +186,8 @@ const createStyles = (
       borderColor:
         type === 'league'
           ? 'rgba(0, 245, 255, 0.2)'
+          : type === 'spot'
+          ? 'rgba(245, 158, 11, 0.25)'
           : 'rgba(16, 185, 129, 0.25)',
       overflow: 'hidden',
     },
@@ -185,6 +214,10 @@ const createStyles = (
           ? isDark
             ? 'rgba(0, 245, 255, 0.12)'
             : 'rgba(0, 245, 255, 0.16)'
+          : type === 'spot'
+          ? isDark
+            ? 'rgba(245, 158, 11, 0.15)'
+            : 'rgba(245, 158, 11, 0.18)'
           : isDark
           ? 'rgba(16, 185, 129, 0.15)'
           : 'rgba(16, 185, 129, 0.18)',
@@ -192,8 +225,22 @@ const createStyles = (
     typeBadgeText: {
       fontSize: 9,
       fontWeight: '800',
-      color: type === 'league' ? theme.primary : '#10B981',
+      color: type === 'league' ? theme.primary : type === 'spot' ? '#F59E0B' : '#10B981',
       letterSpacing: 0.5,
+    },
+    activePlayersBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : 'rgba(245, 158, 11, 0.16)',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 10,
+    },
+    activePlayersText: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: '#F59E0B',
     },
     distanceBadge: {
       flexDirection: 'row',

@@ -6,7 +6,7 @@ import { LayoutHeader } from '@/components/ui/layout/LayoutHeader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { router } from 'expo-router';
-import { Search as SearchIcon, SlidersHorizontal, X, Star, ChevronRight, User as UserIcon, CircleDot, Sun, Zap, Mountain, Map as MapIcon } from 'lucide-react-native';
+import { Search as SearchIcon, SlidersHorizontal, X, Star, ChevronRight, User as UserIcon, CircleDot, Sun, Zap, Mountain, Map as MapIcon, Flame } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 
@@ -75,6 +75,29 @@ export default function ExploreScreen() {
                 ))}
               </ScrollView>
             </View>
+
+            {/* Banner Retas / Fútbol Informal */}
+            <TouchableOpacity
+              style={styles.retasBanner}
+              onPress={() => router.push('/retas')}
+              activeOpacity={0.88}
+            >
+              <View style={styles.retasBannerLeft}>
+                <View style={styles.retasIconCircle}>
+                  <Flame size={20} color="#FFF" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <View style={styles.retasBadge}>
+                    <Text style={styles.retasBadgeText}>FÚTBOL INFORMAL</Text>
+                  </View>
+                  <Text style={styles.retasBannerTitle}>Retas & Canchas Libres</Text>
+                  <Text style={styles.retasBannerSub} numberOfLines={1}>
+                    Check-ins en vivo, mapa, crews y desafíos de barrio
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight size={20} color="#F59E0B" />
+            </TouchableOpacity>
 
             {/* Recommended for You */}
             <Text style={styles.sectionTitle}>{t('explore.recommended')}</Text>
@@ -465,5 +488,55 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontSize: 18,
     fontWeight: '900',
     color: '#FFF',
+  },
+  retasBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: isDark ? 'rgba(245, 158, 11, 0.08)' : 'rgba(245, 158, 11, 0.1)',
+    borderWidth: 1.5,
+    borderColor: isDark ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.35)',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 24,
+  },
+  retasBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    marginRight: 8,
+  },
+  retasIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#F59E0B',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retasBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.25)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginBottom: 3,
+  },
+  retasBadgeText: {
+    fontSize: 8,
+    fontWeight: '900',
+    color: '#F59E0B',
+    letterSpacing: 0.5,
+  },
+  retasBannerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: theme.text,
+  },
+  retasBannerSub: {
+    fontSize: 11,
+    color: theme.textSecondary,
+    marginTop: 2,
   },
 });

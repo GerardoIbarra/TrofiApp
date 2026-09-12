@@ -1,7 +1,7 @@
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { router, usePathname } from "expo-router";
-import { Bell, ChevronLeft, MessageSquare, User } from "lucide-react-native";
+import { Bell, ChevronLeft, MessageSquare, User, Flame } from "lucide-react-native";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,6 +25,7 @@ export function LayoutHeader({
 
   const isNotificationsScreen = pathname === "/notifications";
   const isDMsScreen = pathname === "/direct-messages";
+  const isRetasScreen = pathname === "/retas";
 
   const { data: conversations } = useGetConversations();
   const totalUnreadDMs =
@@ -54,6 +55,14 @@ export function LayoutHeader({
 
       <View style={styles.rightContainer}>
         {rightElement}
+        {!isRetasScreen && !rightElement && (
+          <TouchableOpacity
+            style={styles.bellButton}
+            onPress={() => router.push("/retas" as any)}
+          >
+            <Flame size={20} color="#F59E0B" />
+          </TouchableOpacity>
+        )}
         {!isDMsScreen && !rightElement && (
           <TouchableOpacity
             style={styles.bellButton}
@@ -132,7 +141,7 @@ const styles = StyleSheet.create({
   rightContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 15,
+    gap: 10,
   },
   bellButton: {
     width: 40,

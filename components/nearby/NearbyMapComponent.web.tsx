@@ -8,6 +8,7 @@ export default function NearbyMapComponent({
   radiusKm,
   leagues,
   venues,
+  pickupSpots = [],
   selectedEntity,
   onSelectEntity,
   filterType,
@@ -16,12 +17,16 @@ export default function NearbyMapComponent({
 
   const showLeagues = filterType === 'all' || filterType === 'leagues';
   const showVenues = filterType === 'all' || filterType === 'venues';
+  const showSpots = filterType === 'all' || filterType === 'spots';
 
   const validLeagues = showLeagues
     ? leagues.filter((l) => l.latitude != null && l.longitude != null)
     : [];
   const validVenues = showVenues
     ? venues.filter((v) => v.latitude != null && v.longitude != null)
+    : [];
+  const validSpots = showSpots
+    ? pickupSpots.filter((s) => s.latitude != null && s.longitude != null)
     : [];
 
   useEffect(() => {
@@ -35,6 +40,9 @@ export default function NearbyMapComponent({
           } else if (data.entityType === 'venue') {
             const found = venues.find((v) => v.id === data.id);
             if (found) onSelectEntity({ type: 'venue', item: found });
+          } else if (data.entityType === 'spot') {
+            const found = pickupSpots.find((s) => s.id === data.id);
+            if (found) onSelectEntity({ type: 'spot', item: found });
           }
         }
       } catch {
@@ -44,7 +52,7 @@ export default function NearbyMapComponent({
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [leagues, venues, onSelectEntity]);
+  }, [leagues, venues, pickupSpots, onSelectEntity]);
 
   const mapHtml = `
 <!DOCTYPE html>
@@ -79,6 +87,7 @@ export default function NearbyMapComponent({
     }
     .league-pin { background: #00F5FF; color: #000; }
     .venue-pin { background: #10B981; }
+    .spot-pin { background: #F59E0B; }
   </style>
 </head>
 <body>
@@ -126,6 +135,16 @@ export default function NearbyMapComponent({
       }))
     )};
 
+    const spotsData = ${JSON.stringify(
+      validSpots.map((s) => ({
+        id: s.id,
+        name: s.name,
+        lat: s.latitude,
+        lng: s.longitude,
+        dist: s.distance_km,
+      }))
+    )};
+
     leaguesData.forEach(l => {
       const icon = L.divIcon({
         className: '',
@@ -149,6 +168,19 @@ export default function NearbyMapComponent({
       const m = L.marker([v.lat, v.lng], { icon }).addTo(map);
       m.on('click', () => {
         window.parent.postMessage({ type: 'SELECT_NEARBY', entityType: 'venue', id: v.id }, '*');
+      });
+    });
+
+    spotsData.forEach(s => {
+      const icon = L.divIcon({
+        className: '',
+        html: '<div class="pin-box spot-pin" title="' + s.name + '">⚽</div>',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+      const m = L.marker([s.lat, s.lng], { icon }).addTo(map);
+      m.on('click', () => {
+        window.parent.postMessage({ type: 'SELECT_NEARBY', entityType: 'spot', id: s.id }, '*');
       });
     });
   </script>

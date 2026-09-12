@@ -2,11 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import api from '@/services/api';
 import { League } from '@/features/leagues/types/league';
 import { Venue } from '@/features/venues/types/venue';
+import { PickupSpot } from '@/features/pickup/types/pickup';
 
 export interface NearbyResponse {
   leagues: League[];
   venues: Venue[];
-  pickup_spots?: any[];
+  pickup_spots?: PickupSpot[];
 }
 
 interface UseGetNearbyOptions {

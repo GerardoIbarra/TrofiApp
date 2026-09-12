@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Trophy,
   MessageSquare,
+  Award,
 } from 'lucide-react-native';
 import { useGetPlayerProfile } from '@/features/players/services/playerProfileApi';
 import { PlayerCardView } from '@/components/players/profile/PlayerCardView';
@@ -222,6 +223,65 @@ export default function PlayerDetailScreen() {
             {profile?.achievements && profile.achievements.length > 0 && (
               <PlayerAchievementsList achievements={profile.achievements as any} />
             )}
+
+            {/* Retas / Fútbol Informal Stats */}
+            {profile?.pickup_stats && (
+              <View style={styles.pickupStatsBox}>
+                <View style={styles.pickupStatsHeader}>
+                  <View style={styles.pickupIconBadge}>
+                    <Flame size={16} color="#F59E0B" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.pickupTitle, { color: theme.text }]}>
+                      Fútbol Informal & Retas
+                    </Text>
+                    <Text style={[styles.pickupSubtitle, { color: theme.textSecondary }]}>
+                      Nivel {profile.pickup_stats.tier?.level || 1} • {profile.pickup_stats.tier?.name || 'Novato'}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.pickupMetricsRow}>
+                  <View style={styles.pickupMetric}>
+                    <Text style={[styles.pickupMetricVal, { color: theme.text }]}>
+                      {profile.pickup_stats.check_in_count || 0}
+                    </Text>
+                    <Text style={[styles.pickupMetricLbl, { color: theme.textSecondary }]}>
+                      Check-ins
+                    </Text>
+                  </View>
+                  <View style={styles.pickupMetric}>
+                    <Text style={[styles.pickupMetricVal, { color: theme.text }]}>
+                      {profile.pickup_stats.distinct_spot_count || 0}
+                    </Text>
+                    <Text style={[styles.pickupMetricLbl, { color: theme.textSecondary }]}>
+                      Canchas distintas
+                    </Text>
+                  </View>
+                  <View style={styles.pickupMetric}>
+                    <Text style={[styles.pickupMetricVal, { color: '#F59E0B' }]}>
+                      {profile.pickup_stats.tier?.check_ins_needed != null
+                        ? `${profile.pickup_stats.tier.check_ins_needed}`
+                        : 'Max'}
+                    </Text>
+                    <Text style={[styles.pickupMetricLbl, { color: theme.textSecondary }]}>
+                      {profile.pickup_stats.tier?.next_tier ? `Faltan para nivel` : 'Nivel Max'}
+                    </Text>
+                  </View>
+                </View>
+
+                {profile.pickup_stats.achievements && profile.pickup_stats.achievements.length > 0 && (
+                  <View style={styles.pickupBadgesWrap}>
+                    {profile.pickup_stats.achievements.map((ach, idx) => (
+                      <View key={idx} style={styles.pickupBadgeChip}>
+                        <Award size={12} color="#F59E0B" />
+                        <Text style={styles.pickupBadgeText}>{ach.name}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
           </View>
         )}
 
@@ -405,5 +465,77 @@ const createStyles = (theme: any, isDark: boolean) =>
     histDate: {
       fontSize: 9,
       marginTop: 2,
+    },
+    pickupStatsBox: {
+      backgroundColor: theme.surface,
+      borderRadius: 16,
+      padding: 16,
+      marginTop: 20,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.25)',
+    },
+    pickupStatsHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 14,
+    },
+    pickupIconBadge: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : 'rgba(245, 158, 11, 0.16)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pickupTitle: {
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    pickupSubtitle: {
+      fontSize: 11,
+      fontWeight: '600',
+      marginTop: 1,
+    },
+    pickupMetricsRow: {
+      flexDirection: 'row',
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+      borderRadius: 12,
+      padding: 12,
+      justifyContent: 'space-around',
+    },
+    pickupMetric: {
+      alignItems: 'center',
+    },
+    pickupMetricVal: {
+      fontSize: 16,
+      fontWeight: '900',
+    },
+    pickupMetricLbl: {
+      fontSize: 10,
+      fontWeight: '600',
+      marginTop: 2,
+    },
+    pickupBadgesWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginTop: 12,
+    },
+    pickupBadgeChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+      borderRadius: 12,
+      backgroundColor: isDark ? 'rgba(245, 158, 11, 0.1)' : 'rgba(245, 158, 11, 0.15)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.25)',
+    },
+    pickupBadgeText: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: '#F59E0B',
     },
   });

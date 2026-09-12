@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, Platform } from 'react-native';
 import MapView, { Marker, Circle, PROVIDER_DEFAULT } from 'react-native-maps';
-import { Trophy, MapPin } from 'lucide-react-native';
+import { Trophy, MapPin, Flame } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { NearbyMapProps } from './types';
 
@@ -58,6 +58,7 @@ export default function NearbyMapComponent({
   radiusKm,
   leagues,
   venues,
+  pickupSpots = [],
   selectedEntity,
   onSelectEntity,
   filterType,
@@ -90,6 +91,7 @@ export default function NearbyMapComponent({
 
   const showLeagues = filterType === 'all' || filterType === 'leagues';
   const showVenues = filterType === 'all' || filterType === 'venues';
+  const showSpots = filterType === 'all' || filterType === 'spots';
 
   return (
     <View style={styles.container}>
@@ -179,6 +181,37 @@ export default function NearbyMapComponent({
               </Marker>
             );
           })}
+
+        {/* Pickup Spot Pins */}
+        {showSpots &&
+          pickupSpots.map((spot) => {
+            if (spot.latitude == null || spot.longitude == null) return null;
+            const isSelected =
+              selectedEntity?.type === 'spot' &&
+              selectedEntity.item.id === spot.id;
+
+            return (
+              <Marker
+                key={`spot-${spot.id}`}
+                coordinate={{
+                  latitude: Number(spot.latitude),
+                  longitude: Number(spot.longitude),
+                }}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  onSelectEntity({ type: 'spot', item: spot });
+                }}
+                tracksViewChanges={Platform.OS === 'android' ? false : true}
+              >
+                <View style={[styles.markerContainer, isSelected && styles.markerSelectedSpot]}>
+                  <View style={[styles.pinCircle, styles.spotPinCircle]}>
+                    <Flame size={14} color="#FFF" />
+                  </View>
+                  <View style={[styles.pinArrow, styles.spotPinArrow]} />
+                </View>
+              </Marker>
+            );
+          })}
       </MapView>
     </View>
   );
@@ -204,6 +237,10 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.25 }],
     zIndex: 999,
   },
+  markerSelectedSpot: {
+    transform: [{ scale: 1.25 }],
+    zIndex: 999,
+  },
   pinCircle: {
     width: 32,
     height: 32,
@@ -226,6 +263,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFFFFF',
   },
+  spotPinCircle: {
+    backgroundColor: '#F59E0B',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
   pinArrow: {
     width: 0,
     height: 0,
@@ -243,5 +285,8 @@ const styles = StyleSheet.create({
   },
   venuePinArrow: {
     borderTopColor: '#10B981',
+  },
+  spotPinArrow: {
+    borderTopColor: '#F59E0B',
   },
 });

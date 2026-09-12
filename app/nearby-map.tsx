@@ -20,6 +20,7 @@ import {
   MapPin,
   X,
   Compass,
+  Flame,
 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
@@ -31,6 +32,7 @@ import { NearbyItemCard } from '@/components/nearby/NearbyItemCard';
 import { SelectedNearbyEntity } from '@/components/nearby/types';
 import { League } from '@/features/leagues/types/league';
 import { Venue } from '@/features/venues/types/venue';
+import { PickupSpot } from '@/features/pickup/types/pickup';
 
 const RADIUS_OPTIONS = [10, 25, 50, 100];
 
@@ -43,7 +45,7 @@ export default function NearbyMapScreen() {
   );
   const [isLocating, setIsLocating] = useState(false);
   const [selectedRadius, setSelectedRadius] = useState<number>(50);
-  const [filterType, setFilterType] = useState<'all' | 'leagues' | 'venues'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'leagues' | 'venues' | 'spots'>('all');
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [selectedEntity, setSelectedEntity] = useState<SelectedNearbyEntity | null>(null);
 
@@ -75,10 +77,14 @@ export default function NearbyMapScreen() {
 
   const leagues = data?.leagues || [];
   const venues = data?.venues || [];
+  const pickupSpots = data?.pickup_spots || [];
 
   // Filter and sort items for list view
   const combinedItems = useMemo(() => {
-    const items: Array<{ type: 'league' | 'venue'; item: League | Venue }> = [];
+    const items: Array<{
+      type: 'league' | 'venue' | 'spot';
+      item: League | Venue | PickupSpot;
+    }> = [];
 
     if (filterType === 'all' || filterType === 'leagues') {
       leagues.forEach((l) => items.push({ type: 'league', item: l }));
@@ -86,17 +92,21 @@ export default function NearbyMapScreen() {
     if (filterType === 'all' || filterType === 'venues') {
       venues.forEach((v) => items.push({ type: 'venue', item: v }));
     }
+    if (filterType === 'all' || filterType === 'spots') {
+      pickupSpots.forEach((s) => items.push({ type: 'spot', item: s }));
+    }
 
     return items.sort((a, b) => {
       const distA = a.item.distance_km ?? 9999;
       const distB = b.item.distance_km ?? 9999;
       return distA - distB;
     });
-  }, [leagues, venues, filterType]);
+  }, [leagues, venues, pickupSpots, filterType]);
 
   const totalCount =
     (filterType === 'all' || filterType === 'leagues' ? leagues.length : 0) +
-    (filterType === 'all' || filterType === 'venues' ? venues.length : 0);
+    (filterType === 'all' || filterType === 'venues' ? venues.length : 0) +
+    (filterType === 'all' || filterType === 'spots' ? pickupSpots.length : 0);
 
   return (
     <View style={GlobalStyles.container}>
@@ -156,7 +166,7 @@ export default function NearbyMapScreen() {
                   filterType === 'all' && styles.chipTextActive,
                 ]}
               >
-                Todos ({leagues.length + venues.length})
+                Todos ({leagues.length + venues.length + pickupSpots.length})
               </Text>
             </TouchableOpacity>
 
@@ -199,6 +209,27 @@ export default function NearbyMapScreen() {
                 ]}
               >
                 Canchas ({venues.length})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.chip,
+                filterType === 'spots' && styles.chipActiveSpot,
+              ]}
+              onPress={() => setFilterType('spots')}
+            >
+              <Flame
+                size={13}
+                color={filterType === 'spots' ? '#FFF' : '#F59E0B'}
+              />
+              <Text
+                style={[
+                  styles.chipText,
+                  filterType === 'spots' && styles.chipTextActiveSpot,
+                ]}
+              >
+                Retas ({pickupSpots.length})
               </Text>
             </TouchableOpacity>
 
@@ -296,6 +327,7 @@ export default function NearbyMapScreen() {
                 radiusKm={selectedRadius}
                 leagues={leagues}
                 venues={venues}
+                pickupSpots={pickupSpots}
                 selectedEntity={selectedEntity}
                 onSelectEntity={setSelectedEntity}
                 filterType={filterType}
@@ -309,7 +341,11 @@ export default function NearbyMapScreen() {
                 </View>
                 <View style={styles.legendItem}>
                   <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-                  <Text style={styles.legendText}>Canchas / Sedes</Text>
+                  <Text style={styles.legendText}>Canchas</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#F59E0B' }]} />
+                  <Text style={styles.legendText}>Retas</Text>
                 </View>
               </View>
 
@@ -471,6 +507,10 @@ const createStyles = (theme: any, isDark: boolean) =>
       backgroundColor: '#10B981',
       borderColor: '#10B981',
     },
+    chipActiveSpot: {
+      backgroundColor: '#F59E0B',
+      borderColor: '#F59E0B',
+    },
     chipText: {
       fontSize: 12,
       fontWeight: '700',
@@ -481,6 +521,10 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: '800',
     },
     chipTextActiveVenue: {
+      color: '#FFF',
+      fontWeight: '800',
+    },
+    chipTextActiveSpot: {
       color: '#FFF',
       fontWeight: '800',
     },
