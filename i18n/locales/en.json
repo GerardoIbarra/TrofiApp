@@ -507,6 +507,9 @@
     "searching": "Searching leagues and venues in a {{radius}} km radius...",
     "no_results": "No nearby results",
     "no_results_sub": "We could not find leagues or venues with coordinates within {{radius}} km. Try expanding to 100 km.",
-    "expand_radius": "Search in 100 km radius"
+    "expand_radius": "Search in 100 km radius",
+    "open_in_maps": "Open in Maps",
+    "directions": "Directions",
+    "view_details": "View details"
   }
 }

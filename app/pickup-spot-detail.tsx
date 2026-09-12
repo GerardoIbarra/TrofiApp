@@ -29,11 +29,13 @@ import {
   ShieldAlert,
   X,
   ChevronLeft,
+  Navigation,
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
+import { openInExternalMaps } from '@/services/mapLinking';
 import {
   useGetPickupSpot,
   useGetPickupComments,
@@ -157,6 +159,16 @@ export default function PickupSpotDetailScreen() {
     );
   };
 
+  const handleOpenMaps = () => {
+    if (!spot) return;
+    openInExternalMaps({
+      latitude: spot.latitude,
+      longitude: spot.longitude,
+      title: spot.name,
+      address: spot.address || spot.city || spot.name,
+    });
+  };
+
   const handleSendReport = async () => {
     if (!id) return;
     try {
@@ -224,13 +236,23 @@ export default function PickupSpotDetailScreen() {
           </View>
 
           <Text style={styles.spotTitle}>{spot.name}</Text>
-          <View style={styles.locationRow}>
-            <MapPin size={14} color={theme.textSecondary} />
-            <Text style={styles.locationText}>
-              {spot.address || spot.city || 'Sin dirección registrada'}
-              {spot.distance_km != null && ` • a ${spot.distance_km.toFixed(1)} km`}
-            </Text>
-          </View>
+          <TouchableOpacity
+            style={styles.locationRow}
+            onPress={handleOpenMaps}
+            activeOpacity={0.7}
+          >
+            <View style={styles.locationLeft}>
+              <MapPin size={15} color={theme.primary} />
+              <Text style={styles.locationText} numberOfLines={2}>
+                {spot.address || spot.city || 'Sin dirección registrada'}
+                {spot.distance_km != null && ` • a ${spot.distance_km.toFixed(1)} km`}
+              </Text>
+            </View>
+            <View style={styles.mapsPillBadge}>
+              <Navigation size={11} color={theme.primary} />
+              <Text style={styles.mapsPillBadgeText}>Maps</Text>
+            </View>
+          </TouchableOpacity>
 
           {spot.description && <Text style={styles.descriptionText}>{spot.description}</Text>}
 
@@ -280,8 +302,17 @@ export default function PickupSpotDetailScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Secondary Actions: Planeo ir + Avisame */}
+        {/* Secondary Actions: Cómo llegar + Planeo ir + Avisame */}
         <View style={styles.actionPillsRow}>
+          <TouchableOpacity
+            style={[styles.actionPill, styles.actionPillHighlight]}
+            onPress={handleOpenMaps}
+            activeOpacity={0.8}
+          >
+            <Navigation size={14} color="#001A2C" />
+            <Text style={styles.actionPillHighlightText}>Cómo llegar</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.actionPill} onPress={handleCreatePlan}>
             <Calendar size={14} color={theme.primary} />
             <Text style={styles.actionPillText}>Planeo ir hoy</Text>
@@ -292,7 +323,7 @@ export default function PickupSpotDetailScreen() {
             onPress={() => setIsAlertModalVisible(true)}
           >
             <Clock size={14} color={theme.primary} />
-            <Text style={styles.actionPillText}>Avisarme si juegan</Text>
+            <Text style={styles.actionPillText}>Avisarme</Text>
           </TouchableOpacity>
         </View>
 
@@ -632,11 +663,41 @@ const createStyles = (theme: any, isDark: boolean) =>
     locationRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
+      justifyContent: 'space-between',
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.03)',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.05)',
+    },
+    locationLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      flex: 1,
+      marginRight: 8,
     },
     locationText: {
       fontSize: 13,
       color: theme.textSecondary,
+      flex: 1,
+    },
+    mapsPillBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: isDark ? 'rgba(0, 245, 255, 0.12)' : 'rgba(0, 245, 255, 0.16)',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(0, 245, 255, 0.25)' : 'rgba(0, 245, 255, 0.35)',
+    },
+    mapsPillBadgeText: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: theme.primary,
     },
     descriptionText: {
       fontSize: 13,
@@ -728,6 +789,15 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 12,
       fontWeight: '700',
       color: theme.text,
+    },
+    actionPillHighlight: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    actionPillHighlightText: {
+      fontSize: 12,
+      fontWeight: '800',
+      color: '#001A2C',
     },
     sectionCard: {
       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : '#FFF',

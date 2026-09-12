@@ -507,6 +507,9 @@
     "searching": "Buscando ligas y canchas en un radio de {{radius}} km...",
     "no_results": "No hay resultados cercanos",
     "no_results_sub": "No encontramos ligas ni canchas con coordenadas en un radio de {{radius}} km. Intenta aumentar el radio a 100 km.",
-    "expand_radius": "Buscar en radio de 100 km"
+    "expand_radius": "Buscar en radio de 100 km",
+    "open_in_maps": "Abrir en Maps",
+    "directions": "Cómo llegar",
+    "view_details": "Ver detalles"
   }
 }

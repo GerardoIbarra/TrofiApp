@@ -5,6 +5,7 @@ import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import { League, LeaguesResponse } from "@/features/leagues/types/league";
 import api from "@/services/api";
+import { openInExternalMaps } from "@/services/mapLinking";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -489,6 +490,22 @@ export default function LeaguesExplorerScreen() {
                           </View>
                         </View>
                         <View style={styles.nearbyStatusColumn}>
+                          <TouchableOpacity
+                            style={styles.nearbyMapBtn}
+                            onPress={(e) => {
+                              e.stopPropagation?.();
+                              openInExternalMaps({
+                                latitude: item.latitude,
+                                longitude: item.longitude,
+                                title: item.name,
+                                query: [item.city, item.country].filter(Boolean).join(', '),
+                              });
+                            }}
+                            activeOpacity={0.7}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Navigation size={15} color={theme.primary} />
+                          </TouchableOpacity>
                           <ChevronRight size={18} color={theme.textSecondary} />
                         </View>
                       </TouchableOpacity>
@@ -872,9 +889,20 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "700",
     },
     nearbyStatusColumn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
       paddingLeft: 8,
+    },
+    nearbyMapBtn: {
+      width: 32,
+      height: 32,
+      borderRadius: 8,
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.1)" : "rgba(0, 245, 255, 0.12)",
       justifyContent: "center",
       alignItems: "center",
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(0, 245, 255, 0.25)" : "rgba(0, 245, 255, 0.35)",
     },
     emptyState: {
       paddingVertical: 40,

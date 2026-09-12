@@ -6,8 +6,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Settings } from "lucide-react-native";
+import { Settings, MapPin, Navigation } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { openInExternalMaps } from "@/services/mapLinking";
 
 interface LeagueHeaderProps {
   league: League;
@@ -26,6 +27,15 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
   const nameParts = league.name.split(" ");
   const firstPart = nameParts[0];
   const secondPart = nameParts.slice(1).join(" ");
+
+  const handleOpenMaps = () => {
+    openInExternalMaps({
+      latitude: league.latitude,
+      longitude: league.longitude,
+      title: league.name,
+      query: [league.city, league.country].filter(Boolean).join(", "),
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -60,9 +70,17 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
           <View style={styles.liveTag}>
             <Text style={styles.liveText}>LIGA ACTIVA</Text>
           </View>
-          <Text style={styles.leagueRegion}>
-            {league.city.toUpperCase()}, {league.country.toUpperCase()}
-          </Text>
+          <TouchableOpacity
+            style={styles.regionBtn}
+            onPress={handleOpenMaps}
+            activeOpacity={0.7}
+          >
+            <MapPin size={11} color={theme.primary} />
+            <Text style={styles.leagueRegion} numberOfLines={1}>
+              {league.city?.toUpperCase() || ''}{league.country ? `, ${league.country.toUpperCase()}` : ''}
+            </Text>
+            <Navigation size={10} color={theme.primary} />
+          </TouchableOpacity>
           {isOwner && (
             <TouchableOpacity 
               style={styles.editButton} 
@@ -138,6 +156,17 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 9,
       fontWeight: "900",
       letterSpacing: 0.5,
+    },
+    regionBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)",
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      flex: 1,
+      marginRight: 6,
     },
     leagueRegion: {
       color: theme.textSecondary,
