@@ -17,7 +17,6 @@ import {
   View,
 } from "react-native";
 import { useGetHomeFeed } from "@/features/matches/services/homeFeedApi";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { HomeFeaturedCarousel } from "@/components/home/HomeFeaturedCarousel";
 import { HomeStatsSummary } from "@/components/home/HomeStatsSummary";
 import { HomePlayersList } from "@/components/home/HomePlayersList";
@@ -65,8 +64,7 @@ export default function HomeScreen() {
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
 
-      <SafeAreaView style={GlobalStyles.safeArea}>
-        <LayoutHeader />
+      <LayoutHeader />
 
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -123,7 +121,6 @@ export default function HomeScreen() {
             />
           </View>
         </ScrollView>
-      </SafeAreaView>
 
       {/* Modal de Creación de Jugador */}
       <CreatePlayerModal

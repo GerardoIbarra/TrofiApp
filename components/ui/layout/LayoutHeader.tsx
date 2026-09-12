@@ -32,7 +32,7 @@ export function LayoutHeader({
     conversations?.reduce((sum, c) => sum + (c.unread_count || 0), 0) || 0;
 
   return (
-    <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
+    <View style={[styles.header, { paddingTop: Math.max(insets.top, 10) }]}>
       <View style={styles.leftContainer}>
         {showBackButton && (
           <TouchableOpacity
@@ -114,8 +114,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 15,
-    minHeight: 80,
+    paddingBottom: 10,
+    minHeight: 56,
     maxWidth: 800,
     width: "100%",
     alignSelf: "center",

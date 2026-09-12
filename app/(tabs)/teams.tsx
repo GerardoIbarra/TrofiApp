@@ -19,7 +19,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
@@ -61,10 +60,9 @@ export default function TeamsScreen() {
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-      <SafeAreaView style={GlobalStyles.safeArea} edges={["top"]}>
-        <LayoutHeader />
+      <LayoutHeader />
 
-        <ScrollView
+      <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
@@ -167,7 +165,6 @@ export default function TeamsScreen() {
           onClose={() => setIsModalVisible(false)}
           onSuccess={fetchTeams}
         />
-      </SafeAreaView>
     </View>
   );
 }

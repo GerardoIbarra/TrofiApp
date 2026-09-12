@@ -235,10 +235,9 @@ export default function ProfileScreen() {
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-      <SafeAreaView style={GlobalStyles.safeArea} edges={["top"]}>
-        <LayoutHeader />
+      <LayoutHeader />
 
-        <ScrollView
+      <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
@@ -535,7 +534,6 @@ export default function ProfileScreen() {
             )}
           </View>
         </ScrollView>
-      </SafeAreaView>
 
       {/* Language Selection Modal */}
       <ProfileLanguageModal

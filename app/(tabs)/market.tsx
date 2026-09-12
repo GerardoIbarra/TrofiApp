@@ -33,7 +33,7 @@ export default function MarketScreen() {
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
       
-      <SafeAreaView style={styles.header}>
+      <SafeAreaView edges={['top']} style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={[styles.title, { color: theme.text }]}>{t('market.title')}</Text>
           <TouchableOpacity 

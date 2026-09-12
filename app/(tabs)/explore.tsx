@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image,
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { LayoutHeader } from '@/components/ui/layout/LayoutHeader';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { router } from 'expo-router';
 import { Search as SearchIcon, SlidersHorizontal, X, Star, ChevronRight, User as UserIcon, CircleDot, Sun, Zap, Mountain, Map as MapIcon, Flame } from 'lucide-react-native';
@@ -29,10 +28,9 @@ export default function ExploreScreen() {
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-      <SafeAreaView style={GlobalStyles.safeArea} edges={['top']}>
-        <LayoutHeader />
-        
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <LayoutHeader />
+      
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           <View style={styles.webContainer}>
             
             {/* Search Bar & Filter */}
@@ -179,7 +177,6 @@ export default function ExploreScreen() {
 
           </View>
         </ScrollView>
-      </SafeAreaView>
     </View>
   );
 }
