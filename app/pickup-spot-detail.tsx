@@ -387,17 +387,35 @@ export default function PickupSpotDetailScreen() {
             </TouchableOpacity>
           </View>
 
-          {comments.map((cm) => (
-            <View key={cm.id} style={styles.commentItem}>
-              <View style={styles.commentHeader}>
-                <Text style={styles.commentUser}>{cm.user_name}</Text>
-                <Text style={styles.commentDate}>
-                  {new Date(cm.created_at).toLocaleDateString()}
-                </Text>
+          {comments.map((cm: any) => {
+            const displayName =
+              cm.user_name ||
+              cm.username ||
+              cm.user?.username ||
+              (cm.user?.first_name
+                ? `${cm.user.first_name} ${cm.user.last_name || ''}`.trim()
+                : null) ||
+              (cm.author?.username ? cm.author.username : null) ||
+              'Jugador';
+            const initial = displayName.charAt(0).toUpperCase() || 'J';
+
+            return (
+              <View key={cm.id} style={styles.commentItem}>
+                <View style={styles.commentHeader}>
+                  <View style={styles.commentUserRow}>
+                    <View style={styles.commentAvatar}>
+                      <Text style={styles.commentAvatarText}>{initial}</Text>
+                    </View>
+                    <Text style={styles.commentUser}>{displayName}</Text>
+                  </View>
+                  <Text style={styles.commentDate}>
+                    {new Date(cm.created_at).toLocaleDateString()}
+                  </Text>
+                </View>
+                <Text style={styles.commentBody}>{cm.body}</Text>
               </View>
-              <Text style={styles.commentBody}>{cm.body}</Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
 
@@ -790,28 +808,48 @@ const createStyles = (theme: any, isDark: boolean) =>
       alignItems: 'center',
     },
     commentItem: {
-      paddingVertical: 8,
+      paddingVertical: 10,
       borderBottomWidth: 1,
-      borderBottomColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+      borderBottomColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
     },
     commentHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 2,
+      alignItems: 'center',
+      marginBottom: 6,
+    },
+    commentUserRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    commentAvatar: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: isDark ? 'rgba(0, 245, 255, 0.15)' : 'rgba(2, 132, 199, 0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    commentAvatarText: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: theme.primary,
     },
     commentUser: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '700',
       color: theme.text,
     },
     commentDate: {
-      fontSize: 10,
+      fontSize: 11,
       color: theme.textSecondary,
     },
     commentBody: {
-      fontSize: 12,
+      fontSize: 13,
       color: theme.text,
-      lineHeight: 16,
+      lineHeight: 18,
+      paddingLeft: 32,
     },
     modalBackdrop: {
       flex: 1,
