@@ -18,7 +18,10 @@ interface PickupSpotCardProps {
   onPress?: () => void;
 }
 
-export function PickupSpotCard({ spot, onPress }: PickupSpotCardProps) {
+export const PickupSpotCard = React.memo(function PickupSpotCard({
+  spot,
+  onPress,
+}: PickupSpotCardProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
 
@@ -117,7 +120,7 @@ export function PickupSpotCard({ spot, onPress }: PickupSpotCardProps) {
       <ChevronRight size={18} color={theme.textSecondary} style={{ marginRight: 10 }} />
     </TouchableOpacity>
   );
-}
+});
 
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({

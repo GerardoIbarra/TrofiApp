@@ -9,6 +9,7 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -243,6 +244,10 @@ export default function RetasScreen() {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={{ paddingBottom: 30 }}
                 showsVerticalScrollIndicator={false}
+                initialNumToRender={8}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
                 renderItem={({ item }) => <PickupSpotCard spot={item} />}
               />
             )}
@@ -271,6 +276,11 @@ export default function RetasScreen() {
                 data={leaderboard}
                 keyExtractor={(item) => item.user_id}
                 contentContainerStyle={{ paddingBottom: 30 }}
+                showsVerticalScrollIndicator={false}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
                 renderItem={({ item, index }) => (
                   <View style={styles.leaderboardRow}>
                     <Text style={styles.rankNumber}>#{index + 1}</Text>

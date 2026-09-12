@@ -4,12 +4,16 @@ export const LightTheme = {
   primary: '#00A3AC', // Cian Oceánico (más legible en claro)
   background: '#F1F5F9', // Gris suave para contraste con tarjetas
   surface: '#FFFFFF',    // Blanco puro para tarjetas
+  surfaceSubtle: 'rgba(0, 0, 0, 0.03)',
   text: '#001A2C',       // Navy profundo
   textSecondary: '#475569', // Gris más oscuro para secundaria
   accent: '#00B4D8',
   success: '#10B981',
+  warning: '#F59E0B',
   error: '#EF4444',
+  liveRed: '#FF4B4B',
   border: '#CBD5E1', // Borde más visible
+  borderSubtle: 'rgba(0, 0, 0, 0.06)',
   tint: '#00A3AC',
   icon: '#687076',
 };
@@ -18,12 +22,16 @@ export const DarkTheme = {
   primary: '#00F5FF',
   background: '#0A192F', // Navy oscuro profundo
   surface: '#112240',    // Navy intermedio para tarjetas
+  surfaceSubtle: 'rgba(255, 255, 255, 0.04)',
   text: '#FFFFFF',
   textSecondary: '#8892B0',
   accent: '#64FFDA',
   success: '#4ADE80',
+  warning: '#F59E0B',
   error: '#F87171',
+  liveRed: '#FF4B4B',
   border: '#233554',
+  borderSubtle: 'rgba(255, 255, 255, 0.08)',
   tint: '#FFFFFF',
   icon: '#9BA1A6',
 };

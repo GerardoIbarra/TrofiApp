@@ -16,30 +16,23 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
 import {
   Award,
-  Bell,
   ChevronRight,
-  Globe,
-  LogOut,
-  Moon,
-  Settings,
   Shield,
-  ShieldAlert,
   Star,
   User,
-  Lock,
 } from "lucide-react-native";
 import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
 import { AchievementsModal } from "@/components/achievements/AchievementsModal";
+import { ProfileSettingsMenu } from "@/components/profile/ProfileSettingsMenu";
+import { ProfileLanguageModal } from "@/components/profile/ProfileLanguageModal";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Dimensions,
   Image,
-  Modal,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   TouchableOpacity,
   View,
@@ -528,177 +521,22 @@ export default function ProfileScreen() {
 
             {/* CONFIGURATION - Only visible on my profile */}
             {!id && (
-              <>
-                <View style={[styles.sectionHeader, { marginTop: 25 }]}>
-                  <Text style={styles.mainSectionTitle}>
-                    {t("profile.configuration")}
-                  </Text>
-                </View>
-
-                {/* Theme Toggle Switch */}
-                <View style={styles.menuItem}>
-                  <View style={styles.menuIconText}>
-                    <Moon size={20} color={theme.primary} />
-                    <Text style={styles.menuLabel}>
-                      {t("profile.dark_mode")}
-                    </Text>
-                  </View>
-                  <Switch
-                    value={isDark}
-                    onValueChange={toggleTheme}
-                    trackColor={{ false: "#767577", true: theme.primary }}
-                    thumbColor={isDark ? "#FFF" : "#f4f3f4"}
-                  />
-                </View>
-
-                {/* Language Selector */}
-                <TouchableOpacity
-                  style={styles.menuItem}
-                  onPress={() => setShowLangModal(true)}
-                >
-                  <View style={styles.menuIconText}>
-                    <Globe size={20} color={theme.primary} />
-                    <Text style={styles.menuLabel}>
-                      {t("profile.language")}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <Text style={{ color: theme.primary, fontWeight: "700" }}>
-                      {currentLanguage === "es" ? "Español" : "English"}
-                    </Text>
-                    <ChevronRight size={18} color={theme.textSecondary} />
-                  </View>
-                </TouchableOpacity>
-
-                <MenuItem
-                  icon={<User size={20} color={theme.primary} />}
-                  label={t("profile.my_account")}
-                  theme={theme}
-                  isDark={isDark}
-                  onPress={() => router.push('/(tabs)/edit-profile' as any)}
-                />
-                <MenuItem
-                  icon={<Award size={20} color="#F59E0B" />}
-                  label="Espacios Publicitarios (Sponsors)"
-                  theme={theme}
-                  isDark={isDark}
-                  onPress={() => router.push('/sponsor-placements' as any)}
-                />
-                <MenuItem
-                  icon={<Award size={20} color="#10B981" />}
-                  label="Mercado de Árbitros"
-                  theme={theme}
-                  isDark={isDark}
-                  onPress={() => router.push('/referee-marketplace' as any)}
-                />
-                <MenuItem
-                  icon={<ShieldAlert size={20} color="#EF4444" />}
-                  label="Super Admin (Trofi Staff)"
-                  theme={theme}
-                  isDark={isDark}
-                  onPress={() => router.push('/super-admin' as any)}
-                />
-                <MenuItem
-                  icon={<Award size={20} color={theme.primary} />}
-                  label={t("profile.achievements")}
-                  theme={theme}
-                  isDark={isDark}
-                  onPress={() => setShowAchievementsModal(true)}
-                />
-                <MenuItem
-                  icon={<Shield size={20} color={theme.primary} />}
-                  label={t("profile.privacy")}
-                  theme={theme}
-                  isDark={isDark}
-                />
-                <MenuItem
-                  icon={<Lock size={20} color={theme.primary} />}
-                  label="Cambiar Contraseña"
-                  theme={theme}
-                  isDark={isDark}
-                  onPress={() => router.push('/(tabs)/change-password' as any)}
-                />
-                <MenuItem
-                  icon={<Bell size={20} color={theme.primary} />}
-                  label="Preferencias de Notificaciones"
-                  theme={theme}
-                  isDark={isDark}
-                  onPress={() => setShowNotificationPrefsModal(true)}
-                />
-                <MenuItem
-                  icon={<Settings size={20} color={theme.primary} />}
-                  label={t("profile.app_settings")}
-                  theme={theme}
-                  isDark={isDark}
-                />
-
-                <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
-                  <LogOut size={20} color={theme.error} />
-                  <Text style={styles.logoutText}>{t("profile.logout")}</Text>
-                </TouchableOpacity>
-              </>
+              <ProfileSettingsMenu
+                onOpenLanguage={() => setShowLangModal(true)}
+                onOpenNotifications={() => setShowNotificationPrefsModal(true)}
+                onOpenAchievements={() => setShowAchievementsModal(true)}
+              />
             )}
           </View>
         </ScrollView>
       </SafeAreaView>
 
       {/* Language Selection Modal */}
-      <Modal
+      <ProfileLanguageModal
         visible={showLangModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowLangModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowLangModal(false)}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t("profile.language")}</Text>
-
-            <TouchableOpacity
-              style={[
-                styles.langOption,
-                currentLanguage === "es" && styles.langOptionSelected,
-              ]}
-              onPress={() => handleLanguageSelect("es")}
-            >
-              <Text
-                style={[
-                  styles.langOptionText,
-                  currentLanguage === "es" && styles.langOptionTextSelected,
-                ]}
-              >
-                Español
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.langOption,
-                currentLanguage === "en" && styles.langOptionSelected,
-              ]}
-              onPress={() => handleLanguageSelect("en")}
-            >
-              <Text
-                style={[
-                  styles.langOptionText,
-                  currentLanguage === "en" && styles.langOptionTextSelected,
-                ]}
-              >
-                English
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowLangModal(false)}
+        onSelectLanguage={handleLanguageSelect}
+      />
 
       <NotificationPreferencesModal
         visible={showNotificationPrefsModal}

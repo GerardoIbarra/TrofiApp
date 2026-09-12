@@ -177,7 +177,10 @@ function RootLayout() {
       <ThemeProvider>
         <PersistQueryClientProvider
           client={queryClient}
-          persistOptions={{ persister: asyncStoragePersister }}
+          persistOptions={{
+            persister: asyncStoragePersister,
+            maxAge: 1000 * 60 * 60 * 24, // 24 hours cache retention
+          }}
         >
           <ThemeAwareStatusBar />
           <InitialNavigation />

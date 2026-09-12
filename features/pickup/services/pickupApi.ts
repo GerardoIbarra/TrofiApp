@@ -119,7 +119,25 @@ export const useCreatePickupCheckIn = () => {
     mutationFn: async (payload: CreatePickupCheckInPayload): Promise<PickupCheckIn> => {
       return await api.post<PickupCheckIn>('/v1/pickup-checkins/', payload);
     },
-    onSuccess: (_, variables) => {
+    onMutate: async (payload) => {
+      await queryClient.cancelQueries({ queryKey: ['pickup-spot', payload.spot] });
+      const previousSpot = queryClient.getQueryData<PickupSpot>(['pickup-spot', payload.spot]);
+      if (previousSpot) {
+        const added = 1 + (payload.additional_headcount || 0);
+        queryClient.setQueryData<PickupSpot>(['pickup-spot', payload.spot], {
+          ...previousSpot,
+          active_checkin_count: (previousSpot.active_checkin_count || 0) + 1,
+          estimated_headcount: (previousSpot.estimated_headcount || 0) + added,
+        });
+      }
+      return { previousSpot, spotId: payload.spot };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousSpot) {
+        queryClient.setQueryData(['pickup-spot', context.spotId], context.previousSpot);
+      }
+    },
+    onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: ['pickup-spot', variables.spot] });
       queryClient.invalidateQueries({ queryKey: ['pickup-spots'] });
       queryClient.invalidateQueries({ queryKey: ['pickup-checkins', variables.spot] });
