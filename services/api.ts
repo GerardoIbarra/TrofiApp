@@ -209,11 +209,19 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
     error.data = errorData || { message: errorMessage };
 
     if (!options.silent && !isCancellationError(error)) {
-      logger.error('api', `[API ${response.status}] ${endpoint}: ${errorMessage}`, error, {
-        status: response.status,
-        endpoint,
-        errorData,
-      });
+      if (response.status >= 500) {
+        logger.error('api', `[API ${response.status}] ${endpoint}: ${errorMessage}`, error, {
+          status: response.status,
+          endpoint,
+          errorData,
+        });
+      } else {
+        logger.warn('api', `[API ${response.status}] ${endpoint}: ${errorMessage}`, {
+          status: response.status,
+          endpoint,
+          errorData,
+        });
+      }
     }
 
     throw error;

@@ -60,10 +60,15 @@ try {
       /The operation was cancelled/i,
       /The operation was canceled/i,
       /NSURLErrorDomain error -999/i,
+      /No ten[eé]s acceso al chat/i,
+      /No tienes acceso al chat/i,
     ],
     beforeSend(event, hint) {
-      const error = hint?.originalException;
+      const error = hint?.originalException as any;
       if (isCancellationError(error)) {
+        return null;
+      }
+      if (error?.status === 401 || error?.status === 403 || error?.status === 404) {
         return null;
       }
       const values = event.exception?.values || [];
@@ -76,6 +81,9 @@ try {
               /fetch failed/i.test(val.value) ||
               /Promise\.swift/i.test(val.value)))
         ) {
+          return null;
+        }
+        if (val.value && /No ten[eé]s acceso al chat/i.test(val.value)) {
           return null;
         }
       }

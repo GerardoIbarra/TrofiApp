@@ -21,7 +21,8 @@ export const useGetTeamChat = (teamId?: string) => {
     queryFn: async (): Promise<ChatMessage[]> => {
       if (!teamId) return [];
       const response = await api.get<PaginatedResponse<ChatMessage> | ChatMessage[]>(
-        `/v1/teams/${teamId}/chat/`
+        `/v1/teams/${teamId}/chat/`,
+        { silent: true }
       );
       if (Array.isArray(response)) {
         return response;
@@ -29,6 +30,7 @@ export const useGetTeamChat = (teamId?: string) => {
       return response?.results || [];
     },
     enabled: Boolean(teamId),
+    retry: false,
   });
 };
 
@@ -84,7 +86,8 @@ export const useGetLeagueChat = (leagueId?: string) => {
     queryFn: async (): Promise<ChatMessage[]> => {
       if (!leagueId) return [];
       const response = await api.get<PaginatedResponse<ChatMessage> | ChatMessage[]>(
-        `/v1/leagues/${leagueId}/chat/`
+        `/v1/leagues/${leagueId}/chat/`,
+        { silent: true }
       );
       if (Array.isArray(response)) {
         return response;
@@ -92,6 +95,7 @@ export const useGetLeagueChat = (leagueId?: string) => {
       return response?.results || [];
     },
     enabled: Boolean(leagueId),
+    retry: false,
   });
 };
 
