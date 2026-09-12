@@ -24,6 +24,7 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { HomeFeedItem, RelationReason } from '@/features/matches/types/homeFeed';
 import { useConfirmAttendance } from '@/features/matches/services/matchApi';
@@ -99,26 +100,27 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
   const homeScore = match.result?.home_score ?? 0;
   const awayScore = match.result?.away_score ?? 0;
 
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
+
   const handleQuickAttendance = (status: 'confirmed' | 'declined') => {
+    const previous = hasConfirmed;
+    // Optimistic UI: flip state immediately for responsive feedback
+    setHasConfirmed(status === 'confirmed');
+
     confirmMutation.mutate(
       {
         matchId: match.id,
         data: { status },
       },
       {
-        onSuccess: () => {
-          setHasConfirmed(status === 'confirmed');
-          Alert.alert(
-            '¡Listo!',
-            status === 'confirmed'
-              ? 'Has confirmado tu asistencia al partido.'
-              : 'Has declinado tu asistencia.'
-          );
-        },
         onError: (err: any) => {
+          // Revert optimistic state on network/server failure
+          setHasConfirmed(previous);
           Alert.alert(
             'Error',
-            err?.response?.data?.detail || 'No se pudo registrar la asistencia.'
+            err?.response?.data?.detail ||
+              (isEn ? 'Could not register attendance.' : 'No se pudo registrar la asistencia.')
           );
         },
       }
@@ -270,7 +272,7 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
               ) : (
                 <View style={styles.vsWrapper}>
                   <Text style={styles.timeBig}>{formattedTime || 'VS'}</Text>
-                  <Text style={styles.vsSubtitle}>POR JUGAR</Text>
+                  <Text style={styles.vsSubtitle}>{isEn ? 'UPCOMING' : 'POR JUGAR'}</Text>
                 </View>
               )}
             </View>
@@ -317,7 +319,9 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
                 activeOpacity={0.8}
               >
                 <Settings size={14} color="#001A2C" style={{ marginRight: 6 }} />
-                <Text style={styles.actionBtnTextPrimary}>Gestionar Partido</Text>
+                <Text style={styles.actionBtnTextPrimary}>
+                  {isEn ? 'Manage Match' : 'Gestionar Partido'}
+                </Text>
                 <ChevronRight size={14} color="#001A2C" style={{ marginLeft: 2 }} />
               </TouchableOpacity>
             ) : capabilities.can_confirm_for_team ? (
@@ -327,7 +331,9 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
                 activeOpacity={0.8}
               >
                 <Award size={14} color="#3B82F6" style={{ marginRight: 6 }} />
-                <Text style={styles.actionBtnTextCaptain}>Asistencia Equipo (Capitán)</Text>
+                <Text style={styles.actionBtnTextCaptain}>
+                  {isEn ? 'Team Attendance (Captain)' : 'Asistencia Equipo (Capitán)'}
+                </Text>
                 <ChevronRight size={14} color="#3B82F6" style={{ marginLeft: 2 }} />
               </TouchableOpacity>
             ) : capabilities.can_confirm_attendance ? (
@@ -335,16 +341,22 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
                 {hasConfirmed === true ? (
                   <View style={styles.confirmedNotice}>
                     <CheckCircle2 size={13} color="#10B981" style={{ marginRight: 4 }} />
-                    <Text style={styles.confirmedNoticeText}>Asistencia Confirmada</Text>
+                    <Text style={styles.confirmedNoticeText}>
+                      {isEn ? 'Attendance Confirmed' : 'Asistencia Confirmada'}
+                    </Text>
                   </View>
                 ) : hasConfirmed === false ? (
                   <View style={styles.declinedNotice}>
                     <XCircle size={13} color="#EF4444" style={{ marginRight: 4 }} />
-                    <Text style={styles.declinedNoticeText}>Asistencia Declinada</Text>
+                    <Text style={styles.declinedNoticeText}>
+                      {isEn ? 'Attendance Declined' : 'Asistencia Declinada'}
+                    </Text>
                   </View>
                 ) : (
                   <>
-                    <Text style={styles.attendancePrompt}>¿Asistirás?</Text>
+                    <Text style={styles.attendancePrompt}>
+                      {isEn ? 'Attending?' : '¿Asistirás?'}
+                    </Text>
                     {confirmMutation.isPending ? (
                       <ActivityIndicator size="small" color={theme.primary} />
                     ) : (
@@ -354,14 +366,14 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
                           onPress={() => handleQuickAttendance('confirmed')}
                         >
                           <CheckCircle2 size={12} color="#10B981" style={{ marginRight: 3 }} />
-                          <Text style={styles.confirmBtnText}>Sí</Text>
+                          <Text style={styles.confirmBtnText}>{isEn ? 'Yes' : 'Sí'}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.declineBtn}
                           onPress={() => handleQuickAttendance('declined')}
                         >
                           <XCircle size={12} color="#EF4444" style={{ marginRight: 3 }} />
-                          <Text style={styles.declineBtnText}>No</Text>
+                          <Text style={styles.declineBtnText}>{isEn ? 'No' : 'No'}</Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -370,7 +382,9 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
               </View>
             ) : (
               <View style={styles.viewMatchRow}>
-                <Text style={styles.viewMatchText}>Ver detalles del partido</Text>
+                <Text style={styles.viewMatchText}>
+                  {isEn ? 'View match details' : 'Ver detalles del partido'}
+                </Text>
                 <ChevronRight size={13} color={theme.primary} />
               </View>
             )}

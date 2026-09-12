@@ -193,4 +193,28 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     marginTop: 24,
     marginBottom: 40,
   },
+  verifiedBox: {
+    backgroundColor: isDark ? 'rgba(74, 222, 128, 0.1)' : 'rgba(74, 222, 128, 0.15)',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(74, 222, 128, 0.2)' : 'rgba(74, 222, 128, 0.3)',
+  },
+  verifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  verifiedTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: isDark ? '#4ADE80' : '#16A34A',
+  },
+  verifiedSubtitle: {
+    fontSize: 12,
+    color: theme.textSecondary,
+    lineHeight: 16,
+  },
 });

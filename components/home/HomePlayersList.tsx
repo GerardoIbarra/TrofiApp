@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { Plus, User, Star, ChevronRight } from 'lucide-react-native';
+import { Plus, Star, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { GlobalStyles } from '@/constants/GlobalStyles';
@@ -21,6 +21,13 @@ interface HomePlayersListProps {
   onSeeAll: () => void;
   onSelectPlayer: (playerId: string) => void;
 }
+
+const getInitials = (name: string): string => {
+  if (!name) return 'PL';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
 
 export const HomePlayersList = React.memo(function HomePlayersList({
   players,
@@ -115,7 +122,9 @@ export const HomePlayersList = React.memo(function HomePlayersList({
                     />
                   ) : (
                     <View style={styles.avatarPlaceholder}>
-                      <User size={28} color={theme.primary} />
+                      <Text style={styles.avatarInitials}>
+                        {getInitials(displayName)}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -288,6 +297,12 @@ const createStyles = (theme: any, isDark: boolean) =>
       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    avatarInitials: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: theme.primary,
+      letterSpacing: 0.5,
     },
     cardFooter: {
       width: '100%',

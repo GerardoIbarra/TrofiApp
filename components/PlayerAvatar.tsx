@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import { User } from 'lucide-react-native';
 import { Player } from '@/features/players/types/player';
 
 interface PlayerAvatarProps {
@@ -9,9 +8,17 @@ interface PlayerAvatarProps {
   isDark: boolean;
 }
 
+function getInitials(name: string): string {
+  if (!name) return 'P';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export function PlayerAvatar({ player, theme, isDark }: PlayerAvatarProps) {
   const styles = createStyles(theme, isDark);
   const displayName = player.nickname || player.full_name.split(' ')[0];
+  const initials = getInitials(player.nickname || player.full_name);
 
   return (
     <View style={styles.playerContainer}>
@@ -22,7 +29,7 @@ export function PlayerAvatar({ player, theme, isDark }: PlayerAvatarProps) {
             style={styles.avatarImage} 
           />
         ) : (
-          <User size={24} color={theme.primary} />
+          <Text style={[styles.initialsText, { color: theme.primary }]}>{initials}</Text>
         )}
       </View>
       <Text style={[styles.playerName, { color: theme.text }]}>{displayName}</Text>
@@ -48,7 +55,12 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   avatarPlaceholder: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+    backgroundColor: isDark ? 'rgba(0, 245, 255, 0.08)' : 'rgba(0, 163, 172, 0.08)',
+  },
+  initialsText: {
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
   avatarImage: {
     width: '100%',
