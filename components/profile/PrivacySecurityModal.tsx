@@ -244,6 +244,60 @@ export const PrivacySecurityModal = React.memo(function PrivacySecurityModal({
               </View>
             </TouchableOpacity>
           </View>
+
+          {/* DOCUMENTOS LEGALES */}
+          <Text style={styles.sectionHeader}>
+            {isEn ? 'LEGAL DOCUMENTS' : 'DOCUMENTOS LEGALES'}
+          </Text>
+          <View style={styles.cardGroup}>
+            <TouchableOpacity
+              style={styles.actionRow}
+              activeOpacity={0.7}
+              onPress={() => {
+                onClose();
+                router.push('/terms-and-conditions' as any);
+              }}
+            >
+              <View style={styles.iconCircle}>
+                <FileText size={18} color={theme.primary} />
+              </View>
+              <View style={styles.textColumn}>
+                <Text style={styles.rowTitle}>
+                  {isEn ? 'Terms & Conditions' : 'Términos y Condiciones'}
+                </Text>
+                <Text style={styles.rowSubtitle}>
+                  {isEn
+                    ? 'Rules and guidelines for using Trofi.'
+                    : 'Reglas y directrices para el uso de Trofi.'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.divider} />
+
+            <TouchableOpacity
+              style={styles.actionRow}
+              activeOpacity={0.7}
+              onPress={() => {
+                onClose();
+                router.push('/privacy-policy' as any);
+              }}
+            >
+              <View style={styles.iconCircle}>
+                <FileText size={18} color={theme.primary} />
+              </View>
+              <View style={styles.textColumn}>
+                <Text style={styles.rowTitle}>
+                  {isEn ? 'Privacy Policy' : 'Aviso de Privacidad'}
+                </Text>
+                <Text style={styles.rowSubtitle}>
+                  {isEn
+                    ? 'How we handle your data and privacy.'
+                    : 'Cómo manejamos tus datos y privacidad.'}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </View>
     </Modal>

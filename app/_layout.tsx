@@ -17,6 +17,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { Platform, LogBox } from "react-native";
 import "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "@/context/ThemeContext";
 
 LogBox.ignoreLogs([
@@ -156,16 +157,28 @@ function InitialNavigation() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (!isLoading) {
-      SplashScreen.hideAsync();
+    const handleInitialNavigation = async () => {
+      if (!isLoading) {
+        SplashScreen.hideAsync();
 
-      // Auto-navigation based on auth state
-      if (!isAuthenticated) {
-        router.replace("/(auth)");
-      } else {
-        router.replace("/(tabs)");
+        // Auto-navigation based on auth state
+        if (!isAuthenticated) {
+          router.replace("/(auth)");
+        } else {
+          try {
+            const hasSeenOnboarding = await AsyncStorage.getItem("has_seen_onboarding");
+            if (hasSeenOnboarding === "true") {
+              router.replace("/(tabs)");
+            } else {
+              router.replace("/onboarding" as any);
+            }
+          } catch (e) {
+            router.replace("/(tabs)");
+          }
+        }
       }
-    }
+    };
+    handleInitialNavigation();
   }, [isLoading, isAuthenticated]);
 
   if (isLoading) return null;
@@ -173,6 +186,7 @@ function InitialNavigation() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(auth)" />
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="league-detail" />
     </Stack>

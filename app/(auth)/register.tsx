@@ -19,6 +19,7 @@ import {
   Eye,
   Shield,
   CheckCircle2,
+  Check,
   Swords,
   Star,
   Trophy,
@@ -254,6 +255,7 @@ export default function RegisterScreen() {
   const [selectedRole, setSelectedRole] = useState<UserRole>(null);
   const [selectedPosition, setSelectedPosition] = useState<PlayerPosition>(null);
   const [registeredAuth, setRegisteredAuth] = useState<RegisterResponse | null>(null);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -386,11 +388,34 @@ export default function RegisterScreen() {
                   <FormInput control={control} name="password" label={t('auth.field_password')} placeholder={t('auth.field_password_placeholder')} required isPassword />
                   <FormInput control={control} name="password2" label={t('auth.field_password2')} placeholder={t('auth.field_password2_placeholder')} required isPassword />
 
+                  <TouchableOpacity 
+                    style={styles.termsContainer} 
+                    onPress={() => setAcceptedTerms(!acceptedTerms)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={[styles.checkbox, acceptedTerms && styles.checkboxActive]}>
+                      {acceptedTerms && <Check size={moderateScale(14)} color="#FFF" />}
+                    </View>
+                    <Text style={styles.termsText}>
+                      He leído y acepto los{' '}
+                      <Text style={styles.termsLink} onPress={() => router.push('/terms-and-conditions')}>Términos y Condiciones</Text>
+                      {' '}y la{' '}
+                      <Text style={styles.termsLink} onPress={() => router.push('/privacy-policy')}>Política de Privacidad</Text>
+                    </Text>
+                  </TouchableOpacity>
+
                   {isSubmitting ? (
                     <View style={styles.loadingWrapper}><ActivityIndicator color={theme.primary} size="large" /></View>
                   ) : (
-                    <PrimaryButton title={t('auth.register_button')} onPress={handleSubmit(onSubmit)} fullWidth style={{ marginTop: verticalScale(10) }} />
+                    <PrimaryButton 
+                      title={t('auth.register_button')} 
+                      onPress={handleSubmit(onSubmit)} 
+                      fullWidth 
+                      style={{ marginTop: verticalScale(10), opacity: acceptedTerms ? 1 : 0.5 }} 
+                      disabled={!acceptedTerms}
+                    />
                   )}
+
 
                   <View style={styles.divider}>
                     <View style={styles.dividerLine} />
@@ -641,6 +666,38 @@ const createStyles = (theme: any, isDark: boolean, insets: any) =>
     secondaryButtonText: {
       color: theme.textSecondary,
       fontSize: 14,
+      fontWeight: '600',
+    },
+    termsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 10,
+      marginBottom: 10,
+      paddingHorizontal: 4,
+    },
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: 6,
+      borderWidth: 1.5,
+      borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+      backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#fff',
+    },
+    checkboxActive: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    termsText: {
+      flex: 1,
+      fontSize: 12,
+      color: theme.textSecondary,
+      lineHeight: 18,
+    },
+    termsLink: {
+      color: theme.primary,
       fontWeight: '600',
     },
     infoContainer: {
