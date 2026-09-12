@@ -22,6 +22,11 @@ import { SponsorBanner } from '@/components/sponsors/SponsorBanner';
 import { RateRefereeModal } from '@/components/referees/RateRefereeModal';
 import { FanCheckInModal } from '@/components/matches/FanCheckInModal';
 import { MatchMVPVoteWidget } from '@/components/matches/MatchMVPVoteWidget';
+import { useGetMatchDisputes } from '@/features/tournaments/services/matchDisputeApi';
+import { MatchDispute } from '@/features/tournaments/types/matchDispute';
+import { FileDisputeModal } from '@/components/matches/disputes/FileDisputeModal';
+import { ResolveDisputeModal } from '@/components/matches/disputes/ResolveDisputeModal';
+import { MatchDisputeBanner } from '@/components/matches/disputes/MatchDisputeBanner';
 import { metrics } from '@/services/metrics';
 import { shareMatch } from '@/features/share/services/shareService';
 import {
@@ -63,6 +68,18 @@ export default function MatchDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRateModalVisible, setIsRateModalVisible] = useState(false);
   const [isFanCheckInVisible, setIsFanCheckInVisible] = useState(false);
+  const [isFileDisputeVisible, setIsFileDisputeVisible] = useState(false);
+  const [selectedDisputeToResolve, setSelectedDisputeToResolve] = useState<MatchDispute | null>(null);
+
+  const matchIdStr = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
+  const { data: disputes = [], refetch: refetchDisputes } = useGetMatchDisputes(matchIdStr);
+
+  const isResultLocked = Boolean(match?.result?.locked_at);
+  const isWithin48Hours = match?.result?.locked_at
+    ? Date.now() - new Date(match.result.locked_at).getTime() <= 48 * 3600 * 1000
+    : false;
+  const hasPendingDispute = disputes.some((d) => d.status === 'pending');
+  const canFileDispute = isResultLocked && isWithin48Hours && !hasPendingDispute;
 
   // TODO: Implement proper admin check based on tournament role or match referee
   const isAdmin = true;
@@ -528,6 +545,17 @@ export default function MatchDetailScreen() {
       {/* Admin Controls */}
       {isAdmin && match && <MatchAdminControls match={match} />}
 
+      {/* Dispute Banner */}
+      <View style={{ paddingHorizontal: 16 }}>
+        <MatchDisputeBanner
+          disputes={disputes}
+          canResolve={isAdmin}
+          canFile={canFileDispute}
+          onResolvePress={(d) => setSelectedDisputeToResolve(d)}
+          onFilePress={() => setIsFileDisputeVisible(true)}
+        />
+      </View>
+
       {/* Tabs */}
       <View style={styles.tabsWrapper}>
         {(['RESUMEN', 'TIMELINE', 'ALINEACION', 'ESTADISTICAS'] as const).map((tab) => (
@@ -570,6 +598,32 @@ export default function MatchDetailScreen() {
           matchId={match.id}
           matchTitle={`${match.home_team_name} vs ${match.away_team_name}`}
           venueName={match.venue_name}
+        />
+      )}
+
+      {match && (
+        <FileDisputeModal
+          visible={isFileDisputeVisible}
+          onClose={() => setIsFileDisputeVisible(false)}
+          matchId={match.id}
+          matchTitle={`${match.home_team_name} vs ${match.away_team_name}`}
+          onSuccess={() => {
+            refetchDisputes();
+            fetchMatchData();
+          }}
+        />
+      )}
+
+      {selectedDisputeToResolve && match && (
+        <ResolveDisputeModal
+          visible={Boolean(selectedDisputeToResolve)}
+          onClose={() => setSelectedDisputeToResolve(null)}
+          dispute={selectedDisputeToResolve}
+          matchId={match.id}
+          onSuccess={() => {
+            refetchDisputes();
+            fetchMatchData();
+          }}
         />
       )}
     </View>
