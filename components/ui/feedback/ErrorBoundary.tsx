@@ -37,7 +37,9 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("[Global Error]", error, errorInfo);
-    Sentry.captureException(error, { extra: errorInfo as any });
+    try {
+      Sentry.captureException(error, { extra: errorInfo as any });
+    } catch (_) {}
   }
 
   private handleRestart = async () => {
@@ -96,7 +98,9 @@ if (!__DEV__) {
     const defaultHandler = globalErrorUtils.getGlobalHandler();
     globalErrorUtils.setGlobalHandler((error: any, isFatal: boolean) => {
       console.error("Global JS Error:", error, isFatal);
-      Sentry.captureException(error);
+      try {
+        Sentry.captureException(error);
+      } catch (_) {}
       if (defaultHandler) {
         defaultHandler(error, isFatal);
       }

@@ -15,7 +15,7 @@ import * as SplashScreen from "expo-splash-screen";
 import * as Updates from "expo-updates";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { Platform, LogBox } from "react-native";
+import { Platform, LogBox, NativeModules } from "react-native";
 import "react-native-reanimated";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "@/context/ThemeContext";
@@ -28,41 +28,44 @@ import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
 import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
 import * as Sentry from "@sentry/react-native";
 
+const isNativeSentryAvailable = Boolean(
+  typeof NativeModules !== "undefined" &&
+  (NativeModules?.RNSentry || (globalThis as any)?.__turboModuleProxy?.("RNSentry"))
+);
+
 const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: true,
 });
 
-Sentry.init({
-  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || "https://e1a140813db3ac1cda5643b6e7d8ffae@o4512019969802240.ingest.us.sentry.io/4512019974389760",
-  debug: false,
-  enableLogs: false,
-  tracesSampleRate: 1.0,
-  // profilesSampleRate is relative to tracesSampleRate (100% of transactions profiled)
-  profilesSampleRate: 1.0,
-  replaysSessionSampleRate: 1.0,
-  replaysOnErrorSampleRate: 1.0,
-  enableAutoSessionTracking: true,
-  enableNativeFramesTracking: true,
-  integrations: [
-    navigationIntegration,
-    // mobileReplayIntegration requires a native build — disabled in DEV (Expo Go)
-    ...(__DEV__ ? [] : [
-      Sentry.mobileReplayIntegration({
-        maskAllText: true,
-        maskAllImages: true,
-        maskAllVectors: true,
-      }),
-    ]),
-    // hermesProfilingIntegration requires the native Sentry client to be ready
-    // Guard it to avoid "Native Client is not available" at module load time
-    ...(!__DEV__ && typeof Sentry.hermesProfilingIntegration === 'function' ? [Sentry.hermesProfilingIntegration()] : []),
-    // consoleLoggingIntegration patches console.* globally at init — this causes
-    // "Native Client is not available" errors on every console call before the native
-    // bridge is ready, which crashes _layout.tsx module evaluation in Expo Go.
-    // Disabled entirely to fix the ErrorBoundary crash.
-  ],
-  tracePropagationTargets: ["localhost", /^https:\/\/api\.trofi\.club/],
-});
+try {
+  Sentry.init({
+    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN || "https://e1a140813db3ac1cda5643b6e7d8ffae@o4512019969802240.ingest.us.sentry.io/4512019974389760",
+    debug: false,
+    enableLogs: false,
+    enableNative: isNativeSentryAvailable,
+    enableNativeFramesTracking: isNativeSentryAvailable,
+    enableNativeNagger: false,
+    tracesSampleRate: 1.0,
+    profilesSampleRate: isNativeSentryAvailable ? 1.0 : 0,
+    replaysSessionSampleRate: isNativeSentryAvailable ? 1.0 : 0,
+    replaysOnErrorSampleRate: isNativeSentryAvailable ? 1.0 : 0,
+    enableAutoSessionTracking: true,
+    integrations: [
+      navigationIntegration,
+      ...(isNativeSentryAvailable ? [
+        Sentry.mobileReplayIntegration({
+          maskAllText: true,
+          maskAllImages: true,
+          maskAllVectors: true,
+        }),
+      ] : []),
+      ...(isNativeSentryAvailable && typeof Sentry.hermesProfilingIntegration === 'function' ? [Sentry.hermesProfilingIntegration()] : []),
+    ],
+    tracePropagationTargets: ["localhost", /^https:\/\/api\.trofi\.club/],
+  });
+} catch (sentryErr) {
+  console.warn("⚠️ Sentry native initialization skipped:", sentryErr);
+}
 
 SplashScreen.preventAutoHideAsync();
 
