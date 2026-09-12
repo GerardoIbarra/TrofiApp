@@ -31,6 +31,8 @@ import {
   CrownSeasonAwardsResponse,
   ComputeWeeklyMVPResponse,
 } from '@/features/tournaments/types/tournamentAwards';
+import { useAwardTeamAchievement } from '@/features/teams/services/teamProfileApi';
+import api from '@/services/api';
 
 interface TournamentAwardsModalProps {
   visible: boolean;
@@ -40,7 +42,7 @@ interface TournamentAwardsModalProps {
   championDetermination?: string; // 'standings' | 'playoffs'
 }
 
-type TabType = 'CHAMPION' | 'SEASON_AWARDS' | 'WEEKLY_MVP';
+type TabType = 'CHAMPION' | 'SEASON_AWARDS' | 'WEEKLY_MVP' | 'TEAM_ACHIEVEMENTS';
 
 export function TournamentAwardsModal({
   visible,
@@ -58,9 +60,54 @@ export function TournamentAwardsModal({
   const [seasonResult, setSeasonResult] = useState<CrownSeasonAwardsResponse | null>(null);
   const [weeklyResult, setWeeklyResult] = useState<ComputeWeeklyMVPResponse | null>(null);
 
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('');
+  const [selectedAchievementType, setSelectedAchievementType] = useState<
+    'fair_play' | 'unbeaten_season' | 'top_scoring_team'
+  >('fair_play');
+  const [teams, setTeams] = useState<{ id: string; name: string }[]>([]);
+  const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+
   const determineChampionMutation = useDetermineChampion();
   const crownSeasonAwardsMutation = useCrownSeasonAwards();
   const computeWeeklyMVPMutation = useComputeWeeklyMVP();
+  const awardTeamAchievementMutation = useAwardTeamAchievement();
+
+  const fetchTeams = async () => {
+    if (teams.length > 0) return;
+    setIsLoadingTeams(true);
+    try {
+      const response = await api.get<any[]>(`/v1/standings/by_tournament/?tournament_id=${tournamentId}`);
+      const mapped = response.map((item) => ({
+        id: item.team_id || item.team?.id || item.tournament_team,
+        name: item.team_name || item.team?.name || 'Equipo',
+      }));
+      setTeams(mapped);
+      if (mapped.length > 0 && !selectedTeamId) {
+        setSelectedTeamId(mapped[0].id);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoadingTeams(false);
+    }
+  };
+
+  const handleAwardTeam = async () => {
+    if (!selectedTeamId) {
+      Alert.alert('Selecciona un equipo', 'Elige al equipo que recibirá el logro.');
+      return;
+    }
+    try {
+      await awardTeamAchievementMutation.mutateAsync({
+        team: selectedTeamId,
+        tournament: tournamentId,
+        achievement_type: selectedAchievementType,
+      });
+      Alert.alert('¡Logro Otorgado!', 'El logro ha sido asignado al equipo exitosamente.');
+    } catch (err: any) {
+      Alert.alert('Error al otorgar logro', err?.message || 'No se pudo otorgar el logro al equipo.');
+    }
+  };
 
   const handleDetermineChampion = () => {
     Alert.alert(
@@ -153,6 +200,19 @@ export function TournamentAwardsModal({
               <Star size={14} color={activeTab === 'WEEKLY_MVP' ? '#001A2C' : theme.textSecondary} />
               <Text style={[styles.tabBtnText, activeTab === 'WEEKLY_MVP' && styles.tabBtnTextActive]}>
                 MVP Semana
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabBtn, activeTab === 'TEAM_ACHIEVEMENTS' && styles.tabBtnActive]}
+              onPress={() => {
+                setActiveTab('TEAM_ACHIEVEMENTS');
+                fetchTeams();
+              }}
+            >
+              <Users size={14} color={activeTab === 'TEAM_ACHIEVEMENTS' ? '#001A2C' : theme.textSecondary} />
+              <Text style={[styles.tabBtnText, activeTab === 'TEAM_ACHIEVEMENTS' && styles.tabBtnTextActive]}>
+                Equipos
               </Text>
             </TouchableOpacity>
           </View>
@@ -350,6 +410,105 @@ export function TournamentAwardsModal({
                     )}
                   </TouchableOpacity>
                 )}
+              </View>
+            )}
+
+            {/* TAB 4: LOGROS MANUALES DE EQUIPO (TICKET 18 SEC. 5) */}
+            {activeTab === 'TEAM_ACHIEVEMENTS' && (
+              <View style={styles.sectionContainer}>
+                <View style={styles.infoBanner}>
+                  <Text style={styles.infoBannerTitle}>Logros de Equipo (Manuales)</Text>
+                  <Text style={styles.infoBannerSub}>
+                    Otorga reconocimientos oficiales (Fair Play, Temporada Invicta, Equipo Goleador) al club que elijas.
+                  </Text>
+                </View>
+
+                {/* Achievement type picker */}
+                <Text style={styles.fieldLabel}>TIPO DE LOGRO</Text>
+                <View style={styles.achievementTypeGrid}>
+                  {[
+                    { id: 'fair_play', label: 'Fair Play', desc: 'Juego Limpio' },
+                    { id: 'unbeaten_season', label: 'Invicto', desc: 'Sin derrotas' },
+                    { id: 'top_scoring_team', label: 'Más Goleador', desc: 'Máxima anotación' },
+                  ].map((ach) => (
+                    <TouchableOpacity
+                      key={ach.id}
+                      style={[
+                        styles.achOptionCard,
+                        selectedAchievementType === ach.id && styles.achOptionCardActive,
+                      ]}
+                      onPress={() => setSelectedAchievementType(ach.id as any)}
+                    >
+                      <Award
+                        size={16}
+                        color={selectedAchievementType === ach.id ? theme.primary : theme.textSecondary}
+                      />
+                      <Text
+                        style={[
+                          styles.achOptionTitle,
+                          selectedAchievementType === ach.id && { color: theme.primary, fontWeight: '800' },
+                        ]}
+                      >
+                        {ach.label}
+                      </Text>
+                      <Text style={styles.achOptionDesc}>{ach.desc}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* Team selection */}
+                <Text style={[styles.fieldLabel, { marginTop: 14 }]}>SELECCIONAR EQUIPO</Text>
+                {isLoadingTeams ? (
+                  <ActivityIndicator size="small" color={theme.primary} style={{ marginVertical: 10 }} />
+                ) : teams.length > 0 ? (
+                  <View style={styles.teamsListWrap}>
+                    {teams.map((t) => (
+                      <TouchableOpacity
+                        key={t.id}
+                        style={[
+                          styles.teamSelectChip,
+                          selectedTeamId === t.id && styles.teamSelectChipActive,
+                        ]}
+                        onPress={() => setSelectedTeamId(t.id)}
+                      >
+                        <ShieldCheck
+                          size={14}
+                          color={selectedTeamId === t.id ? '#001A2C' : theme.textSecondary}
+                        />
+                        <Text
+                          style={[
+                            styles.teamSelectChipText,
+                            selectedTeamId === t.id && styles.teamSelectChipTextActive,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {t.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.emptyText}>No se encontraron equipos registrados en este torneo.</Text>
+                )}
+
+                <TouchableOpacity
+                  style={[
+                    styles.primaryActionBtn,
+                    (!selectedTeamId || awardTeamAchievementMutation.isPending) && { opacity: 0.6 },
+                    { marginTop: 16 },
+                  ]}
+                  onPress={handleAwardTeam}
+                  disabled={!selectedTeamId || awardTeamAchievementMutation.isPending}
+                >
+                  {awardTeamAchievementMutation.isPending ? (
+                    <ActivityIndicator size="small" color="#001A2C" />
+                  ) : (
+                    <>
+                      <Medal size={18} color="#001A2C" />
+                      <Text style={styles.primaryActionBtnText}>Otorgar Logro al Equipo</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
               </View>
             )}
           </ScrollView>
@@ -611,5 +770,76 @@ const createStyles = (theme: any, isDark: boolean) =>
     weeklyDates: {
       fontSize: 11,
       color: theme.textSecondary,
+    },
+    fieldLabel: {
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+      color: theme.textSecondary,
+      marginBottom: 6,
+    },
+    achievementTypeGrid: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    achOptionCard: {
+      flex: 1,
+      padding: 10,
+      borderRadius: 12,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+      alignItems: 'center',
+      gap: 4,
+    },
+    achOptionCardActive: {
+      borderColor: theme.primary,
+      backgroundColor: isDark ? 'rgba(0, 240, 255, 0.08)' : 'rgba(0, 240, 255, 0.05)',
+    },
+    achOptionTitle: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: theme.text,
+      textAlign: 'center',
+    },
+    achOptionDesc: {
+      fontSize: 9,
+      color: theme.textSecondary,
+      textAlign: 'center',
+    },
+    teamsListWrap: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+    },
+    teamSelectChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 10,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+    },
+    teamSelectChipActive: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    teamSelectChipText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: theme.text,
+    },
+    teamSelectChipTextActive: {
+      color: '#001A2C',
+      fontWeight: '800',
+    },
+    emptyText: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      textAlign: 'center',
+      marginVertical: 12,
     },
   });

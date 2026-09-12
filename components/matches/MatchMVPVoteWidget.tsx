@@ -57,21 +57,37 @@ export function MatchMVPVoteWidget({
   let eligibleCandidates: any[] = [];
   const allCandidates = [...homeTeamRoster, ...awayTeamRoster];
 
-  if (isReferee || isAdmin) {
+  const playerProfileId = user?.player_profile_id || (user as any)?.player_profile?.id;
+  const isHomePlayer = homeTeamRoster.some(
+    (m) =>
+      (userTeamId && (m.team === userTeamId || m.team_id === userTeamId)) ||
+      (playerProfileId && (m.player?.id === playerProfileId || m.id === playerProfileId || m.player_id === playerProfileId))
+  );
+  const isAwayPlayer = awayTeamRoster.some(
+    (m) =>
+      (userTeamId && (m.team === userTeamId || m.team_id === userTeamId)) ||
+      (playerProfileId && (m.player?.id === playerProfileId || m.id === playerProfileId || m.player_id === playerProfileId))
+  );
+  const isUserReferee = isReferee || Boolean(user?.id && (user as any)?.referee_profile?.id);
+
+  if (isAdmin || isUserReferee) {
     eligibleCandidates = allCandidates;
-  } else if (userTeamId) {
-    // Check which team user is on
-    const isHome = homeTeamRoster.some((m) => m.team === userTeamId || m.player?.id === user?.player_profile_id);
-    eligibleCandidates = isHome ? awayTeamRoster : homeTeamRoster;
+  } else if (isHomePlayer) {
+    eligibleCandidates = awayTeamRoster;
+  } else if (isAwayPlayer) {
+    eligibleCandidates = homeTeamRoster;
   } else {
-    // Default fallback to all candidates if team affiliation is unmapped
-    eligibleCandidates = allCandidates;
+    // If not on either starting XI and not referee/admin, user cannot vote per Ticket 18
+    eligibleCandidates = [];
   }
 
   // Filter out current user from candidates (cannot vote for self)
-  if (user?.player_profile_id) {
+  if (playerProfileId) {
     eligibleCandidates = eligibleCandidates.filter(
-      (c) => c.player?.id !== user.player_profile_id && c.id !== user.player_profile_id
+      (c) =>
+        c.player?.id !== playerProfileId &&
+        c.id !== playerProfileId &&
+        c.player_id !== playerProfileId
     );
   }
 
@@ -182,10 +198,16 @@ export function MatchMVPVoteWidget({
         </View>
       )}
 
-      {/* Vote Form (Only if not locked and eligible candidates exist) */}
-      {!isLocked && eligibleCandidates.length > 0 && (
+      {/* Vote Form */}
+      {!isLocked && eligibleCandidates.length > 0 ? (
         <View style={styles.votingSection}>
-          <Text style={styles.sectionHeader}>Elige tu candidato a MVP:</Text>
+          <Text style={styles.sectionHeader}>
+            {isUserReferee || isAdmin
+              ? 'Elige candidato a MVP (Árbitro / Admin):'
+              : isHomePlayer
+              ? 'Vota por tu MVP rival (Visitante):'
+              : 'Vota por tu MVP rival (Local):'}
+          </Text>
           <View style={styles.candidatesGrid}>
             {eligibleCandidates.slice(0, 10).map((cand) => {
               const candId = cand.id;
@@ -226,7 +248,13 @@ export function MatchMVPVoteWidget({
             )}
           </TouchableOpacity>
         </View>
-      )}
+      ) : !isLocked ? (
+        <View style={styles.spectatorBox}>
+          <Text style={styles.spectatorText}>
+            ℹ️ Votación exclusiva para jugadores titulares del partido y el árbitro oficial.
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -378,5 +406,18 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 13,
       fontWeight: '900',
       color: '#001A2C',
+    },
+    spectatorBox: {
+      marginTop: 10,
+      padding: 10,
+      borderRadius: 10,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+    },
+    spectatorText: {
+      fontSize: 11,
+      color: theme.textSecondary,
+      textAlign: 'center',
     },
   });

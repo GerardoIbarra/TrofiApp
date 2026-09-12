@@ -45,6 +45,7 @@ export function FanCheckInModal({
 
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [isDetectingGps, setIsDetectingGps] = useState(false);
   const [checkInResult, setCheckInResult] = useState<FanCheckInResponse | null>(null);
 
@@ -84,9 +85,14 @@ export function FanCheckInModal({
           allowsEditing: true,
           aspect: [4, 3],
           quality: 0.7,
+          base64: true,
         });
         if (!result.canceled && result.assets && result.assets[0]) {
-          setPhotoUri(result.assets[0].uri);
+          const asset = result.assets[0];
+          setPhotoUri(asset.uri);
+          setPhotoBase64(
+            asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri
+          );
         }
         return;
       }
@@ -95,10 +101,15 @@ export function FanCheckInModal({
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.7,
+        base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
-        setPhotoUri(result.assets[0].uri);
+        const asset = result.assets[0];
+        setPhotoUri(asset.uri);
+        setPhotoBase64(
+          asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri
+        );
       }
     } catch (err) {
       console.error('Error al capturar foto:', err);
@@ -113,7 +124,7 @@ export function FanCheckInModal({
         data: {
           latitude: coords?.latitude,
           longitude: coords?.longitude,
-          photo: photoUri,
+          photo: photoBase64,
         },
       });
 
@@ -126,6 +137,7 @@ export function FanCheckInModal({
   const handleModalClose = () => {
     setCheckInResult(null);
     setPhotoUri(null);
+    setPhotoBase64(null);
     setCoords(null);
     onClose();
   };

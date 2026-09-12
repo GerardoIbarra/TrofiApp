@@ -48,9 +48,27 @@ export interface LineupHistoryItem {
   created_at: string;
 }
 
+export type TeamManualAchievementType = 'unbeaten_season' | 'top_scoring_team' | 'fair_play';
+
+export interface CreateTeamAchievementPayload {
+  [key: string]: unknown;
+  team: string;
+  tournament: string;
+  achievement_type: TeamManualAchievementType | string;
+}
+
 export interface TeamAchievementItem {
   achievement_type: string;
   tournament_name?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
+export interface TeamAchievementResponse {
+  id: string;
+  team: string;
+  tournament: string;
+  achievement_type: string;
   metadata?: Record<string, any>;
   created_at: string;
 }

@@ -44,7 +44,7 @@ const BADGE_CATALOG: {
     type: 'loyal_fan',
     category: 'fan',
     title: 'Hincha Fiel',
-    description: 'Realiza 5 check-ins presenciales (<1km) en partidos oficiales.',
+    description: 'Marca presencia en 5 partidos oficiales con check-in de hincha.',
     icon: Flame,
     color: '#F97316',
   },
@@ -52,7 +52,7 @@ const BADGE_CATALOG: {
     type: 'match_day_regular',
     category: 'fan',
     title: 'Habitual de Cancha',
-    description: '20 check-ins presenciales apoyando a tus equipos favoritos.',
+    description: 'Alcanza 20 check-ins presenciales apoyando a tus equipos en la cancha.',
     icon: Trophy,
     color: '#EAB308',
   },
@@ -288,10 +288,25 @@ export function AchievementsModal({
                         {badge.description}
                       </Text>
 
-                      {unlocked && item?.unlocked_at && (
+                      {unlocked && (item?.unlocked_at || item?.created_at) && (
                         <Text style={[styles.badgeDate, { color: badge.color }]}>
-                          Obtenido el {new Date(item.unlocked_at).toLocaleDateString()}
+                          Obtenido el {new Date(item.unlocked_at || item.created_at).toLocaleDateString()}
                         </Text>
+                      )}
+
+                      {unlocked && item?.metadata && (
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                          {item.metadata.check_ins !== undefined && (
+                            <Text style={[styles.badgeMeta, { color: theme.textSecondary }]}>
+                              📍 {item.metadata.check_ins} check-ins
+                            </Text>
+                          )}
+                          {item.metadata.matches_refereed !== undefined && (
+                            <Text style={[styles.badgeMeta, { color: theme.textSecondary }]}>
+                              ⚽ {item.metadata.matches_refereed} partidos arbitrados
+                            </Text>
+                          )}
+                        </View>
                       )}
                     </View>
 
@@ -425,6 +440,10 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     marginTop: 4,
+  },
+  badgeMeta: {
+    fontSize: 10,
+    fontWeight: '700',
   },
   badgeStatus: {
     alignItems: 'center',

@@ -1,6 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
-import { TeamProfileResponse, TeamHistoryResponse } from "../types/teamProfile";
+import {
+  TeamProfileResponse,
+  TeamHistoryResponse,
+  CreateTeamAchievementPayload,
+  TeamAchievementResponse,
+} from "../types/teamProfile";
 
 export const useGetTeamProfile = (teamId?: string, tournamentId?: string) => {
   return useQuery({
@@ -26,5 +31,20 @@ export const useGetTeamHistory = (teamId?: string) => {
       return response;
     },
     enabled: !!teamId,
+  });
+};
+
+export const useAwardTeamAchievement = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: CreateTeamAchievementPayload): Promise<TeamAchievementResponse> => {
+      return await api.post<TeamAchievementResponse>("/v1/team-achievements/", payload);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["team-profile", variables.team] });
+      queryClient.invalidateQueries({ queryKey: ["team-history", variables.team] });
+      queryClient.invalidateQueries({ queryKey: ["tournament", variables.tournament] });
+    },
   });
 };
