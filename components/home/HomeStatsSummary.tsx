@@ -60,10 +60,10 @@ export const HomeStatsSummary = React.memo(function HomeStatsSummary({
           style={styles.bannerGradient}
         >
           <View>
-            <Text style={styles.bannerOverline}>LIGA DE INVIERNO 2024</Text>
-            <Text style={styles.bannerTitle}>El Camino a la Gloria</Text>
+            <Text style={styles.bannerOverline}>{t('home.winter_league', 'LIGA DE INVIERNO 2024')}</Text>
+            <Text style={styles.bannerTitle}>{t('home.path_to_glory', 'El Camino a la Gloria')}</Text>
             <Text style={styles.bannerSubtitle}>
-              Inscripciones abiertas ahora.
+              {t('home.registrations_open', 'Inscripciones abiertas ahora.')}
             </Text>
           </View>
           <View style={styles.bannerArrow}>

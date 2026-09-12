@@ -10,7 +10,8 @@ import { useTranslation } from 'react-i18next';
 
 export default function PrivacyPolicyScreen() {
   const { theme, isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, isDark, insets);
 
@@ -22,47 +23,59 @@ export default function PrivacyPolicyScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ChevronLeft size={28} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Aviso de Privacidad</Text>
+          <Text style={styles.headerTitle}>{isEn ? 'Privacy Policy' : 'Aviso de Privacidad'}</Text>
           <View style={{ width: 48 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.contentBox}>
-            <Text style={styles.lastUpdated}>Última actualización: Septiembre 2024</Text>
-            
-            <Text style={styles.sectionTitle}>1. Información que Recopilamos</Text>
-            <Text style={styles.paragraph}>
-              Podemos recopilar varios tipos de información de los usuarios de Trofi, incluyendo:
-              {'\n'}- Información personal (nombre, dirección de correo electrónico, etc.) proporcionada al crear una cuenta.
-              {'\n'}- Información de ubicación para mostrar canchas, ligas y partidos (retas) cercanos, si usted nos otorga permiso explícito.
-              {'\n'}- Datos de uso de la aplicación, como interacciones con otros usuarios o estadísticas deportivas.
-            </Text>
-
-            <Text style={styles.sectionTitle}>2. Uso de la Información</Text>
-            <Text style={styles.paragraph}>
-              Utilizamos la información recopilada para:
-              {'\n'}- Proveer, mantener y mejorar la Aplicación.
-              {'\n'}- Personalizar su experiencia y mostrarle contenido relevante (ej. partidos en su ciudad).
-              {'\n'}- Facilitar la comunicación entre usuarios a través de la función de chat.
-              {'\n'}- Enviar notificaciones y actualizaciones de servicio.
-            </Text>
-
-            <Text style={styles.sectionTitle}>3. Intercambio de Información</Text>
-            <Text style={styles.paragraph}>
-              No compartimos su información personal con terceros para fines comerciales sin su consentimiento, excepto:
-              {'\n'}- Cuando sea necesario para cumplir con la ley.
-              {'\n'}- Proveedores de servicios que nos ayudan a operar la Aplicación (ej. alojamiento web, análisis de datos).
-              {'\n'}- Con otros usuarios de la plataforma según la configuración de privacidad de su perfil.
-            </Text>
-
-            <Text style={styles.sectionTitle}>4. Seguridad</Text>
-            <Text style={styles.paragraph}>
-              Tomamos medidas razonables para proteger su información personal contra pérdida, robo, mal uso y acceso no autorizado. Sin embargo, ningún sistema de transmisión de datos por Internet es 100% seguro.
+            <Text style={styles.lastUpdated}>
+              {isEn ? 'Last updated: September 2024' : 'Última actualización: Septiembre 2024'}
             </Text>
             
-            <Text style={styles.sectionTitle}>5. Derechos del Usuario</Text>
+            <Text style={styles.sectionTitle}>
+              {isEn ? '1. Information We Collect' : '1. Información que Recopilamos'}
+            </Text>
             <Text style={styles.paragraph}>
-              Usted tiene derecho a solicitar acceso a su información personal, corregirla o solicitar su eliminación en cualquier momento desde los ajustes de la aplicación.
+              {isEn
+                ? 'We may collect various types of information from Trofi users, including:\n- Personal information (name, email address, etc.) provided when creating an account.\n- Location information to show nearby fields, leagues, and pickup games if you grant explicit permission.\n- Application usage data, such as interactions with other users or sports statistics.'
+                : 'Podemos recopilar varios tipos de información de los usuarios de Trofi, incluyendo:\n- Información personal (nombre, dirección de correo electrónico, etc.) proporcionada al crear una cuenta.\n- Información de ubicación para mostrar canchas, ligas y partidos (retas) cercanos, si usted nos otorga permiso explícito.\n- Datos de uso de la aplicación, como interacciones con otros usuarios o estadísticas deportivas.'}
+            </Text>
+
+            <Text style={styles.sectionTitle}>
+              {isEn ? '2. Use of Information' : '2. Uso de la Información'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'We use the collected information to:\n- Provide, maintain, and improve the Application.\n- Personalize your experience and display relevant content (e.g. games in your city).\n- Facilitate communication between users via chat features.\n- Send service notifications and platform updates.'
+                : 'Utilizamos la información recopilada para:\n- Proveer, mantener y mejorar la Aplicación.\n- Personalizar su experiencia y mostrarle contenido relevante (ej. partidos en su ciudad).\n- Facilitar la comunicación entre usuarios a través de la función de chat.\n- Enviar notificaciones y actualizaciones de servicio.'}
+            </Text>
+
+            <Text style={styles.sectionTitle}>
+              {isEn ? '3. Sharing Information' : '3. Intercambio de Información'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'We do not share your personal information with third parties for commercial purposes without your consent, except:\n- When necessary to comply with the law.\n- With service providers assisting in operating the Application (e.g. hosting, data analytics).\n- With other platform users in accordance with your profile privacy settings.'
+                : 'No compartimos su información personal con terceros para fines comerciales sin su consentimiento, excepto:\n- Cuando sea necesario para cumplir con la ley.\n- Proveedores de servicios que nos ayudan a operar la Aplicación (ej. alojamiento web, análisis de datos).\n- Con otros usuarios de la plataforma según la configuración de privacidad de su perfil.'}
+            </Text>
+
+            <Text style={styles.sectionTitle}>
+              {isEn ? '4. Security' : '4. Seguridad'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'We take reasonable measures to protect your personal information against loss, theft, misuse, and unauthorized access. However, no internet transmission method is 100% secure.'
+                : 'Tomamos medidas razonables para proteger su información personal contra pérdida, robo, mal uso y acceso no autorizado. Sin embargo, ningún sistema de transmisión de datos por Internet es 100% seguro.'}
+            </Text>
+            
+            <Text style={styles.sectionTitle}>
+              {isEn ? '5. User Rights' : '5. Derechos del Usuario'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'You have the right to request access to your personal information, correct it, or request its deletion at any time directly from the app settings.'
+                : 'Usted tiene derecho a solicitar acceso a su información personal, corregirla o solicitar su eliminación en cualquier momento desde los ajustes de la aplicación.'}
             </Text>
           </View>
         </ScrollView>

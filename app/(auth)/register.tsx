@@ -397,10 +397,14 @@ export default function RegisterScreen() {
                       {acceptedTerms && <Check size={moderateScale(14)} color="#FFF" />}
                     </View>
                     <Text style={styles.termsText}>
-                      He leído y acepto los{' '}
-                      <Text style={styles.termsLink} onPress={() => router.push('/terms-and-conditions')}>Términos y Condiciones</Text>
-                      {' '}y la{' '}
-                      <Text style={styles.termsLink} onPress={() => router.push('/privacy-policy')}>Política de Privacidad</Text>
+                      {t('auth.terms_prefix', 'He leído y acepto los')}{' '}
+                      <Text style={styles.termsLink} onPress={() => router.push('/terms-and-conditions')}>
+                        {t('auth.terms_link', 'Términos y Condiciones')}
+                      </Text>
+                      {' '}{t('auth.terms_and', 'y la')}{' '}
+                      <Text style={styles.termsLink} onPress={() => router.push('/privacy-policy')}>
+                        {t('auth.privacy_link', 'Política de Privacidad')}
+                      </Text>
                     </Text>
                   </TouchableOpacity>
 

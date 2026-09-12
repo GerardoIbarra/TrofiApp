@@ -17,6 +17,7 @@
   },
   "home": {
     "weekly_summary": "RESUMEN SEMANAL",
+    "my_matches": "Tus Partidos",
     "my_teams": "MIS EQUIPOS",
     "no_matches": "Sin partidos programados",
     "join_team_subtitle": "Únete a un equipo para ver tu feed.",
@@ -28,7 +29,10 @@
     "goals": "GOLES",
     "victories": "VICTORIAS",
     "status_live": "EN VIVO",
-    "status_finished": "TC"
+    "status_finished": "TC",
+    "winter_league": "LIGA DE INVIERNO 2024",
+    "path_to_glory": "El Camino a la Gloria",
+    "registrations_open": "Inscripciones abiertas ahora."
   },
   "profile": {
     "position": "POSICIÓN",
@@ -371,6 +375,10 @@
     "field_password2": "CONFIRMAR CONTRASEÑA",
     "field_password2_placeholder": "Repite tu contraseña",
     "register_button": "Crear cuenta",
+    "terms_prefix": "He leído y acepto los",
+    "terms_link": "Términos y Condiciones",
+    "terms_and": "y la",
+    "privacy_link": "Política de Privacidad",
     "already_have_account": "¿Ya tienes cuenta?",
     "go_to_login": "Iniciar sesión",
     "register_success_title": "¡Registro exitoso!",
@@ -519,5 +527,18 @@
     "open_in_maps": "Abrir en Maps",
     "directions": "Cómo llegar",
     "view_details": "Ver detalles"
+  },
+  "onboarding": {
+    "skip": "Saltar",
+    "start": "Comenzar",
+    "next": "Siguiente",
+    "slide1_title": "Bienvenido a Trofi",
+    "slide1_desc": "La red social diseñada para conectar jugadores, equipos y ligas.",
+    "slide2_title": "Encuentra Retas",
+    "slide2_desc": "Descubre partidos y canchas cerca de ti en nuestro mapa interactivo.",
+    "slide3_title": "Arma tu Equipo",
+    "slide3_desc": "Invita a tus amigos, gestiona alineaciones y encuentra nuevos talentos en el mercado.",
+    "slide4_title": "Sigue tus Estadísticas",
+    "slide4_desc": "Registra tus goles, asistencias y conviértete en el MVP de la temporada."
   }
 }

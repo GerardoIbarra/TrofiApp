@@ -17,6 +17,7 @@
   },
   "home": {
     "weekly_summary": "WEEKLY SUMMARY",
+    "my_matches": "Your Matches",
     "my_teams": "MY TEAMS",
     "no_matches": "NO MATCHES",
     "join_team_subtitle": "Join a team to see your feed.",
@@ -28,7 +29,10 @@
     "goals": "GOALS",
     "victories": "VICTORIES",
     "status_live": "LIVE",
-    "status_finished": "FT"
+    "status_finished": "FT",
+    "winter_league": "WINTER LEAGUE 2024",
+    "path_to_glory": "The Road to Glory",
+    "registrations_open": "Registrations open now."
   },
   "profile": {
     "position": "POSITION",
@@ -371,6 +375,10 @@
     "field_password2": "CONFIRM PASSWORD",
     "field_password2_placeholder": "Repeat your password",
     "register_button": "Create account",
+    "terms_prefix": "I have read and accept the",
+    "terms_link": "Terms and Conditions",
+    "terms_and": "and the",
+    "privacy_link": "Privacy Policy",
     "already_have_account": "Already have an account?",
     "go_to_login": "Sign in",
     "register_success_title": "Registration successful!",
@@ -519,5 +527,18 @@
     "open_in_maps": "Open in Maps",
     "directions": "Directions",
     "view_details": "View details"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "start": "Get Started",
+    "next": "Next",
+    "slide1_title": "Welcome to Trofi",
+    "slide1_desc": "The sports platform designed to connect players, teams, and leagues.",
+    "slide2_title": "Find Pickup Games",
+    "slide2_desc": "Discover matches and fields near you with our interactive map.",
+    "slide3_title": "Build Your Team",
+    "slide3_desc": "Invite friends, manage lineups, and find new talent in the transfer market.",
+    "slide4_title": "Track Your Stats",
+    "slide4_desc": "Log your goals, assists, and become the MVP of the season."
   }
 }

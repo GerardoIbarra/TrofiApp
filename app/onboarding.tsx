@@ -9,43 +9,46 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import { Trophy, MapPin, Users, Activity } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+import { useTranslation } from 'react-i18next';
 
-const SLIDES = [
-  {
-    id: '1',
-    title: 'Bienvenido a Trofi',
-    description: 'La red social diseñada para conectar jugadores, equipos y ligas.',
-    icon: (color: string) => <Trophy size={80} color={color} strokeWidth={1.5} />,
-  },
-  {
-    id: '2',
-    title: 'Encuentra Retas',
-    description: 'Descubre partidos y canchas cerca de ti en nuestro mapa interactivo.',
-    icon: (color: string) => <MapPin size={80} color={color} strokeWidth={1.5} />,
-  },
-  {
-    id: '3',
-    title: 'Arma tu Equipo',
-    description: 'Invita a tus amigos, gestiona alineaciones y encuentra nuevos talentos en el mercado.',
-    icon: (color: string) => <Users size={80} color={color} strokeWidth={1.5} />,
-  },
-  {
-    id: '4',
-    title: 'Sigue tus Estadísticas',
-    description: 'Registra tus goles, asistencias y conviértete en el MVP de la temporada.',
-    icon: (color: string) => <Activity size={80} color={color} strokeWidth={1.5} />,
-  }
-];
+const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
   const { theme, isDark } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const [currentIndex, setCurrentIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
+  const slides = [
+    {
+      id: '1',
+      title: t('onboarding.slide1_title', 'Bienvenido a Trofi'),
+      description: t('onboarding.slide1_desc', 'La red social diseñada para conectar jugadores, equipos y ligas.'),
+      icon: (color: string) => <Trophy size={80} color={color} strokeWidth={1.5} />,
+    },
+    {
+      id: '2',
+      title: t('onboarding.slide2_title', 'Encuentra Retas'),
+      description: t('onboarding.slide2_desc', 'Descubre partidos y canchas cerca de ti en nuestro mapa interactivo.'),
+      icon: (color: string) => <MapPin size={80} color={color} strokeWidth={1.5} />,
+    },
+    {
+      id: '3',
+      title: t('onboarding.slide3_title', 'Arma tu Equipo'),
+      description: t('onboarding.slide3_desc', 'Invita a tus amigos, gestiona alineaciones y encuentra nuevos talentos en el mercado.'),
+      icon: (color: string) => <Users size={80} color={color} strokeWidth={1.5} />,
+    },
+    {
+      id: '4',
+      title: t('onboarding.slide4_title', 'Sigue tus Estadísticas'),
+      description: t('onboarding.slide4_desc', 'Registra tus goles, asistencias y conviértete en el MVP de la temporada.'),
+      icon: (color: string) => <Activity size={80} color={color} strokeWidth={1.5} />,
+    }
+  ];
+
   const handleNext = async () => {
-    if (currentIndex < SLIDES.length - 1) {
+    if (currentIndex < slides.length - 1) {
       Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => {
         setCurrentIndex(currentIndex + 1);
         Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }).start();
@@ -61,7 +64,7 @@ export default function OnboardingScreen() {
     router.replace('/(tabs)');
   };
 
-  const currentSlide = SLIDES[currentIndex];
+  const currentSlide = slides[currentIndex];
 
   return (
     <View style={GlobalStyles.container}>
@@ -69,9 +72,9 @@ export default function OnboardingScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         
         <View style={styles.header}>
-          {currentIndex < SLIDES.length - 1 ? (
+          {currentIndex < slides.length - 1 ? (
             <TouchableOpacity onPress={handleSkip}>
-              <Text style={styles.skipText}>Saltar</Text>
+              <Text style={styles.skipText}>{t('onboarding.skip', 'Saltar')}</Text>
             </TouchableOpacity>
           ) : <View />}
         </View>
@@ -89,7 +92,7 @@ export default function OnboardingScreen() {
 
         <View style={styles.footer}>
           <View style={styles.pagination}>
-            {SLIDES.map((_, index) => (
+            {slides.map((_, index) => (
               <View 
                 key={index} 
                 style={[
@@ -101,7 +104,7 @@ export default function OnboardingScreen() {
           </View>
           
           <PrimaryButton 
-            title={currentIndex === SLIDES.length - 1 ? 'Comenzar' : 'Siguiente'} 
+            title={currentIndex === slides.length - 1 ? t('onboarding.start', 'Comenzar') : t('onboarding.next', 'Siguiente')} 
             onPress={handleNext} 
             fullWidth 
           />

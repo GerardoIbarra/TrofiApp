@@ -10,7 +10,8 @@ import { useTranslation } from 'react-i18next';
 
 export default function TermsAndConditionsScreen() {
   const { theme, isDark } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isEn = i18n.language === 'en';
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, isDark, insets);
 
@@ -22,48 +23,68 @@ export default function TermsAndConditionsScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ChevronLeft size={28} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Términos y Condiciones</Text>
+          <Text style={styles.headerTitle}>{isEn ? 'Terms and Conditions' : 'Términos y Condiciones'}</Text>
           <View style={{ width: 48 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.contentBox}>
-            <Text style={styles.lastUpdated}>Última actualización: Septiembre 2024</Text>
-            
-            <Text style={styles.sectionTitle}>1. Aceptación de los Términos</Text>
-            <Text style={styles.paragraph}>
-              Al acceder y utilizar Trofi App ("la Aplicación"), usted acepta estar sujeto a estos Términos y Condiciones. Si no está de acuerdo con alguna parte de los términos, no podrá acceder a la Aplicación.
-            </Text>
-
-            <Text style={styles.sectionTitle}>2. Uso de la Aplicación</Text>
-            <Text style={styles.paragraph}>
-              La Aplicación es una plataforma para conectar jugadores, organizar partidos (retas) y gestionar ligas deportivas. Usted se compromete a utilizar la Aplicación únicamente para fines lícitos y de una manera que no infrinja los derechos de, restrinja o inhiba el uso y disfrute de la Aplicación por parte de terceros.
-            </Text>
-
-            <Text style={styles.sectionTitle}>3. Cuentas de Usuario</Text>
-            <Text style={styles.paragraph}>
-              Para utilizar ciertas funciones de la Aplicación, debe registrarse y crear una cuenta. Usted es responsable de mantener la confidencialidad de la información de su cuenta, incluida su contraseña. 
-              {'\n\n'}
-              Nos reservamos el derecho de rechazar el servicio, cancelar cuentas o eliminar contenido inapropiado a nuestra entera discreción.
-            </Text>
-
-            <Text style={styles.sectionTitle}>4. Contenido Generado por el Usuario</Text>
-            <Text style={styles.paragraph}>
-              Los usuarios pueden publicar contenido, incluyendo fotos de perfil, mensajes en chats y detalles de equipos. Usted conserva sus derechos sobre cualquier contenido que envíe, pero otorga a Trofi una licencia mundial, no exclusiva y libre de regalías para usar, reproducir y distribuir dicho contenido en relación con el funcionamiento de la Aplicación.
-              {'\n\n'}
-              Prohibimos estrictamente el contenido ofensivo, discriminatorio o que fomente la violencia. Trofi se reserva el derecho de eliminar cualquier contenido que viole estas reglas sin previo aviso.
-            </Text>
-
-            <Text style={styles.sectionTitle}>5. Renuncia de Garantías y Limitación de Responsabilidad</Text>
-            <Text style={styles.paragraph}>
-              La Aplicación se proporciona "tal cual" y "según disponibilidad". No garantizamos que el servicio será ininterrumpido o libre de errores.
-              {'\n\n'}
-              Trofi no se hace responsable por lesiones físicas, daños a la propiedad o disputas que puedan surgir durante los eventos, ligas o "retas" organizadas a través de la plataforma. La participación en actividades deportivas conlleva riesgos inherentes que el usuario asume voluntariamente.
+            <Text style={styles.lastUpdated}>
+              {isEn ? 'Last updated: September 2024' : 'Última actualización: Septiembre 2024'}
             </Text>
             
-            <Text style={styles.sectionTitle}>6. Modificaciones</Text>
+            <Text style={styles.sectionTitle}>
+              {isEn ? '1. Acceptance of Terms' : '1. Aceptación de los Términos'}
+            </Text>
             <Text style={styles.paragraph}>
-              Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigencia inmediatamente después de su publicación en la Aplicación.
+              {isEn
+                ? 'By accessing and using Trofi App ("the Application"), you agree to be bound by these Terms and Conditions. If you disagree with any part of these terms, you may not access the Application.'
+                : 'Al acceder y utilizar Trofi App ("la Aplicación"), usted acepta estar sujeto a estos Términos y Condiciones. Si no está de acuerdo con alguna parte de los términos, no podrá acceder a la Aplicación.'}
+            </Text>
+
+            <Text style={styles.sectionTitle}>
+              {isEn ? '2. Use of the Application' : '2. Uso de la Aplicación'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'The Application is a platform to connect players, organize pickup games, and manage sports leagues. You agree to use the Application exclusively for lawful purposes and in a manner that does not infringe upon, restrict, or inhibit the rights and enjoyment of third parties.'
+                : 'La Aplicación es una plataforma para conectar jugadores, organizar partidos (retas) y gestionar ligas deportivas. Usted se compromete a utilizar la Aplicación únicamente para fines lícitos y de una manera que no infrinja los derechos de, restrinja o inhiba el uso y disfrute de la Aplicación por parte de terceros.'}
+            </Text>
+
+            <Text style={styles.sectionTitle}>
+              {isEn ? '3. User Accounts' : '3. Cuentas de Usuario'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'To use certain features of the Application, you must register and create an account. You are responsible for safeguarding your account credentials, including your password.\n\nWe reserve the right to refuse service, terminate accounts, or remove inappropriate content at our sole discretion.'
+                : 'Para utilizar ciertas funciones de la Aplicación, debe registrarse y crear una cuenta. Usted es responsable de mantener la confidencialidad de la información de su cuenta, incluida su contraseña.\n\nNos reservamos el derecho de rechazar el servicio, cancelar cuentas o eliminar contenido inapropiado a nuestra entera discreción.'}
+            </Text>
+
+            <Text style={styles.sectionTitle}>
+              {isEn ? '4. User-Generated Content' : '4. Contenido Generado por el Usuario'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'Users may post content, including profile pictures, chat messages, and team details. You retain ownership rights over your submitted content, while granting Trofi a worldwide, royalty-free, non-exclusive license to use, display, and distribute such content in connection with operating the Application.\n\nOffensive, discriminatory, or violence-inciting content is strictly prohibited. Trofi reserves the right to remove any violating content without prior notice.'
+                : 'Los usuarios pueden publicar contenido, incluyendo fotos de perfil, mensajes en chats y detalles de equipos. Usted conserva sus derechos sobre cualquier contenido que envíe, pero otorga a Trofi una licencia mundial, no exclusiva y libre de regalías para usar, reproducir y distribuir dicho contenido en relación con el funcionamiento de la Aplicación.\n\nProhibimos estrictamente el contenido ofensivo, discriminatorio o que fomente la violencia. Trofi se reserva el derecho de eliminar cualquier contenido que viole estas reglas sin previo aviso.'}
+            </Text>
+
+            <Text style={styles.sectionTitle}>
+              {isEn ? '5. Disclaimer of Warranties & Limitation of Liability' : '5. Renuncia de Garantías y Limitación de Responsabilidad'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'The Application is provided "as is" and "as available". We do not warrant that service will be uninterrupted or error-free.\n\nTrofi is not liable for physical injuries, property damages, or disputes that may arise during events, leagues, or pickup games organized through the platform. Participation in sports activities carries inherent physical risks that users voluntarily assume.'
+                : 'La Aplicación se proporciona "tal cual" y "según disponibilidad". No garantizamos que el servicio será ininterrumpido o libre de errores.\n\nTrofi no se hace responsable por lesiones físicas, daños a la propiedad o disputas que puedan surgir durante los eventos, ligas o "retas" organizadas a través de la plataforma. La participación en actividades deportivas conlleva riesgos inherentes que el usuario asume voluntariamente.'}
+            </Text>
+            
+            <Text style={styles.sectionTitle}>
+              {isEn ? '6. Modifications' : '6. Modificaciones'}
+            </Text>
+            <Text style={styles.paragraph}>
+              {isEn
+                ? 'We reserve the right to modify these terms at any time. Changes become effective immediately upon being posted in the Application.'
+                : 'Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios entrarán en vigencia inmediatamente después de su publicación en la Aplicación.'}
             </Text>
           </View>
         </ScrollView>
