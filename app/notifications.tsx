@@ -11,6 +11,8 @@ import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import { useTranslation } from "react-i18next";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/services/api";
 import { 
   Trophy, 
   MessageSquare, 
@@ -18,7 +20,8 @@ import {
   ChevronRight, 
   Circle,
   Activity,
-  Sliders
+  Sliders,
+  Megaphone,
 } from "lucide-react-native";
 import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
 
@@ -72,7 +75,34 @@ export default function NotificationsScreen() {
   const styles = createStyles(theme, isDark);
   const [showPreferences, setShowPreferences] = useState(false);
 
-  const renderItem = ({ item }: { item: typeof MOCK_NOTIFICATIONS[0] }) => {
+  const { data: serverNotifications = [], isLoading, refetch } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async () => {
+      try {
+        const res = await api.get<any>('/v1/notifications/');
+        if (Array.isArray(res)) return res;
+        return res?.results || [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const displayNotifications =
+    serverNotifications.length > 0
+      ? serverNotifications.map((n: any) => ({
+          id: String(n.id || Math.random()),
+          type: n.notification_type || 'announcement',
+          title: n.title || 'Aviso Oficial',
+          message: n.message || n.body || '',
+          time: n.created_at ? new Date(n.created_at).toLocaleDateString() : 'Reciente',
+          read: Boolean(n.is_read),
+          icon: n.notification_type === 'announcement' ? Megaphone : Trophy,
+          color: n.notification_type === 'announcement' ? '#00F5FF' : '#FFB000',
+        }))
+      : MOCK_NOTIFICATIONS;
+
+  const renderItem = ({ item }: { item: (typeof displayNotifications)[0] }) => {
     const Icon = item.icon;
     return (
       <TouchableOpacity 
@@ -117,11 +147,13 @@ export default function NotificationsScreen() {
       />
 
       <FlatList
-        data={MOCK_NOTIFICATIONS}
+        data={displayNotifications}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshing={isLoading}
+        onRefresh={refetch}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>{t('common.no_notifications')}</Text>

@@ -15,6 +15,7 @@ import { BracketWidget } from '@/components/tournaments/BracketWidget';
 import { TournamentDisciplineWidget } from '@/components/tournaments/TournamentDisciplineWidget';
 import { CloneTournamentModal } from '@/components/leagues/CloneTournamentModal';
 import { TournamentAwardsModal } from '@/components/tournaments/TournamentAwardsModal';
+import { AnnouncementsWidget } from '@/components/announcements/AnnouncementsWidget';
 import { useOpenRegistration, useCloseRegistration } from '@/features/tournaments/services/tournamentApi';
 import { Trophy, Calendar, Clock, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +44,7 @@ export default function TournamentDetailScreen() {
   const [isCloneModalVisible, setIsCloneModalVisible] = useState(false);
   const [isAwardsModalVisible, setIsAwardsModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('STANDINGS');
+  const isAdmin = true;
 
   const openRegistration = useOpenRegistration();
   const closeRegistration = useCloseRegistration();
@@ -255,14 +257,14 @@ export default function TournamentDetailScreen() {
           </View>
 
           <View style={styles.tabContainer}>
-            {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'DISCIPLINE', 'INFO'].map((tab) => (
+            {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'DISCIPLINE', 'AVISOS', 'INFO'].map((tab) => (
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab)}
                 style={[styles.tabButton, activeTab === tab && styles.tabActive]}
               >
                 <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-                  {t(`tournament.tab_${tab.toLowerCase()}`)}
+                  {tab === 'AVISOS' ? 'Avisos' : t(`tournament.tab_${tab.toLowerCase()}`)}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -287,6 +289,10 @@ export default function TournamentDetailScreen() {
 
             {activeTab === 'DISCIPLINE' && (
                <TournamentDisciplineWidget tournamentId={tournament.id} isAdmin={true} />
+            )}
+
+            {activeTab === 'AVISOS' && (
+              <AnnouncementsWidget tournamentId={tournament.id} canManage={isAdmin} />
             )}
 
             {activeTab === 'INFO' && (

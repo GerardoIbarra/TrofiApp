@@ -18,6 +18,7 @@ import { LeagueTabsList } from "@/components/leagues/LeagueTabsList";
 import { LeagueTournamentsWidget } from "@/components/leagues/LeagueTournamentsWidget";
 import { EloRankingWidget } from "@/components/leagues/EloRankingWidget";
 import { LeagueSponsorsWidget } from "@/components/leagues/LeagueSponsorsWidget";
+import { AnnouncementsWidget } from "@/components/announcements/AnnouncementsWidget";
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { League } from "@/features/leagues/types/league";
@@ -148,6 +149,8 @@ export default function LeagueDetailScreen() {
         );
       case "SPONSORS":
         return <LeagueSponsorsWidget leagueId={league.id} />;
+      case "NEWS":
+        return <AnnouncementsWidget leagueId={league.id} canManage={canManage} />;
       default:
         return (
           <View style={styles.comingSoonBox}>
