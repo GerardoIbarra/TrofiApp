@@ -1,10 +1,11 @@
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { router, usePathname } from "expo-router";
-import { Bell, ChevronLeft, User } from "lucide-react-native";
+import { Bell, ChevronLeft, MessageSquare, User } from "lucide-react-native";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useGetConversations } from "@/features/chat/services/chatApi";
 
 interface LayoutHeaderProps {
   title?: string;
@@ -23,6 +24,11 @@ export function LayoutHeader({
   const user = useAuthStore((state) => state.user);
 
   const isNotificationsScreen = pathname === "/notifications";
+  const isDMsScreen = pathname === "/direct-messages";
+
+  const { data: conversations } = useGetConversations();
+  const totalUnreadDMs =
+    conversations?.reduce((sum, c) => sum + (c.unread_count || 0), 0) || 0;
 
   return (
     <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
@@ -48,6 +54,15 @@ export function LayoutHeader({
 
       <View style={styles.rightContainer}>
         {rightElement}
+        {!isDMsScreen && !rightElement && (
+          <TouchableOpacity
+            style={styles.bellButton}
+            onPress={() => router.push("/direct-messages" as any)}
+          >
+            <MessageSquare size={21} color={theme.primary} />
+            {totalUnreadDMs > 0 && <View style={styles.notificationDot} />}
+          </TouchableOpacity>
+        )}
         {!isNotificationsScreen && !rightElement && (
           <TouchableOpacity
             style={styles.bellButton}

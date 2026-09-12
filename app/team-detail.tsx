@@ -32,9 +32,11 @@ import {
 } from '@/features/teams/services/teamProfileApi';
 import { RecentFormItem } from '@/features/teams/types/teamProfile';
 
+import { ChatBox } from '@/components/chat/ChatBox';
+
 const { width } = Dimensions.get('window');
 
-type TabType = 'STATS' | 'ROSTER' | 'LINEUP' | 'HISTORY';
+type TabType = 'STATS' | 'ROSTER' | 'LINEUP' | 'HISTORY' | 'CHAT';
 
 export default function TeamDetailScreen() {
   const { id, tournamentId } = useLocalSearchParams<{
@@ -255,6 +257,15 @@ export default function TeamDetailScreen() {
             >
               <Text style={[styles.tabText, activeTab === 'HISTORY' && styles.tabTextActive]}>
                 HISTORIAL
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabBtn, activeTab === 'CHAT' && styles.tabBtnActive]}
+              onPress={() => setActiveTab('CHAT')}
+            >
+              <Text style={[styles.tabText, activeTab === 'CHAT' && styles.tabTextActive]}>
+                CHAT
               </Text>
             </TouchableOpacity>
           </View>
@@ -607,6 +618,11 @@ export default function TeamDetailScreen() {
                   </View>
                 )}
               </View>
+            )}
+
+            {/* 5. CHAT TAB */}
+            {activeTab === 'CHAT' && (
+              <ChatBox teamId={team.id} title={`Chat de ${team.name}`} />
             )}
           </View>
         </View>

@@ -19,6 +19,7 @@ import { LeagueTournamentsWidget } from "@/components/leagues/LeagueTournamentsW
 import { EloRankingWidget } from "@/components/leagues/EloRankingWidget";
 import { LeagueSponsorsWidget } from "@/components/leagues/LeagueSponsorsWidget";
 import { AnnouncementsWidget } from "@/components/announcements/AnnouncementsWidget";
+import { ChatBox } from "@/components/chat/ChatBox";
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { League } from "@/features/leagues/types/league";
@@ -96,7 +97,10 @@ export default function LeagueDetailScreen() {
   );
 
   const dynamicTabs = ["STANDINGS", "RANKING ELO", "MATCHES"];
-  if (league?.features?.comms_enabled) dynamicTabs.push("NEWS");
+  if (league?.features?.comms_enabled) {
+    dynamicTabs.push("NEWS");
+    dynamicTabs.push("CHAT");
+  }
   dynamicTabs.push("PLAYERS");
   if (league?.features?.payments_enabled) dynamicTabs.push("PAYMENTS");
   if (league?.features?.sponsors_enabled) dynamicTabs.push("SPONSORS");
@@ -151,6 +155,8 @@ export default function LeagueDetailScreen() {
         return <LeagueSponsorsWidget leagueId={league.id} />;
       case "NEWS":
         return <AnnouncementsWidget leagueId={league.id} canManage={canManage} />;
+      case "CHAT":
+        return <ChatBox leagueId={league.id} title={`Chat de ${league.name}`} />;
       default:
         return (
           <View style={styles.comingSoonBox}>

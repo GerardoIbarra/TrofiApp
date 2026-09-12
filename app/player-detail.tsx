@@ -19,6 +19,7 @@ import {
   Shield,
   TrendingUp,
   Trophy,
+  MessageSquare,
 } from 'lucide-react-native';
 import { useGetPlayerProfile } from '@/features/players/services/playerProfileApi';
 import { PlayerCardView } from '@/components/players/profile/PlayerCardView';
@@ -89,9 +90,24 @@ export default function PlayerDetailScreen() {
           <ChevronLeft size={28} color={theme.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Perfil del Jugador</Text>
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare} disabled={!currentCard}>
-          <Share2 size={22} color={currentCard ? theme.primary : theme.textSecondary} />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          {profile?.player?.id && (
+            <TouchableOpacity
+              style={styles.shareButton}
+              onPress={() =>
+                router.push({
+                  pathname: '/direct-messages' as any,
+                  params: { with: profile.player.id, name: displayName },
+                })
+              }
+            >
+              <MessageSquare size={21} color={theme.primary} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.shareButton} onPress={handleShare} disabled={!currentCard}>
+            <Share2 size={22} color={currentCard ? theme.primary : theme.textSecondary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Tournament Selector Chips */}
