@@ -62,6 +62,8 @@ export default function PickupSpotDetailScreen() {
   const [commentText, setCommentText] = useState('');
   const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
 
+  const [myRating, setMyRating] = useState<number | null>(null);
+
   const { data: spot, isLoading, refetch } = useGetPickupSpot(id);
   const { data: comments = [], refetch: refetchComments } = useGetPickupComments(id);
 
@@ -75,9 +77,10 @@ export default function PickupSpotDetailScreen() {
 
   const handleRate = async (stars: number) => {
     if (!id) return;
+    setMyRating(stars);
     try {
       await rateMutation.mutateAsync({ spot: id, stars });
-      Alert.alert('Calificación guardada', `Le has dado ${stars} estrellas.`);
+      Alert.alert('¡Gracias!', `Has calificado esta cancha con ${stars} estrella${stars > 1 ? 's' : ''}.`);
       refetch();
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'No se pudo guardar la calificación.');
@@ -327,19 +330,59 @@ export default function PickupSpotDetailScreen() {
         {/* Star Rating Section */}
         <View style={styles.ratingSection}>
           <Text style={styles.sectionTitle}>CALIFICACIÓN</Text>
-          <View style={styles.starsRow}>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <TouchableOpacity key={star} onPress={() => handleRate(star)} style={{ padding: 4 }}>
-                <Star
-                  size={28}
-                  color="#F59E0B"
-                  fill={star <= Math.round(spot.average_rating) ? '#F59E0B' : 'transparent'}
-                />
-              </TouchableOpacity>
-            ))}
-            <Text style={styles.ratingScoreText}>
-              {spot.average_rating > 0 ? `${spot.average_rating.toFixed(1)} / 5` : 'Sin calificar'}
+
+          {/* Community Average */}
+          <View style={styles.ratingSummaryRow}>
+            <View style={styles.ratingScoreContainer}>
+              <Text style={styles.ratingScoreBig}>
+                {spot.average_rating > 0 ? spot.average_rating.toFixed(1) : '-'}
+              </Text>
+              <Text style={styles.ratingScaleText}>/ 5</Text>
+            </View>
+
+            <View style={styles.ratingMetaCol}>
+              <View style={styles.starsStaticRow}>
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={`avg-${s}`}
+                    size={16}
+                    color="#F59E0B"
+                    fill={s <= Math.round(spot.average_rating) ? '#F59E0B' : 'transparent'}
+                  />
+                ))}
+              </View>
+              <Text style={styles.ratingCountSub}>
+                {spot.average_rating > 0
+                  ? `Promedio de la comunidad (${spot.rating_count ?? 1} reseña${(spot.rating_count ?? 1) > 1 ? 's' : ''})`
+                  : 'Aún no hay calificaciones de la comunidad'}
+              </Text>
+            </View>
+          </View>
+
+          {/* User Interactive Rating */}
+          <View style={styles.userRateDivider} />
+          <View style={styles.userRateSection}>
+            <Text style={styles.userRatePrompt}>
+              {myRating != null
+                ? `Tu calificación guardada: ${myRating} / 5`
+                : '¿Conoces esta cancha? Toca para calificar:'}
             </Text>
+            <View style={styles.starsInteractiveRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={`user-star-${star}`}
+                  onPress={() => handleRate(star)}
+                  style={styles.starTouchArea}
+                  activeOpacity={0.7}
+                >
+                  <Star
+                    size={28}
+                    color="#F59E0B"
+                    fill={myRating != null && star <= myRating ? '#F59E0B' : 'transparent'}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </View>
 
@@ -760,18 +803,62 @@ const createStyles = (theme: any, isDark: boolean) =>
       padding: 16,
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-      gap: 8,
+      gap: 12,
     },
-    starsRow: {
+    ratingSummaryRow: {
       flexDirection: 'row',
       alignItems: 'center',
+      gap: 14,
+    },
+    ratingScoreContainer: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 2,
+    },
+    ratingScoreBig: {
+      fontSize: 32,
+      fontWeight: '900',
+      color: '#F59E0B',
+      lineHeight: 36,
+    },
+    ratingScaleText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: theme.textSecondary,
+    },
+    ratingMetaCol: {
+      flex: 1,
+      gap: 3,
+    },
+    starsStaticRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+    },
+    ratingCountSub: {
+      fontSize: 11,
+      color: theme.textSecondary,
+    },
+    userRateDivider: {
+      height: 1,
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)',
+    },
+    userRateSection: {
       gap: 6,
     },
-    ratingScoreText: {
-      fontSize: 14,
-      fontWeight: '800',
-      color: '#F59E0B',
-      marginLeft: 8,
+    userRatePrompt: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: theme.textSecondary,
+    },
+    starsInteractiveRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 2,
+    },
+    starTouchArea: {
+      padding: 2,
     },
     photosScroll: {
       gap: 8,
