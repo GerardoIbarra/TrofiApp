@@ -1,22 +1,30 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
-import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import api from "./api";
 import { logger } from "./logger";
+declare const global: any;
+// Conditionally load expo-notifications only in a Development Client
+let Notifications: typeof import("expo-notifications") | null = null;
+if ((global as any).__DEV_CLIENT__) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  Notifications = require("expo-notifications") as typeof import("expo-notifications");
+}
 
 const DEVICE_TOKEN_ID_KEY = "@device_token_id";
 
 // Configura el comportamiento cuando llega una notificación con la app abierta (foreground)
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+if (Notifications) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 /**
  * Registra el Expo Push Token del dispositivo en el backend.
@@ -24,6 +32,11 @@ Notifications.setNotificationHandler({
  * el endpoint /v1/device-tokens/, no rompe la app ni arroja excepciones.
  */
 export async function registerDeviceToken(): Promise<string | null> {
+  if (!Notifications) {
+    // expo-notifications not available (e.g., running in Expo Go)
+    logger.info("notifications", "expo-notifications unavailable – skipping registration");
+    return null;
+  }
   try {
     // 1. Canal de notificación en Android
     if (Platform.OS === "android") {
@@ -121,6 +134,10 @@ export async function unregisterDeviceToken(): Promise<void> {
 export function setupNotifications(
   navigate: (screen: string, params: any) => void
 ): () => void {
+  if (!Notifications) {
+    logger.info("notifications", "expo-notifications unavailable – listeners not set up");
+    return () => {};
+  }
   // 1. Notificación recibida en primer plano (Foreground)
   const receivedSubscription = Notifications.addNotificationReceivedListener(
     (notification) => {
