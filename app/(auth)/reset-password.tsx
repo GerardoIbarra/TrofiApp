@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,8 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { ChevronLeft, CheckCircle2, ShieldCheck } from 'lucide-react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { resetPasswordSchema, ResetPasswordSchema } from '@/features/auth/schemas/authSchemas';
@@ -25,18 +25,39 @@ export default function ResetPasswordScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
 
+  const params = useLocalSearchParams<{ uid?: string; token?: string }>();
+  const initialUid = typeof params.uid === 'string' ? params.uid : '';
+  const initialToken = typeof params.token === 'string' ? params.token : '';
+  const hasDeepLinkTokens = Boolean(initialUid && initialToken);
+
   const {
     control,
     handleSubmit,
+    setValue,
     formState: { isSubmitting },
   } = useForm<ResetPasswordSchema>({
     resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { uid: '', token: '', new_password: '', new_password2: '' },
+    defaultValues: {
+      uid: initialUid,
+      token: initialToken,
+      new_password: '',
+      new_password2: '',
+    },
   });
+
+  useEffect(() => {
+    if (initialUid) setValue('uid', initialUid);
+    if (initialToken) setValue('token', initialToken);
+  }, [initialUid, initialToken, setValue]);
 
   const onSubmit = async (data: ResetPasswordSchema) => {
     try {
-      await api.post('/v1/auth/password-reset/confirm/', data);
+      await api.post('/v1/auth/password-reset/confirm/', {
+        uid: data.uid.trim(),
+        token: data.token.trim(),
+        new_password: data.new_password,
+        new_password2: data.new_password2,
+      });
       Alert.alert(
         'Contraseña restablecida', 
         'Tu contraseña se ha restablecido exitosamente. Inicia sesión con tu nueva contraseña.',
@@ -70,24 +91,43 @@ export default function ResetPasswordScreen() {
             <View style={styles.textSection}>
               <Text style={[GlobalStyles.title, { color: theme.text }]}>Nueva contraseña</Text>
               <Text style={[GlobalStyles.subtitle, { color: theme.textSecondary }]}>
-                Ingresa el código que recibiste por correo electrónico junto con tu nueva contraseña.
+                {hasDeepLinkTokens
+                  ? 'Hemos autenticado tu enlace de recuperación. Ingresa tu nueva contraseña para continuar.'
+                  : 'Ingresa el código que recibiste por correo electrónico junto con tu nueva contraseña.'}
               </Text>
             </View>
 
-            <FormInput
-              control={control}
-              name="uid"
-              label="UID"
-              placeholder="Ej. Mg"
-              required
-            />
-            <FormInput
-              control={control}
-              name="token"
-              label="TOKEN"
-              placeholder="Ej. xxxx-xxxx"
-              required
-            />
+            {hasDeepLinkTokens && (
+              <View style={styles.verifiedBox}>
+                <View style={styles.verifiedRow}>
+                  <CheckCircle2 size={18} color="#4ADE80" />
+                  <Text style={styles.verifiedTitle}>Enlace de correo verificado</Text>
+                </View>
+                <Text style={styles.verifiedSubtitle}>
+                  Tu código de seguridad ha sido vinculado automáticamente.
+                </Text>
+              </View>
+            )}
+
+            {!hasDeepLinkTokens && (
+              <>
+                <FormInput
+                  control={control}
+                  name="uid"
+                  label="UID"
+                  placeholder="Ej. Mg"
+                  required
+                />
+                <FormInput
+                  control={control}
+                  name="token"
+                  label="TOKEN"
+                  placeholder="Ej. xxxx-xxxx"
+                  required
+                />
+              </>
+            )}
+
             <FormInput
               control={control}
               name="new_password"
@@ -107,7 +147,7 @@ export default function ResetPasswordScreen() {
 
             <View style={styles.buttonContainer}>
               <PrimaryButton
-                label="Restablecer"
+                label="Restablecer contraseña"
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
                 isLoading={isSubmitting}

@@ -5,18 +5,36 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "trofiapp",
+    "scheme": ["trofi", "trofiapp"],
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jugardo.trofiapp"
+      "bundleIdentifier": "com.jugardo.trofiapp",
+      "associatedDomains": ["applinks:api.trofi.club"]
     },
     "android": {
       "package": "com.jugardo.trofiapp",
       "adaptiveIcon": {
         "backgroundColor": "#0A192F",
         "foregroundImage": "./assets/images/adaptive-icon.png"
-      }
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "api.trofi.club",
+              "pathPrefix": "/reset-password"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "output": "static",
