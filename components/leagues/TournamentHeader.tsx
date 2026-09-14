@@ -136,10 +136,10 @@ export function TournamentHeader({ tournament, onEditPress, onAddPress }: Tourna
           <View style={styles.statLine}>
             <Text style={styles.statLabel}>{t("tournament.label_duration")}</Text>
             <View style={styles.kpiBox}>
-               <Calendar size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
-               <Text style={styles.statKpi}>
-                 {new Date(tournament.start_date).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
-               </Text>
+              <Calendar size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
+              <Text style={styles.statKpi}>
+                {new Date(tournament.start_date || new Date()).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+              </Text>
             </View>
           </View>
         </View>

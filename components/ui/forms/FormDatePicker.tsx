@@ -5,6 +5,7 @@ import {
   Text,
   TouchableOpacity,
   Platform,
+  Modal,
 } from 'react-native';
 import { Controller, Control, FieldValues, Path } from 'react-hook-form';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -87,15 +88,34 @@ export function FormDatePicker<T extends FieldValues>({
               <CalendarIcon size={20} color={theme.textSecondary} />
             </TouchableOpacity>
 
-            {show && (
-              <DateTimePicker
-                value={currentDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={handleDateChange}
-                // @ts-ignore - Specific iOS props
-                textColor={isDark ? '#FFFFFF' : '#000000'}
-              />
+            {Platform.OS === 'ios' ? (
+              <Modal visible={show} transparent animationType="slide">
+                <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShow(false)}>
+                  <TouchableOpacity style={styles.modalContent} activeOpacity={1}>
+                    <View style={styles.modalHeader}>
+                      <TouchableOpacity onPress={() => setShow(false)}>
+                        <Text style={styles.doneText}>Listo</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={currentDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={handleDateChange}
+                      textColor={isDark ? '#FFFFFF' : '#000000'}
+                    />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              </Modal>
+            ) : (
+              show && (
+                <DateTimePicker
+                  value={currentDate}
+                  mode="date"
+                  display="default"
+                  onChange={handleDateChange}
+                />
+              )
             )}
 
             {error && <Text style={styles.errorText}>{error.message || 'Este campo es requerido'}</Text>}
@@ -152,5 +172,29 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 12,
       marginTop: 6,
       fontWeight: '500',
+    },
+    modalOverlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: isDark ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0.3)',
+    },
+    modalContent: {
+      backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF',
+      borderTopLeftRadius: 16,
+      borderTopRightRadius: 16,
+      paddingBottom: 20,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+    },
+    doneText: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: theme.primary,
     },
   });
