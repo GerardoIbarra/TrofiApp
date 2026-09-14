@@ -85,7 +85,9 @@ export default function ProfileScreen() {
   };
 
   const user = useAuthStore((state) => state.user);
-  const activePhoto = profile?.photo || user?.photo;
+  
+  const isOwnProfile = !id || id === user?.id || id === user?.player_profile?.id;
+  const activePhoto = profile?.player_profile?.photo || profile?.photo || (isOwnProfile ? user?.photo : undefined);
 
   useFocusEffect(
     React.useCallback(() => {

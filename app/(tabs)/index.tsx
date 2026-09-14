@@ -20,6 +20,7 @@ import { useGetHomeFeed } from "@/features/matches/services/homeFeedApi";
 import { HomeFeaturedCarousel } from "@/components/home/HomeFeaturedCarousel";
 import { HomeStatsSummary } from "@/components/home/HomeStatsSummary";
 import { HomePlayersList } from "@/components/home/HomePlayersList";
+import { useAuthStore } from "@/features/auth/store/authStore";
 
 export default function HomeScreen() {
   const { theme, isDark } = useTheme();
@@ -32,6 +33,8 @@ export default function HomeScreen() {
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState<any>(null);
+  const user = useAuthStore(state => state.user);
 
   const {
     data: homeFeed = [],
@@ -50,15 +53,33 @@ export default function HomeScreen() {
     }
   }, []);
 
+  const loadStats = useCallback(async () => {
+    if (!user?.id) return;
+    try {
+      const statsRes = await api.get<any>(
+        `/v1/player-stats/?player=${user.id}`,
+        { silent: true },
+      );
+      const statData = Array.isArray(statsRes)
+        ? statsRes[0]
+        : statsRes.results?.[0] || statsRes;
+      setStats(statData || null);
+    } catch (err: any) {
+      if (err?.status !== 404) console.warn("Player stats fetch issue:", err);
+      setStats(null);
+    }
+  }, [user]);
+
   useEffect(() => {
     loadPlayers();
-  }, [loadPlayers]);
+    loadStats();
+  }, [loadPlayers, loadStats]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchHomeFeed(), loadPlayers()]);
+    await Promise.all([refetchHomeFeed(), loadPlayers(), loadStats()]);
     setRefreshing(false);
-  }, [refetchHomeFeed, loadPlayers]);
+  }, [refetchHomeFeed, loadPlayers, loadStats]);
 
   return (
     <View style={GlobalStyles.container}>
@@ -104,6 +125,7 @@ export default function HomeScreen() {
             {/* Stats Summary & Tournament Banner */}
             <HomeStatsSummary
               onPressBanner={() => router.push("/leagues")}
+              stats={stats}
             />
 
             {/* Players Horizontal List */}

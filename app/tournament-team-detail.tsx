@@ -180,7 +180,8 @@ export default function TournamentTeamDetailScreen() {
                 <TouchableOpacity 
                   key={item.id} 
                   style={styles.playerCard}
-                  onPress={() => router.push({
+                  disabled={!item.player}
+                  onPress={() => item.player && router.push({
                     pathname: '/player-detail',
                     params: { 
                       playerId: item.player, 
@@ -188,6 +189,7 @@ export default function TournamentTeamDetailScreen() {
                       playerName: item.player_name 
                     }
                   })}
+                  activeOpacity={0.8}
                 >
                   <View style={styles.playerAvatar}>
                     <Text style={styles.avatarText}>{item.player_name?.charAt(0) || 'J'}</Text>
@@ -200,8 +202,9 @@ export default function TournamentTeamDetailScreen() {
                     </Text>
                   </View>
                   {teamInfo.captain_id === item.player && (
-                    <Star size={16} color={theme.primary} />
+                    <Star size={16} color={theme.primary} style={{ marginRight: 8 }} />
                   )}
+                  {!!item.player && <ChevronRight size={16} color={theme.textSecondary} />}
                 </TouchableOpacity>
               ))}
             </View>

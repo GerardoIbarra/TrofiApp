@@ -22,6 +22,7 @@ import {
   Star,
 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { NotFoundState } from '@/components/ui/feedback/NotFoundState';
@@ -49,6 +50,7 @@ export default function TeamDetailScreen() {
   const { theme, isDark } = useTheme();
   const { t, i18n } = useTranslation();
   const styles = createStyles(theme, isDark);
+  const user = useAuthStore(state => state.user);
 
   const [activeTab, setActiveTab] = useState<TabType>('STATS');
   const [selectedTourneyId, setSelectedTourneyId] = useState<string | undefined>(
@@ -74,6 +76,19 @@ export default function TeamDetailScreen() {
   const roster = profile?.roster || [];
   const lineup = profile?.current_lineup;
   const lineupHistory = profile?.lineup_history || [];
+
+  const canAccessChat = React.useMemo(() => {
+    if (!user || !team) return false;
+    if (team.owner === user.id) return true;
+    if (user.is_staff) return true;
+    
+    const playerProfileId = user.player_profile_id || user.player_profile?.id;
+    if (playerProfileId && roster.some(p => p.player_id === playerProfileId)) return true;
+    
+    if (user.memberships?.some(m => m.league === team.league && (m.role === 'admin' || m.role === 'owner'))) return true;
+    
+    return false;
+  }, [user, team, roster]);
 
   if (isLoadingProfile && !profile) {
     return (
@@ -262,14 +277,16 @@ export default function TeamDetailScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.tabBtn, activeTab === 'CHAT' && styles.tabBtnActive]}
-              onPress={() => setActiveTab('CHAT')}
-            >
-              <Text style={[styles.tabText, activeTab === 'CHAT' && styles.tabTextActive]}>
-                {t('team_detail.tab_chat', 'CHAT')}
-              </Text>
-            </TouchableOpacity>
+            {canAccessChat && (
+              <TouchableOpacity
+                style={[styles.tabBtn, activeTab === 'CHAT' && styles.tabBtnActive]}
+                onPress={() => setActiveTab('CHAT')}
+              >
+                <Text style={[styles.tabText, activeTab === 'CHAT' && styles.tabTextActive]}>
+                  {t('team_detail.tab_chat', 'CHAT')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* TAB CONTENT */}
@@ -399,6 +416,7 @@ export default function TeamDetailScreen() {
                     <TouchableOpacity
                       key={idx}
                       style={styles.rosterCard}
+                      disabled={!player.player_id}
                       onPress={() => {
                         if (player.player_id) {
                           router.push({
@@ -430,7 +448,7 @@ export default function TeamDetailScreen() {
                           {player.position || t('team_detail.default_position', 'Jugador')}
                         </Text>
                       </View>
-                      <ChevronRight size={16} color={theme.textSecondary} />
+                      {!!player.player_id && <ChevronRight size={16} color={theme.textSecondary} />}
                     </TouchableOpacity>
                   ))
                 ) : (
@@ -623,7 +641,7 @@ export default function TeamDetailScreen() {
             )}
 
             {/* 5. CHAT TAB */}
-            {activeTab === 'CHAT' && (
+            {activeTab === 'CHAT' && canAccessChat && (
               <ChatBox teamId={team.id} title={t('league_detail.chat_title', { name: team.name, defaultValue: `Chat de ${team.name}` })} />
             )}
           </View>

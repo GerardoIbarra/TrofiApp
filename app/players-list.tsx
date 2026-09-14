@@ -6,7 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  TextInput,
+  Alert,
 } from "react-native";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
@@ -25,17 +28,14 @@ export default function PlayersListScreen() {
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
   const { data: response, isLoading } = useQuery({
-    queryKey: ["players"],
-    queryFn: () => api.get<PaginatedPlayers>("/v1/players/"),
+    queryKey: ["players", debouncedSearch],
+    queryFn: () => api.get<PaginatedPlayers>(`/v1/players/${debouncedSearch ? `?search=${debouncedSearch}` : ''}`),
   });
 
   const players = response?.results || [];
-
-  const filteredPlayers = players.filter((p) =>
-    p.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const renderPlayerItem = ({ item }: { item: Player }) => (
     <TouchableOpacity 
@@ -68,13 +68,23 @@ export default function PlayersListScreen() {
       <LayoutHeader title={t('players.title')} showBackButton={true} />
 
       <View style={styles.content}>
-        {/* Search Bar - Placeholder for future functionality */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
             <Search size={18} color={theme.textSecondary} />
-            <Text style={styles.searchText}>{t('players.search_placeholder')}</Text>
+            <TextInput 
+              style={styles.searchText} 
+              placeholder={t('players.search_placeholder')}
+              placeholderTextColor={theme.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+              returnKeyType="search"
+            />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
+          <TouchableOpacity 
+            style={styles.filterButton}
+            onPress={() => Alert.alert("Próximamente", "Los filtros avanzados estarán disponibles muy pronto.")}
+          >
             <Filter size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
@@ -83,13 +93,13 @@ export default function PlayersListScreen() {
           <View style={styles.centerContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
           </View>
-        ) : filteredPlayers.length === 0 ? (
+        ) : players.length === 0 ? (
           <View style={styles.centerContainer}>
             <Text style={styles.emptyText}>{t('players.no_players')}</Text>
           </View>
         ) : (
           <FlatList
-            data={filteredPlayers}
+            data={players}
             renderItem={renderPlayerItem}
             keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={styles.listContent}
@@ -124,7 +134,8 @@ const createStyles = (theme: any, isDark: boolean) =>
       gap: 10,
     },
     searchText: {
-      color: theme.textSecondary,
+      flex: 1,
+      color: theme.text,
       fontSize: 14,
     },
     filterButton: {

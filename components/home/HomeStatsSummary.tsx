@@ -9,14 +9,26 @@ const { width } = Dimensions.get('window');
 
 interface HomeStatsSummaryProps {
   onPressBanner?: () => void;
+  stats?: any;
 }
 
 export const HomeStatsSummary = React.memo(function HomeStatsSummary({
   onPressBanner,
+  stats,
 }: HomeStatsSummaryProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
+
+  const played = stats?.played || 0;
+  const wins = stats?.wins || 0;
+  const goals = stats?.goals || 0;
+
+  const winRate = played > 0 ? Math.round((wins / played) * 100) : 0;
+  const goalsPerMatch = played > 0 ? (goals / played).toFixed(1) : '0.0';
+  
+  // Normalize goals for the progress bar (assume ~3.0 is a great 100% cap)
+  const goalsProgress = Math.min(100, Math.round((parseFloat(goalsPerMatch) / 3.0) * 100));
 
   return (
     <>
@@ -25,11 +37,11 @@ export const HomeStatsSummary = React.memo(function HomeStatsSummary({
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>{t('home.victories')}</Text>
           <View style={styles.statValueContainer}>
-            <Text style={styles.statValue}>94%</Text>
-            <TrendingUp size={16} color={theme.primary} />
+            <Text style={styles.statValue}>{winRate}%</Text>
+            {winRate > 50 && <TrendingUp size={16} color={theme.primary} />}
           </View>
           <View style={styles.statBarContainer}>
-            <View style={[styles.statBar, { width: '94%' }]} />
+            <View style={[styles.statBar, { width: `${winRate}%` }]} />
           </View>
         </View>
 
@@ -38,11 +50,11 @@ export const HomeStatsSummary = React.memo(function HomeStatsSummary({
             {t('home.goals')} / {t('profile.matches')}
           </Text>
           <View style={styles.statValueContainer}>
-            <Text style={styles.statValue}>2.2</Text>
-            <TrendingUp size={16} color={theme.primary} />
+            <Text style={styles.statValue}>{goalsPerMatch}</Text>
+            {parseFloat(goalsPerMatch) > 1.0 && <TrendingUp size={16} color={theme.primary} />}
           </View>
           <View style={styles.statBarContainer}>
-            <View style={[styles.statBar, { width: '70%' }]} />
+            <View style={[styles.statBar, { width: `${goalsProgress}%` }]} />
           </View>
         </View>
       </View>
