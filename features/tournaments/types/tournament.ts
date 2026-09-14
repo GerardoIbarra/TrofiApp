@@ -11,6 +11,15 @@ export interface TournamentFeatures {
 
 export type TournamentStatus = 'draft' | 'active' | 'completed' | 'canceled';
 
+export interface TournamentScheduleConfig {
+  days_of_week?: (string | number)[];
+  window_start?: string;
+  window_end?: string;
+  match_duration_minutes?: number;
+  break_minutes?: number;
+  fields?: string[];
+}
+
 export interface Tournament {
   id: string;
   league: string;
@@ -25,6 +34,7 @@ export interface Tournament {
   description?: string;
   start_date: string;
   end_date: string;
+  schedule?: TournamentScheduleConfig;
   features?: TournamentFeatures;
   champion_determination?: 'standings' | 'playoffs';
   standings_tiebreaker?: 'goal_difference' | 'head_to_head';

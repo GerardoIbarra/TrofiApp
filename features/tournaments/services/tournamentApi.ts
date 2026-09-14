@@ -134,4 +134,99 @@ export const useComputeWeeklyMVP = () => {
   });
 };
 
+import { TournamentScheduleConfig } from '../types/tournament';
+import { Bracket, QualifiedTeamResponse, AssignMatchData } from '../types/playoffs';
 
+export const useUpdateScheduleConfig = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: TournamentScheduleConfig }) => {
+      return api.put<any>(`/v1/tournaments/${id}/schedule-config/`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tournament', variables.id] });
+    },
+  });
+};
+
+export const useGenerateSchedule = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return api.post<any>(`/v1/tournaments/${id}/generate-schedule/`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tournament', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['matches', variables.id] });
+    },
+  });
+};
+
+export const useGenerateWeeklySchedule = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return api.post<any>(`/v1/tournaments/${id}/generate-weekly-schedule/`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tournament', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['matches', variables.id] });
+    },
+  });
+};
+
+export const useQualifyTeams = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }): Promise<QualifiedTeamResponse> => {
+      return api.post<QualifiedTeamResponse>(`/v1/tournaments/${id}/qualify-teams/`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tournament', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['bracket', variables.id] });
+    },
+  });
+};
+
+export const useQualifyFromGroups = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }): Promise<QualifiedTeamResponse> => {
+      return api.post<QualifiedTeamResponse>(`/v1/tournaments/${id}/qualify-from-groups/`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tournament', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['bracket', variables.id] });
+    },
+  });
+};
+
+export const useCreateBracket = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      return api.post<any>(`/v1/tournaments/${id}/create-bracket/`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tournament', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['bracket', variables.id] });
+    },
+  });
+};
+
+export const useAssignMatchToBracketSlot = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, slotId, data }: { id: string; slotId: string; data: AssignMatchData }) => {
+      return api.post<any>(`/v1/tournaments/${id}/bracket/slots/${slotId}/assign-match/`, data);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['bracket', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['matches', variables.id] });
+    },
+  });
+};
+
+export const getBracket = async (tournamentId: string): Promise<Bracket> => {
+  return api.get<Bracket>(`/v1/tournaments/${tournamentId}/bracket/`);
+};

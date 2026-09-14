@@ -1,20 +1,17 @@
 export interface Venue {
   id: string;
+  league?: string | null; // A venue can belong to a league or be public
   name: string;
-  city?: string | null;
-  address?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
-  distance_km?: number | null;
-  league?: string | null;
-  fields_count?: number;
+  city?: string;
   created_at?: string;
   updated_at?: string;
 }
 
-export interface VenuesResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Venue[];
+export interface Field {
+  id: string;
+  venue: string;
+  name: string;
+  surface?: string;
+  created_at?: string;
+  updated_at?: string;
 }
