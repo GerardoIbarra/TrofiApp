@@ -57,7 +57,7 @@ export function MatchMVPVoteWidget({
   let eligibleCandidates: any[] = [];
   const allCandidates = [...homeTeamRoster, ...awayTeamRoster];
 
-  const playerProfileId = user?.player_profile_id || (user as any)?.player_profile?.id;
+  const playerProfileId = user?.player_profile_id || user?.player_profile?.id;
   const isHomePlayer = homeTeamRoster.some(
     (m) =>
       (userTeamId && (m.team === userTeamId || m.team_id === userTeamId)) ||

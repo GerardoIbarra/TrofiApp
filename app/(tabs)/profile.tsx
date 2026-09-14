@@ -349,15 +349,15 @@ export default function ProfileScreen() {
               </View>
               <View style={styles.teamCoreInfo}>
                 <Text style={styles.teamNameTitle}>
-                  {profile?.memberships?.[0]?.team_name || t("profile.no_team")}
+                  {profile?.player_teams?.[0]?.team_name || t("profile.no_team")}
                 </Text>
                 <Text style={styles.teamSubtitle}>
-                  {profile?.memberships?.[0]
+                  {profile?.player_teams?.[0]
                     ? t("profile.active_member")
                     : t("profile.no_team")}
                 </Text>
               </View>
-              {profile?.memberships?.[0] && (
+              {profile?.player_teams?.[0] && (
                 <TouchableOpacity style={styles.viewTeamBtn}>
                   <Text style={styles.viewTeamBtnText}>
                     {t("profile.view_team")}

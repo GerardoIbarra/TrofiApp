@@ -63,7 +63,8 @@ export default function TournamentTeamDetailScreen() {
   };
 
   const handleJoinRequest = () => {
-    if (!user || !user.player_profile_id) {
+    const playerProfileId = user?.player_profile_id || user?.player_profile?.id;
+    if (!user || !playerProfileId) {
       Alert.alert(
         t("tournament_team.req_profile_title", "Perfil Requerido"),
         t("tournament_team.req_profile_msg", "Debes crear tu perfil de jugador primero.")
@@ -74,7 +75,7 @@ export default function TournamentTeamDetailScreen() {
     joinMutation.mutate({
       tournament: teamInfo.tournament,
       tournament_team: id as string,
-      player: user.player_profile_id
+      player: playerProfileId
     }, {
       onSuccess: () => {
         Alert.alert(

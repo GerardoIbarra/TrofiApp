@@ -56,7 +56,7 @@ export default function LeagueDetailScreen() {
   const isLeagueAdmin = league?.memberships?.some(
     (m: any) => (m.user === user?.id || m.user_id === user?.id) && (m.role === 'admin' || m.role === 'owner')
   );
-  const canManage = isOwner || isLeagueAdmin || Boolean(user?.is_staff || user?.is_superuser);
+  const canManage = isOwner || isLeagueAdmin || Boolean(user?.is_staff);
   const [refreshTournamentsKey, setRefreshTournamentsKey] = useState(0);
 
   const { data: leagueAchievements = [] } = useGetLeagueAchievements(id);

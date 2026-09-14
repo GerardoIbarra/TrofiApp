@@ -40,7 +40,7 @@ export const ProfileSettingsMenu = React.memo(function ProfileSettingsMenu({
   const styles = createStyles(theme, isDark);
   const currentLanguage = i18n.language;
 
-  const isStaff = Boolean(user?.is_staff || user?.is_superuser);
+  const isStaff = Boolean(user?.is_staff);
   const isSponsor = Boolean(user?.sponsor_profile || isStaff);
   const isReferee = Boolean(user?.referee_profile || isStaff);
 

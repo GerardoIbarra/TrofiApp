@@ -47,7 +47,7 @@ export default function SuperAdminScreen() {
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
-  const isStaff = Boolean((user as any)?.is_staff || (user as any)?.is_superuser);
+  const isStaff = Boolean((user as any)?.is_staff);
 
   const [activeTab, setActiveTab] = useState<AdminTab>('summary');
   const [approvalSubTab, setApprovalSubTab] = useState<'leagues' | 'tournaments'>('leagues');
