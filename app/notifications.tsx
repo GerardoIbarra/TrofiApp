@@ -12,7 +12,11 @@ import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import api from "@/services/api";
+import { 
+  useGetNotifications, 
+  useMarkNotificationAsRead, 
+  useMarkAllNotificationsAsRead 
+} from "@/features/notifications/services/notificationApi";
 import { 
   Trophy, 
   MessageSquare, 
@@ -22,52 +26,12 @@ import {
   Activity,
   Sliders,
   Megaphone,
+  CheckCheck,
 } from "lucide-react-native";
 import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
+import { router } from "expo-router";
 
-// Mock data for notifications
-const MOCK_NOTIFICATIONS = [
-  {
-    id: "1",
-    type: "match",
-    title: "¡Gol de tu equipo!",
-    message: "Tu equipo 'Los Galácticos' ha anotado el 1-0 contra 'Dream Team'.",
-    time: "Hace 5 min",
-    read: false,
-    icon: Activity,
-    color: "#4ADE80",
-  },
-  {
-    id: "2",
-    type: "tournament",
-    title: "Inscripciones Abiertas",
-    message: "El Torneo de Invierno 2024 ya acepta nuevos equipos. ¡No te quedes fuera!",
-    time: "Hace 2 horas",
-    read: false,
-    icon: Trophy,
-    color: "#FFB000",
-  },
-  {
-    id: "3",
-    type: "system",
-    title: "Actualización de Perfil",
-    message: "Tu media general ha subido a 84 tras el último partido.",
-    time: "Ayer",
-    read: true,
-    icon: Zap,
-    color: "#00F5FF",
-  },
-  {
-    id: "4",
-    type: "social",
-    title: "Nuevo Mensaje",
-    message: "El capitán del equipo te ha enviado un mensaje sobre el próximo encuentro.",
-    time: "Hace 2 días",
-    read: true,
-    icon: MessageSquare,
-    color: "#60A5FA",
-  },
-];
+// Removed MOCK_NOTIFICATIONS
 
 export default function NotificationsScreen() {
   const { theme, isDark } = useTheme();
@@ -75,23 +39,36 @@ export default function NotificationsScreen() {
   const styles = createStyles(theme, isDark);
   const [showPreferences, setShowPreferences] = useState(false);
 
-  const { data: serverNotifications = [], isLoading, refetch } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: async () => {
-      try {
-        const res = await api.get<any>('/v1/notifications/');
-        if (Array.isArray(res)) return res;
-        return res?.results || [];
-      } catch {
-        return [];
+  const { data: serverNotifications = [], isLoading, refetch } = useGetNotifications();
+  const { mutate: markAsRead } = useMarkNotificationAsRead();
+  const { mutate: markAllAsRead, isPending: isMarkingAll } = useMarkAllNotificationsAsRead();
+
+  const handleNotificationPress = (item: any) => {
+    if (!item.read) {
+      markAsRead(item.rawId);
+    }
+    
+    // Navigate based on data if provided
+    const data = item.data;
+    if (data) {
+      const { screen, match_id, tournament_id, league_id, team_id } = data;
+      if (screen === "MatchDetail" || match_id) {
+        router.push({ pathname: "/match-detail", params: { id: match_id } });
+      } else if (screen === "TournamentDetail" || tournament_id) {
+        router.push({ pathname: "/tournament-detail", params: { id: tournament_id } });
+      } else if (screen === "LeagueDetail" || league_id) {
+        router.push({ pathname: "/league-detail", params: { id: league_id } });
+      } else if (screen === "TeamDetail" || team_id) {
+        router.push({ pathname: "/team-detail", params: { id: team_id } });
       }
-    },
-  });
+    }
+  };
 
   const displayNotifications =
     serverNotifications.length > 0
       ? serverNotifications.map((n: any) => ({
           id: String(n.id || Math.random()),
+          rawId: n.id,
           type: n.notification_type || 'announcement',
           title: n.title || 'Aviso Oficial',
           message: n.message || n.body || '',
@@ -99,8 +76,9 @@ export default function NotificationsScreen() {
           read: Boolean(n.is_read),
           icon: n.notification_type === 'announcement' ? Megaphone : Trophy,
           color: n.notification_type === 'announcement' ? '#00F5FF' : '#FFB000',
+          data: n.data || null,
         }))
-      : MOCK_NOTIFICATIONS;
+      : [];
 
   const renderItem = ({ item }: { item: (typeof displayNotifications)[0] }) => {
     const Icon = item.icon;
@@ -108,6 +86,7 @@ export default function NotificationsScreen() {
       <TouchableOpacity 
         style={[styles.notificationCard, !item.read && styles.unreadCard]} 
         activeOpacity={0.7}
+        onPress={() => handleNotificationPress(item)}
       >
         <View style={[styles.iconContainer, { backgroundColor: item.color + "20" }]}>
           <Icon size={20} color={item.color} />
@@ -136,13 +115,26 @@ export default function NotificationsScreen() {
         title={t('common.notifications')} 
         showBackButton={true} 
         rightElement={
-          <TouchableOpacity
-            style={styles.headerSettingsBtn}
-            onPress={() => setShowPreferences(true)}
-            activeOpacity={0.7}
-          >
-            <Sliders size={20} color={theme.primary} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.headerSettingsBtn}
+              onPress={() => markAllAsRead()}
+              disabled={isMarkingAll || displayNotifications.every((n: any) => n.read)}
+              activeOpacity={0.7}
+            >
+              <CheckCheck 
+                size={20} 
+                color={displayNotifications.every((n: any) => n.read) ? theme.textSecondary : theme.primary} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerSettingsBtn}
+              onPress={() => setShowPreferences(true)}
+              activeOpacity={0.7}
+            >
+              <Sliders size={20} color={theme.primary} />
+            </TouchableOpacity>
+          </View>
         }
       />
 
@@ -171,6 +163,10 @@ export default function NotificationsScreen() {
 
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
+    headerActions: {
+      flexDirection: "row",
+      gap: 10,
+    },
     headerSettingsBtn: {
       width: 40,
       height: 40,

@@ -6,6 +6,7 @@ import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useGetConversations } from "@/features/chat/services/chatApi";
+import { useGetUnreadNotificationsCount } from "@/features/notifications/services/notificationApi";
 
 interface LayoutHeaderProps {
   title?: string;
@@ -30,6 +31,8 @@ export function LayoutHeader({
   const { data: conversations } = useGetConversations();
   const totalUnreadDMs =
     conversations?.reduce((sum, c) => sum + (c.unread_count || 0), 0) || 0;
+
+  const { data: totalUnreadNotifications = 0 } = useGetUnreadNotificationsCount();
 
   return (
     <View style={[styles.header, { paddingTop: Math.max(insets.top, 10) }]}>
@@ -78,7 +81,7 @@ export function LayoutHeader({
             onPress={() => router.push("/notifications" as any)}
           >
             <Bell size={22} color={theme.primary} />
-            <View style={styles.notificationDot} />
+            {totalUnreadNotifications > 0 && <View style={styles.notificationDot} />}
           </TouchableOpacity>
         )}
 
