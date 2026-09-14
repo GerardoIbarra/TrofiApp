@@ -171,11 +171,11 @@ export function CreateLeagueModal({
         ? initialData.slug
         : slugify(data.name) + "-" + Math.floor(Math.random() * 1000);
 
-      formData.append("name", data.name);
-      formData.append("slug", slug);
-      formData.append("city", data.city);
-      formData.append("country", data.country);
-      formData.append("created_by", user.id);
+      formData.append("name", String(data.name));
+      formData.append("slug", String(slug));
+      formData.append("city", String(data.city));
+      formData.append("country", String(data.country));
+      formData.append("created_by", String(user.id));
 
       if (data.latitude != null && !isNaN(Number(data.latitude))) {
         formData.append("latitude", Number(data.latitude).toString());
@@ -185,22 +185,32 @@ export function CreateLeagueModal({
       }
 
       // Handle Logo
-      if (data.logo && data.logo.startsWith("file://")) {
+      if (data.logo && (data.logo.startsWith("file://") || data.logo.startsWith("content://"))) {
         const uri = data.logo;
         const name = uri.split("/").pop() || "logo.jpg";
-        const type = `image/${name.split(".").pop() || "jpg"}`;
-        formData.append("logo", { uri, name, type } as any);
+        const match = /\.(\w+)$/.exec(name);
+        const type = match ? `image/${match[1]}` : `image/jpg`;
+        formData.append("logo", { 
+          uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri, 
+          name, 
+          type 
+        } as any);
       }
 
       // Handle Background
       if (
         data.background_image &&
-        data.background_image.startsWith("file://")
+        (data.background_image.startsWith("file://") || data.background_image.startsWith("content://"))
       ) {
         const uri = data.background_image;
         const name = uri.split("/").pop() || "background.jpg";
-        const type = `image/${name.split(".").pop() || "jpg"}`;
-        formData.append("background_image", { uri, name, type } as any);
+        const match = /\.(\w+)$/.exec(name);
+        const type = match ? `image/${match[1]}` : `image/jpg`;
+        formData.append("background_image", { 
+          uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri, 
+          name, 
+          type 
+        } as any);
       }
 
       if (isEditing) {
