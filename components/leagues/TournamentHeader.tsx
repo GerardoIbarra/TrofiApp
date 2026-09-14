@@ -138,7 +138,9 @@ export function TournamentHeader({ tournament, onEditPress, onAddPress }: Tourna
             <View style={styles.kpiBox}>
               <Calendar size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
               <Text style={styles.statKpi}>
-                {new Date(tournament.start_date || new Date()).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })}
+                {tournament.start_date && !isNaN(new Date(tournament.start_date).getTime()) 
+                  ? new Date(tournament.start_date).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+                  : 'TBD'}
               </Text>
             </View>
           </View>

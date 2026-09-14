@@ -13,6 +13,7 @@ import api from "@/services/api";
 import { LeagueMembership } from "@/features/leagues/types/league";
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
+import { router } from "expo-router";
 
 interface LeagueMembersWidgetProps {
   leagueId: string;
@@ -58,7 +59,11 @@ export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
   const players = members.filter((m) => m.role !== "admin");
 
   const RenderMemberItem = ({ member }: { member: LeagueMembership }) => (
-    <TouchableOpacity style={styles.memberCard} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={styles.memberCard} 
+      activeOpacity={0.7}
+      onPress={() => router.push({ pathname: "/profile", params: { userId: member.user } })}
+    >
       <View style={styles.avatarContainer}>
         <View style={[styles.avatar, styles.avatarPlaceholder]}>
           <Text style={[styles.initialsText, { color: theme.primary }]}>

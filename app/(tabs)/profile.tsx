@@ -62,7 +62,7 @@ export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const signOut = useAuthStore((state) => state.signOut);
   const styles = createStyles(theme, isDark);
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, userId } = useLocalSearchParams<{ id?: string, userId?: string }>();
 
   const [profile, setProfile] = useState<any | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
@@ -98,28 +98,38 @@ export default function ProfileScreen() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      let userId = id;
+      let activePlayerId = id;
 
       if (id) {
-        // Fetch specific player
+        // Fetch specific player by player ID
         const playerRes = await api.get<any>(`/v1/players/${id}/`);
         setProfile(playerRes);
-        // Note: In player-stats, the ID usually corresponds to the user or player.
-        // If the ID passed is already the player ID, we use it directly.
-        userId = playerRes.user || id;
+        activePlayerId = playerRes.id || id;
+      } else if (userId) {
+        // Fetch specific player by user ID
+        const playersRes = await api.get<any>(`/v1/players/?user=${userId}`);
+        const playerProfile = playersRes.results?.[0];
+        if (playerProfile) {
+          setProfile(playerProfile);
+          activePlayerId = playerProfile.id;
+        } else {
+          // If no player profile exists yet, fallback to user? (Ideally shouldn't happen)
+          setProfile(null);
+          activePlayerId = undefined;
+        }
       } else {
         // Fetch current user
-        const userRes = await api.get<UserType>("/v1/me/");
+        const userRes = await api.get<any>("/v1/me/");
         setProfile(userRes);
-        userId = userRes.id;
+        activePlayerId = userRes.player_profile?.id || undefined;
       }
 
       // Fetch Stats, Achievements and Cards
-      if (userId) {
+      if (activePlayerId) {
         // 1. Stats
         try {
           const statsRes = await api.get<PlayerStats>(
-            `/v1/player-stats/?player=${userId}`,
+            `/v1/player-stats/?player=${activePlayerId}`,
             { silent: true },
           );
           // Assuming the endpoint returns a list or we pick the first one if multiple
@@ -137,7 +147,7 @@ export default function ProfileScreen() {
         // 2. Achievements
         try {
           const achRes = await api.get<any>(
-            `/v1/player-achievements/?player=${userId}`,
+            `/v1/player-achievements/?player=${activePlayerId}`,
             { silent: true },
           );
           setAchievements(
@@ -151,7 +161,7 @@ export default function ProfileScreen() {
         // 3. Active Card
         try {
           const cardRes = await api.get<any>(
-            `/v1/player-cards/?player=${userId}&is_active=true`,
+            `/v1/player-cards/?player=${activePlayerId}&is_active=true`,
             { silent: true },
           );
           const activeCard = Array.isArray(cardRes)
