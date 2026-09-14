@@ -151,7 +151,7 @@ export function CreatePlayerModal({
       const formData = new FormData();
 
       // Append all fields to FormData robustly
-      Object.keys(data).forEach((key) => {
+      for (const key of Object.keys(data)) {
         const value = (data as any)[key];
 
         if (key === "photo" && value) {
@@ -161,14 +161,14 @@ export function CreatePlayerModal({
           const type = match ? `image/${match[1]}` : `image/jpg`;
 
           formData.append("photo", {
-            uri,
+            uri: Platform.OS === "ios" ? uri.replace("file://", "") : uri,
             name,
             type,
           } as any);
         } else if (value !== undefined && value !== null && value !== "") {
           formData.append(key, value.toString());
         }
-      });
+      }
 
       await api.post("/v1/players/", formData);
       Alert.alert("¡Fichaje Completado!", "El jugador ha sido registrado.");

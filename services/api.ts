@@ -67,10 +67,41 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
   }
 
   const fetchRequest = async () => {
+    if (isFormData) {
+      return new Promise<Response>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(rest.method || 'GET', `${BASE_URL}${endpoint}`);
+        Object.entries(authHeaders).forEach(([k, v]) => {
+          xhr.setRequestHeader(k, v);
+        });
+        
+        xhr.onload = () => {
+          resolve({
+            ok: xhr.status >= 200 && xhr.status < 300,
+            status: xhr.status,
+            headers: {
+              get: (name: string) => xhr.getResponseHeader(name) || null,
+            },
+            text: async () => xhr.responseText,
+            json: async () => {
+              if (!xhr.responseText) return {};
+              return JSON.parse(xhr.responseText);
+            },
+          } as unknown as Response);
+        };
+        
+        xhr.onerror = () => {
+          reject(new Error('Network request failed'));
+        };
+        
+        xhr.send(body as any);
+      });
+    }
+
     return fetch(`${BASE_URL}${endpoint}`, {
       ...rest,
       headers: authHeaders,
-      body: isFormData ? (body as any) : (body ? JSON.stringify(body) : undefined),
+      body: body ? JSON.stringify(body) : undefined,
     });
   };
 

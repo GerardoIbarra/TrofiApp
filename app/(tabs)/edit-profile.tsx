@@ -124,7 +124,7 @@ export default function EditProfileScreen() {
         const type = match ? `image/${match[1]}` : `image/jpeg`;
 
         formData.append('photo', {
-          uri,
+          uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
           name,
           type,
         } as any);
@@ -157,7 +157,11 @@ export default function EditProfileScreen() {
           const name = uri.split('/').pop() || 'photo.jpg';
           const match = /\.(\w+)$/.exec(name);
           const type = match ? `image/${match[1]}` : `image/jpeg`;
-          playerFormData.append('photo', { uri, name, type } as any);
+          playerFormData.append('photo', {
+            uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
+            name,
+            type
+          } as any);
           await api.patch(`/v1/players/${playerId}/`, playerFormData, { silent: true });
         } catch (playerErr) {
           console.warn('Could not sync photo to player profile:', playerErr);
