@@ -206,24 +206,27 @@ function InitialNavigation() {
 
   useEffect(() => {
     const handleInitialNavigation = async () => {
-      if (!isLoading) {
-        SplashScreen.hideAsync();
+      if (isLoading) return;
 
-        // Auto-navigation based on auth state
+      // Resolvemos primero a dónde navegar y recién ahí ocultamos el splash,
+      // para no dejar ver por un instante la pantalla de login/anchor mientras
+      // se lee AsyncStorage (evita el flash reportado con sesión ya iniciada).
+      try {
         if (!isAuthenticated) {
           router.replace("/(auth)");
-        } else {
-          try {
-            const hasSeenOnboarding = await AsyncStorage.getItem("has_seen_onboarding");
-            if (hasSeenOnboarding === "true") {
-              router.replace("/(tabs)");
-            } else {
-              router.replace("/onboarding" as any);
-            }
-          } catch (e) {
-            router.replace("/(tabs)");
-          }
+          return;
         }
+
+        const hasSeenOnboarding = await AsyncStorage.getItem("has_seen_onboarding");
+        if (hasSeenOnboarding === "true") {
+          router.replace("/(tabs)");
+        } else {
+          router.replace("/onboarding" as any);
+        }
+      } catch (e) {
+        router.replace("/(tabs)");
+      } finally {
+        SplashScreen.hideAsync();
       }
     };
     handleInitialNavigation();
