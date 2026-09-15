@@ -1,55 +1,86 @@
 # TrofiApp 🏆
 
-**TrofiApp** es la plataforma definitiva para la gestión y descubrimiento de ligas de fútbol amateur, diseñada con una estética **Premium** y una experiencia de usuario fluida y dinámica. Esta aplicación permite a los jugadores mantenerse conectados con sus equipos, descubrir nuevas competiciones y seguir su rendimiento profesional como nunca antes.
+**TrofiApp** es una app Expo/React Native para la gestión y descubrimiento de ligas de fútbol amateur (ligas, torneos, equipos, jugadores, árbitros, sponsors, partidos "pickup", chat, notificaciones y panel superadmin).
 
----
-
-## ✨ Características Principales
-
-### 🏠 Dashboard de Inicio (Home)
-- **Resumen Semanal**: Visualiza tus próximos partidos críticos en tarjetas de alto impacto.
-- **KPIs en tiempo real**: Monitorea tu **Win Rate** y **Goles por Partido** con gráficos de tendencia.
-- **Comunidad**: Lista rápida de jugadores destacados con acceso a sus perfiles.
-
-### ⚽ Gestión de Ligas
-- **Descubrimiento Inteligente**: Encuentra ligas cercanas basadas en tu ubicación.
-- **Formatos de Juego**: Filtra por Soccer 11, Soccer 7 o Fútbol Sala.
-- **Detalle de Competencia**: Acceso a tablas de posiciones, calendarios y estadísticas de la liga.
-
-### 🛡️ Gestión de Equipos
-- **Mis Equipos**: Panel dedicado para gestionar tus equipos activos.
-- **Roster Management**: Administra la alineación y los miembros de tu equipo.
-- **Acción Rápida**: Botón Flotante (FAB) para crear o unirte a nuevos equipos de forma instantánea.
-
-### 👤 Perfil del Jugador (Ultimate Card)
-- **Tarjeta Ultimate**: Una representación visual estilo "FIFA Card" con tu rating y estadísticas detalladas (PAC, SHO, PAS, DRI, DEF, PHY).
-- **Historial de Partidos**: Registro detallado de tus últimos encuentros con calificaciones de desempeño.
-- **Tendencia de Rendimiento**: Gráfico interactivo que muestra tu evolución en los últimos 10 juegos.
-
-### 🔍 Explorar y Buscar
-- **Motor de Búsqueda**: Encuentra ligas, equipos o jugadores específicos.
-- **Sugerencias de IA**: Ligas en tendencia y equipos recomendados para ti.
-
----
-
-## 🎨 Sistema de Diseño "Premium"
-
-TrofiApp utiliza un sistema de diseño propio enfocado en la **identidad visual** y la **legibilidad**:
-
-- **Modo Oscuro (Neon Night)**: Estética inspirada en interfaces futuristas con colores cian neón sobre fondos navy profundos.
-- **Modo Claro (Oceanic Pro)**: Optimizado para alta legibilidad con un color **Cian Oceánico** de alto contraste y sombras suaves que dan profundidad a las tarjetas.
-- **Tipografía Moderna**: Uso de fuentes robustas y pesos variables para una jerarquía de información clara.
-- **Micro-interacciones**: Gradientes dinámicos y sombras reactivas que mejoran la sensación táctil de la interfaz.
+Este documento es la referencia técnica del repositorio: stack, arquitectura, variables de entorno y flujo de despliegue. Para el pitch de producto/features de cara al usuario, ver el copy de la store.
 
 ---
 
 ## 🛠️ Stack Tecnológico
 
-- **Framework**: [Expo](https://expo.dev) / React Native
-- **Navegación**: [Expo Router](https://docs.expo.dev/router/introduction) (Basada en archivos)
-- **Estilos**: StyleSheet de React Native con sistema de temas dinámico.
-- **Iconografía**: [Lucide React Native](https://lucide.dev)
-- **Componentes Visuales**: Expo Linear Gradient para acabados premium.
+- **Framework**: [Expo](https://expo.dev) 57 / React Native 0.86 / React 19
+- **Navegación**: [Expo Router](https://docs.expo.dev/router/introduction) (file-based, carpeta `app/`)
+- **Data fetching / cache**: TanStack Query, con persistencia en AsyncStorage (`services/queryClient.ts`, `services/queryPersister.ts`)
+- **Estado global**: Zustand
+- **Formularios**: React Hook Form + Zod (`@hookform/resolvers`)
+- **Estilos**: StyleSheet de React Native con sistema de theming propio (ver [Theming](#-theming))
+- **Iconografía**: Lucide React Native
+- **i18n**: i18next / react-i18next (`en`, `es` en `i18n/locales/`)
+- **Observabilidad**: Sentry (`@sentry/react-native`)
+- **Mapas**: react-native-maps (Google Maps)
+- **Actualizaciones**: expo-updates (OTA vía EAS Update)
+
+---
+
+## 📁 Estructura del proyecto
+
+```
+app/            Rutas de Expo Router (file-based). Cada archivo/carpeta = una pantalla.
+components/     UI presentacional, organizada por dominio (widgets, modales, headers).
+features/       Lógica de dominio: schemas (Zod), services (llamadas a API), types.
+context/        Contextos globales de React (ej. ThemeContext).
+hooks/          Hooks compartidos (useDebounce, useMatchLiveUpdate, color scheme, etc.)
+services/       Servicios transversales: cliente API, logger, métricas, ubicación, notificaciones.
+constants/      Constantes compartidas (theme, layout/scaling).
+i18n/           Configuración de i18next y locales (en/es).
+.agents/        Configuración de MCP y skills para agentes de código (Claude/Antigravity).
+```
+
+### `components/<dominio>` vs `features/<dominio>`
+
+El proyecto separa **presentación** de **lógica de dominio** dentro de cada dominio funcional (`leagues`, `matches`, `teams`, `tournaments`, `players`, `referees`, `sponsors`, `pickup`, `chat`, `notifications`, `superadmin`, `achievements`, `announcements`, `market`, `nearby`, `venues`, `discipline`):
+
+- **`components/<dominio>/`**: componentes de UI — widgets, modales, headers. Ej. `components/leagues/StandingsWidget.tsx`.
+- **`features/<dominio>/`**: capa de lógica, con subcarpetas fijas:
+  - `schemas/` — validación con Zod
+  - `services/` — llamadas a la API (usan `services/api.ts` como cliente base)
+  - `types/` — tipos TypeScript del dominio
+
+Al agregar una pantalla nueva de un dominio existente: la UI va en `components/<dominio>`, la validación/API/tipos van en `features/<dominio>`. Si es un dominio nuevo, replicar ambas carpetas con esta misma convención.
+
+---
+
+## 🎨 Theming
+
+`context/ThemeContext.tsx` expone `ThemeProvider` + `useTheme()` (es el nodo con más fan-in del proyecto — casi todo componente lo consume). Maneja dos paletas definidas en `constants/theme.ts`:
+
+- **Oscuro — "Neon Night"**: cian neón sobre fondos navy.
+- **Claro — "Oceanic Pro"**: cian oceánico de alto contraste.
+
+La preferencia del usuario se persiste en `AsyncStorage` y, si no hay nada guardado, sigue el `Appearance` del sistema. Cualquier componente nuevo debe consumir colores vía `useTheme()`, no hardcodear valores.
+
+---
+
+## 🌐 i18n
+
+Locales disponibles en `i18n/locales/`: `en.json`, `es.json`. Configuración en `i18n/index.ts`.
+
+---
+
+## 🔑 Variables de entorno
+
+No hay `.env.example` en el repo todavía — estas son las variables detectadas en uso:
+
+| Variable | Dónde se usa | Descripción |
+|---|---|---|
+| `EXPO_PUBLIC_API_URL` | `services/api.ts` | Base URL del backend. Default: `http://localhost:8000/api` |
+| `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` | `app.config.js` | API key de Google Maps (Android), expuesta al cliente |
+| `GOOGLE_MAPS_API_KEY` | `app.config.js` | Fallback de la key de Google Maps si no está la `PUBLIC` |
+| `EXPO_PUBLIC_SENTRY_DSN` | Inicialización de Sentry | DSN del proyecto en Sentry |
+| `EXPO_PUBLIC_DEBUG_LOGS` | `services/logger.ts` | Activa logs verbosos en desarrollo |
+| `EXPO_OS` | Runtime de Expo | Inyectada por el propio Expo, no se configura manualmente |
+
+Definir en `.env` / `.env.local` (ya usados en el repo, no versionados).
 
 ---
 
@@ -57,7 +88,7 @@ TrofiApp utiliza un sistema de diseño propio enfocado en la **identidad visual*
 
 1. **Instalar dependencias**
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Iniciar el servidor de desarrollo**
@@ -70,6 +101,13 @@ TrofiApp utiliza un sistema de diseño propio enfocado en la **identidad visual*
    - Presiona `i` para iOS (requiere macOS y Xcode).
    - Presiona `w` para la versión Web.
 
+4. **Lint**
+   ```bash
+   pnpm lint
+   ```
+
+> **Testing**: el proyecto no tiene actualmente un framework de tests configurado (sin Jest/Testing Library en `package.json`).
+
 ---
 
 ## 🔄 Actualizaciones y Despliegues (EAS & Chunk Recovery)
@@ -77,7 +115,7 @@ TrofiApp utiliza un sistema de diseño propio enfocado en la **identidad visual*
 El proyecto cuenta con integración nativa para actualizaciones **Over-The-Air (OTA)** y recuperación de errores en caliente para garantizar que los usuarios siempre tengan la versión más reciente sin interrupciones.
 
 ### 📲 Actualizaciones OTA (EAS Update)
-Utilizamos **EAS Update** para enviar actualizaciones de JavaScript y assets en segundo plano. 
+Utilizamos **EAS Update** para enviar actualizaciones de JavaScript y assets en segundo plano.
 - **Comando para publicar en pruebas (Preview):**
   ```bash
   eas update --branch preview --message "Descripción de los cambios"
@@ -93,4 +131,6 @@ Para emular el comportamiento de actualización de Service Workers en entornos P
 
 ---
 
-**TrofiApp** - *Lleva tu liga amateur al siguiente nivel.* 🚀
+## 🤖 Skills y agentes de código
+
+El repo tiene `.agents/skills/` con skills instaladas para agentes (Claude Code, Antigravity, etc.), gestionadas en `skills-lock.json`. Hay varias con foco en diseño/mobile que se solapan (`mobile-design`, `mobile-ios-design`, `react-native-design`, `expo-design-system`, `expo-ui`, `expo-native-ui`); todavía no hay un criterio documentado sobre cuál preferir en cada caso.
