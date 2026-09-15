@@ -18,6 +18,7 @@ import {
   useUpholdMatchDispute,
   useRejectMatchDispute,
 } from '@/features/tournaments/services/matchDisputeApi';
+import { useToast } from '@/context/ToastContext';
 
 interface ResolveDisputeModalProps {
   visible: boolean;
@@ -36,6 +37,7 @@ export function ResolveDisputeModal({
 }: ResolveDisputeModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const [resolutionNotes, setResolutionNotes] = useState('');
 
   const upholdMutation = useUpholdMatchDispute();
@@ -57,11 +59,11 @@ export function ResolveDisputeModal({
                 matchId,
                 payload: { resolution_notes: resolutionNotes.trim() || undefined },
               });
-              Alert.alert('Disputa aceptada', 'El resultado ha sido desbloqueado para su corrección.');
+              showToast({ type: 'success', title: 'Disputa aceptada', message: 'El resultado ha sido desbloqueado para su corrección.' });
               onClose();
               if (onSuccess) onSuccess();
             } catch (err: any) {
-              Alert.alert('Error', err?.message || 'No se pudo resolver la disputa.');
+              showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo resolver la disputa.' });
             }
           },
         },
@@ -85,11 +87,11 @@ export function ResolveDisputeModal({
                 matchId,
                 payload: { resolution_notes: resolutionNotes.trim() || undefined },
               });
-              Alert.alert('Disputa desestimada', 'El resultado original se mantiene en firme.');
+              showToast({ type: 'success', title: 'Disputa desestimada', message: 'El resultado original se mantiene en firme.' });
               onClose();
               if (onSuccess) onSuccess();
             } catch (err: any) {
-              Alert.alert('Error', err?.message || 'No se pudo desestimar la disputa.');
+              showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo desestimar la disputa.' });
             }
           },
         },

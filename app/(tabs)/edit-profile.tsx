@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ScrollView,
   BackHandler,
 } from 'react-native';
@@ -27,10 +26,12 @@ import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { AuthStorage } from '@/features/auth/services/authStorage';
+import { useToast } from '@/context/ToastContext';
 
 export default function EditProfileScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const user = useAuthStore((state) => state.user);
   const { t, i18n } = useTranslation();
   const isEn = i18n.language === 'en';
@@ -83,7 +84,7 @@ export default function EditProfileScreen() {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'Se requiere acceso a la galería para cambiar tu foto de perfil.');
+        showToast({ type: 'info', title: 'Permiso denegado', message: 'Se requiere acceso a la galería para cambiar tu foto de perfil.' });
         return;
       }
 
@@ -102,7 +103,7 @@ export default function EditProfileScreen() {
       }
     } catch (error) {
       console.error('Error al seleccionar imagen:', error);
-      Alert.alert('Error', 'No se pudo abrir la galería de imágenes.');
+      showToast({ type: 'error', title: 'Error', message: 'No se pudo abrir la galería de imágenes.' });
     }
   };
 
@@ -172,16 +173,18 @@ export default function EditProfileScreen() {
       useAuthStore.setState({ user: freshUser });
       await AuthStorage.saveUser(freshUser);
 
-      Alert.alert(
-        isEn ? 'Success' : 'Éxito',
-        isEn ? 'Your profile has been updated.' : 'Tu perfil ha sido actualizado.',
-        [{ text: 'OK', onPress: handleBack }]
-      );
+      showToast({
+        type: 'success',
+        title: isEn ? 'Success' : 'Éxito',
+        message: isEn ? 'Your profile has been updated.' : 'Tu perfil ha sido actualizado.',
+      });
+      handleBack();
     } catch (err: any) {
-      Alert.alert(
-        isEn ? 'Error' : 'Error',
-        err.message || (isEn ? 'Could not update profile.' : 'No se pudo actualizar el perfil. Revisa los datos.')
-      );
+      showToast({
+        type: 'error',
+        title: isEn ? 'Error' : 'Error',
+        message: err.message || (isEn ? 'Could not update profile.' : 'No se pudo actualizar el perfil. Revisa los datos.'),
+      });
     }
   };
 

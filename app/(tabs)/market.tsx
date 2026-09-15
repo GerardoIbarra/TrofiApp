@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, TextInput, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
@@ -8,7 +8,9 @@ import { useTranslation } from 'react-i18next';
 import { Search, MapPin, User, Users, Plus, Shield } from 'lucide-react-native';
 import { useGetMarketListings } from '@/features/market/services/marketApi';
 import { CreateListingModal } from '@/components/market/CreateListingModal';
+import { MarketListingSkeleton } from '@/components/market/MarketListingSkeleton';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useDebounce } from '@/hooks/useDebounce';
 
 
 export default function MarketScreen() {
@@ -21,10 +23,11 @@ export default function MarketScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  // We debounce this in a real scenario, but for now we just use it directly or require hitting enter
-  const { data, isLoading } = useGetMarketListings({
+  const debouncedSearch = useDebounce(searchQuery, 400);
+
+  const { data, isLoading, isFetching, refetch } = useGetMarketListings({
     listing_type: activeTab,
-    search: searchQuery || undefined,
+    search: debouncedSearch || undefined,
   });
 
   const listings = data?.results || [];
@@ -35,14 +38,9 @@ export default function MarketScreen() {
       
       <SafeAreaView edges={['top']} style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={[styles.title, { color: theme.text }]}>{t('market.title')}</Text>
-          <TouchableOpacity 
-            style={[styles.addButton, { backgroundColor: theme.primary }]}
-            onPress={() => setIsModalVisible(true)}
-          >
-            <Plus size={20} color="#001A2C" />
-            <Text style={styles.addButtonText}>{t('market.btn_publish')}</Text>
-          </TouchableOpacity>
+          <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>
+            {t('market.title')}
+          </Text>
         </View>
 
         <View style={[styles.searchContainer, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
@@ -87,14 +85,25 @@ export default function MarketScreen() {
       </View>
 
       {isLoading ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={theme.primary} />
+        <View style={styles.listContainer}>
+          <MarketListingSkeleton />
+          <MarketListingSkeleton />
+          <MarketListingSkeleton />
+          <MarketListingSkeleton />
         </View>
       ) : (
         <View style={styles.listContainer}>
           <FlatList
             data={listings}
             contentContainerStyle={{ paddingBottom: 100 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={isFetching && !isLoading}
+                onRefresh={refetch}
+                tintColor={theme.primary}
+                colors={[theme.primary]}
+              />
+            }
             ListEmptyComponent={() => (
               <View style={styles.emptyContainer}>
                 <Search size={48} color={theme.textSecondary} opacity={0.3} />
@@ -156,9 +165,18 @@ export default function MarketScreen() {
         </View>
       )}
 
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() => setIsModalVisible(true)}
+      >
+        <Plus size={26} color="#001A2C" />
+      </TouchableOpacity>
+
       {isModalVisible && (
-        <CreateListingModal 
-          onClose={() => setIsModalVisible(false)} 
+        <CreateListingModal
+          onClose={() => setIsModalVisible(false)}
         />
       )}
     </View>
@@ -182,18 +200,22 @@ const createStyles = (theme: any, isDark: boolean) =>
     fontSize: 24,
     fontWeight: '900',
   },
-  addButton: {
-    flexDirection: 'row',
+  fab: {
+    position: 'absolute',
+    bottom: 90,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.primary,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 4,
-  },
-  addButtonText: {
-    color: '#001A2C',
-    fontWeight: '800',
-    fontSize: 12,
+    zIndex: 999,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   searchContainer: {
     flexDirection: 'row',

@@ -41,6 +41,9 @@ export function LayoutHeader({
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backButton}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            accessibilityRole="button"
+            accessibilityLabel="Volver"
           >
             <ChevronLeft size={28} color={theme.text} />
           </TouchableOpacity>
@@ -51,6 +54,7 @@ export function LayoutHeader({
             { color: isDark ? "#F8FAFC" : theme.text },
             showBackButton && { marginLeft: 10 },
           ]}
+          numberOfLines={1}
         >
           {title}
         </Text>
@@ -62,6 +66,9 @@ export function LayoutHeader({
           <TouchableOpacity
             style={styles.bellButton}
             onPress={() => router.push("/retas" as any)}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            accessibilityRole="button"
+            accessibilityLabel="Retas"
           >
             <Flame size={20} color="#F59E0B" />
           </TouchableOpacity>
@@ -70,6 +77,13 @@ export function LayoutHeader({
           <TouchableOpacity
             style={styles.bellButton}
             onPress={() => router.push("/direct-messages" as any)}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            accessibilityRole="button"
+            accessibilityLabel={
+              totalUnreadDMs > 0
+                ? `Mensajes directos, ${totalUnreadDMs} sin leer`
+                : "Mensajes directos"
+            }
           >
             <MessageSquare size={21} color={theme.primary} />
             {totalUnreadDMs > 0 && <View style={styles.notificationDot} />}
@@ -79,6 +93,13 @@ export function LayoutHeader({
           <TouchableOpacity
             style={styles.bellButton}
             onPress={() => router.push("/notifications" as any)}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            accessibilityRole="button"
+            accessibilityLabel={
+              totalUnreadNotifications > 0
+                ? `Notificaciones, ${totalUnreadNotifications} sin leer`
+                : "Notificaciones"
+            }
           >
             <Bell size={22} color={theme.primary} />
             {totalUnreadNotifications > 0 && <View style={styles.notificationDot} />}
@@ -87,6 +108,9 @@ export function LayoutHeader({
 
         <TouchableOpacity
           onPress={() => router.push("/(tabs)/profile" as any)}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          accessibilityRole="button"
+          accessibilityLabel="Ver perfil"
           style={[
             styles.profileButton,
             {
@@ -126,6 +150,8 @@ const styles = StyleSheet.create({
   leftContainer: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
+    marginRight: 10,
   },
   backButton: {
     width: 40,
@@ -136,6 +162,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,255,255,0.05)",
   },
   logoHeader: {
+    flexShrink: 1,
     fontSize: 22,
     fontWeight: "900",
     letterSpacing: 2,

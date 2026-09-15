@@ -1,22 +1,28 @@
 import { Dimensions, Platform, PixelRatio } from 'react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 // Basado en el estándar de iPhone 11/12/13/14 (375 x 812)
 const guidelineBaseWidth = 375;
 const guidelineBaseHeight = 812;
 
 /**
- * Escala basada en el ancho de la pantalla. 
+ * Escala basada en el ancho de la pantalla.
  * Ideal para: anchos, márgenes horizontales, paddings horizontales, iconos.
+ * Lee Dimensions.get() en cada llamada (no cachea el valor a nivel de módulo)
+ * para reflejar cambios de tamaño en web/split-screen/foldables.
  */
-export const scale = (size: number) => (SCREEN_WIDTH / guidelineBaseWidth) * size;
+export const scale = (size: number) => {
+  const { width } = Dimensions.get('window');
+  return (width / guidelineBaseWidth) * size;
+};
 
 /**
  * Escala basada en el alto de la pantalla.
  * Ideal para: alturas de cards, márgenes verticales, paddings verticales.
  */
-export const verticalScale = (size: number) => (SCREEN_HEIGHT / guidelineBaseHeight) * size;
+export const verticalScale = (size: number) => {
+  const { height } = Dimensions.get('window');
+  return (height / guidelineBaseHeight) * size;
+};
 
 /**
  * Escala moderada (permite controlar qué tanto escala).
@@ -24,11 +30,14 @@ export const verticalScale = (size: number) => (SCREEN_HEIGHT / guidelineBaseHei
  */
 export const moderateScale = (size: number, factor = 0.5) => size + (scale(size) - size) * factor;
 
-export const Layout = {
-  window: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-  },
-  isSmallDevice: SCREEN_WIDTH < 375,
-  isTablet: SCREEN_WIDTH >= 768,
+export const getLayout = () => {
+  const { width, height } = Dimensions.get('window');
+  return {
+    window: { width, height },
+    isSmallDevice: width < 375,
+    isTablet: width >= 768,
+  };
 };
+
+/** @deprecated Snapshot tomado al importar el módulo — usar getLayout() para un valor siempre actualizado. */
+export const Layout = getLayout();

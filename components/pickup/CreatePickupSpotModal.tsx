@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +16,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { SpotType } from '@/features/pickup/types/pickup';
 import { useCreatePickupSpot } from '@/features/pickup/services/pickupApi';
 import { LocationService } from '@/services/locationService';
+import { useToast } from '@/context/ToastContext';
 
 interface CreatePickupSpotModalProps {
   visible: boolean;
@@ -39,6 +39,7 @@ export function CreatePickupSpotModal({
 }: CreatePickupSpotModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [name, setName] = useState('');
   const [spotType, setSpotType] = useState<SpotType>('court');
@@ -59,10 +60,10 @@ export function CreatePickupSpotModal({
         setLatitude(pos.latitude.toString());
         setLongitude(pos.longitude.toString());
       } else {
-        Alert.alert('Ubicación no disponible', 'No se pudo obtener tu ubicación actual.');
+        showToast({ type: 'error', title: 'Ubicación no disponible', message: 'No se pudo obtener tu ubicación actual.' });
       }
     } catch {
-      Alert.alert('Error', 'No se pudo obtener la posición GPS.');
+      showToast({ type: 'error', title: 'Error', message: 'No se pudo obtener la posición GPS.' });
     } finally {
       setIsLocating(false);
     }
@@ -71,7 +72,7 @@ export function CreatePickupSpotModal({
   const handleSubmit = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      Alert.alert('Nombre requerido', 'Ingresa el nombre del lugar.');
+      showToast({ type: 'error', title: 'Nombre requerido', message: 'Ingresa el nombre del lugar.' });
       return;
     }
 
@@ -79,7 +80,11 @@ export function CreatePickupSpotModal({
     const lngNum = parseFloat(longitude);
 
     if (isNaN(latNum) || isNaN(lngNum)) {
-      Alert.alert('Ubicación requerida', 'Debes ingresar o capturar la latitud y longitud del lugar.');
+      showToast({
+        type: 'error',
+        title: 'Ubicación requerida',
+        message: 'Debes ingresar o capturar la latitud y longitud del lugar.',
+      });
       return;
     }
 
@@ -94,11 +99,11 @@ export function CreatePickupSpotModal({
         longitude: lngNum,
       });
 
-      Alert.alert('Cancha creada', 'El lugar para retas ha sido registrado exitosamente.');
+      showToast({ type: 'success', title: 'Cancha creada', message: 'El lugar para retas ha sido registrado exitosamente.' });
       onClose();
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      Alert.alert('Error al crear lugar', err?.message || 'No se pudo registrar la cancha.');
+      showToast({ type: 'error', title: 'Error al crear lugar', message: err?.message || 'No se pudo registrar la cancha.' });
     }
   };
 

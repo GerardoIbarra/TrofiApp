@@ -18,6 +18,7 @@ import { useAssignReferee } from '@/features/matches/services/liveMatchApi';
 import { RefereeBadge } from '@/components/referees/RefereeBadge';
 import { RefereeAvailability } from '@/features/referees/types/referee';
 import api from '@/services/api';
+import { useToast } from '@/context/ToastContext';
 
 interface AssignRefereeModalProps {
   visible: boolean;
@@ -28,6 +29,7 @@ interface AssignRefereeModalProps {
 export function AssignRefereeModal({ visible, onClose, match }: AssignRefereeModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'marketplace' | 'direct'>('marketplace');
   const [leagueFeatures, setLeagueFeatures] = useState<any>(null);
@@ -70,10 +72,11 @@ export function AssignRefereeModal({ visible, onClose, match }: AssignRefereeMod
 
   const handleOffer = (item: RefereeAvailability) => {
     if (isMarketplaceDisabled) {
-      Alert.alert(
-        'Mercado Deshabilitado',
-        'La liga no tiene habilitado el mercado de árbitros (referee_marketplace_enabled = false). La solicitud dará error 400.'
-      );
+      showToast({
+        type: 'error',
+        title: 'Mercado Deshabilitado',
+        message: 'La liga no tiene habilitado el mercado de árbitros (referee_marketplace_enabled = false). La solicitud dará error 400.',
+      });
       return;
     }
 
@@ -89,10 +92,11 @@ export function AssignRefereeModal({ visible, onClose, match }: AssignRefereeMod
               { referee: item.referee },
               {
                 onSuccess: () => {
-                  Alert.alert(
-                    '¡Oferta Enviada!',
-                    `Se ha enviado la oferta a ${item.referee_name || 'el árbitro'}. Recibirás la asignación cuando acepte.`
-                  );
+                  showToast({
+                    type: 'success',
+                    title: '¡Oferta Enviada!',
+                    message: `Se ha enviado la oferta a ${item.referee_name || 'el árbitro'}. Recibirás la asignación cuando acepte.`,
+                  });
                   onClose();
                 },
                 onError: (err: any) => {
@@ -100,7 +104,7 @@ export function AssignRefereeModal({ visible, onClose, match }: AssignRefereeMod
                     err?.response?.data?.detail ||
                     err?.response?.data?.error ||
                     'No se pudo enviar la oferta (puede que el árbitro ya tenga una oferta pendiente en este partido o el módulo no esté habilitado).';
-                  Alert.alert('Error al ofrecer partido', detail);
+                  showToast({ type: 'error', title: 'Error al ofrecer partido', message: detail });
                 },
               }
             );
@@ -123,13 +127,13 @@ export function AssignRefereeModal({ visible, onClose, match }: AssignRefereeMod
               { referee: item.referee },
               {
                 onSuccess: () => {
-                  Alert.alert('¡Árbitro Asignado!', 'El árbitro ha quedado asignado al partido.');
+                  showToast({ type: 'success', title: '¡Árbitro Asignado!', message: 'El árbitro ha quedado asignado al partido.' });
                   onClose();
                 },
                 onError: (err: any) => {
                   const detail =
                     err?.response?.data?.detail || 'No se pudo asignar el árbitro al partido.';
-                  Alert.alert('Error al asignar', detail);
+                  showToast({ type: 'error', title: 'Error al asignar', message: detail });
                 },
               }
             );

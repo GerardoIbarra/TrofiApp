@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { X, Check, Users } from 'lucide-react-native';
 import { useCaptainConfirmAttendance } from '@/features/matches/services/matchApi';
+import { useToast } from '@/context/ToastContext';
 
 interface CaptainAttendanceModalProps {
   matchId: string;
@@ -15,7 +16,8 @@ interface CaptainAttendanceModalProps {
 export function CaptainAttendanceModal({ matchId, teamId, roster, onClose }: CaptainAttendanceModalProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  
+  const { showToast } = useToast();
+
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
   const confirmMutation = useCaptainConfirmAttendance();
 
@@ -39,7 +41,7 @@ export function CaptainAttendanceModal({ matchId, teamId, roster, onClose }: Cap
 
   const handleConfirm = () => {
     if (selectedPlayers.size === 0) {
-      Alert.alert('Error', t('attendance.error_select_one'));
+      showToast({ type: 'error', title: 'Error', message: t('attendance.error_select_one') });
       return;
     }
 
@@ -56,18 +58,22 @@ export function CaptainAttendanceModal({ matchId, teamId, roster, onClose }: Cap
       },
       {
         onSuccess: () => {
-          Alert.alert('Éxito', t('attendance.success_mass'));
+          showToast({ type: 'success', title: 'Éxito', message: t('attendance.success_mass') });
           onClose();
         },
         onError: (err: any) => {
-          Alert.alert('Error', err?.response?.data?.detail || t('attendance.error_default', 'No se pudo confirmar la asistencia.'));
+          showToast({
+            type: 'error',
+            title: 'Error',
+            message: err?.response?.data?.detail || t('attendance.error_default', 'No se pudo confirmar la asistencia.'),
+          });
         }
       }
     );
   };
 
   return (
-    <Modal visible animationType="slide" transparent>
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
           <View style={styles.modalHeader}>

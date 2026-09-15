@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
@@ -20,10 +19,12 @@ import { FormInput } from '@/components/ui/forms/FormInput';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
+import { useToast } from '@/context/ToastContext';
 
 export default function ForgotPasswordScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const [success, setSuccess] = useState(false);
 
   const {
@@ -39,9 +40,9 @@ export default function ForgotPasswordScreen() {
     try {
       const res = await api.post<{ detail: string }>('/v1/auth/password-reset/request/', data);
       setSuccess(true);
-      Alert.alert('Correo enviado', res.detail);
+      showToast({ type: 'success', title: 'Correo enviado', message: res.detail });
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Hubo un problema al procesar tu solicitud.');
+      showToast({ type: 'error', title: 'Error', message: err.message || 'Hubo un problema al procesar tu solicitud.' });
     }
   };
 

@@ -36,10 +36,12 @@ import { RefereeBadge } from '@/components/referees/RefereeBadge';
 import { RefereeAvailabilityToggle } from '@/components/referees/RefereeAvailabilityToggle';
 import { RefereeOffersListModal } from '@/components/referees/RefereeOffersListModal';
 import { RefereeAvailability } from '@/features/referees/types/referee';
+import { useToast } from '@/context/ToastContext';
 
 export default function RefereeMarketplaceScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const user = useAuthStore((state) => state.user);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,11 +75,11 @@ export default function RefereeMarketplaceScreen() {
             onPress: () => {
               unverifyMutation.mutate(referee.id, {
                 onSuccess: () => {
-                  Alert.alert('Actualizado', 'Se ha revocado la certificación.');
+                  showToast({ type: 'success', title: 'Actualizado', message: 'Se ha revocado la certificación.' });
                   refetch();
                 },
                 onError: (err: any) => {
-                  Alert.alert('Error', err?.response?.data?.detail || 'No se pudo revocar certificación.');
+                  showToast({ type: 'error', title: 'Error', message: err?.response?.data?.detail || 'No se pudo revocar certificación.' });
                 },
               });
             },
@@ -95,11 +97,11 @@ export default function RefereeMarketplaceScreen() {
             onPress: () => {
               verifyMutation.mutate(referee.id, {
                 onSuccess: () => {
-                  Alert.alert('Certificado', 'El árbitro ahora cuenta con sello oficial de verificación.');
+                  showToast({ type: 'success', title: 'Certificado', message: 'El árbitro ahora cuenta con sello oficial de verificación.' });
                   refetch();
                 },
                 onError: (err: any) => {
-                  Alert.alert('Error', err?.response?.data?.detail || 'No se pudo verificar árbitro.');
+                  showToast({ type: 'error', title: 'Error', message: err?.response?.data?.detail || 'No se pudo verificar árbitro.' });
                 },
               });
             },

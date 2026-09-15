@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { Zap, X, Users, MapPin, Plus, Minus } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useCreatePickupCheckIn, useGetPickupCrews } from '@/features/pickup/services/pickupApi';
 import { LocationService } from '@/services/locationService';
+import { useToast } from '@/context/ToastContext';
 
 interface PickupCheckInModalProps {
   visible: boolean;
@@ -33,6 +33,7 @@ export function PickupCheckInModal({
 }: PickupCheckInModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [note, setNote] = useState('');
   const [headcount, setHeadcount] = useState(0);
@@ -73,14 +74,18 @@ export function PickupCheckInModal({
         ? '✅ Ubicación verificada en el lugar.'
         : 'Check-in registrado.';
 
-      Alert.alert('¡Estás jugando!', `${verifMsg}\nTu sesión estará activa durante aproximadamente 2 horas.`);
+      showToast({
+        type: 'success',
+        title: '¡Estás jugando!',
+        message: `${verifMsg}\nTu sesión estará activa durante aproximadamente 2 horas.`,
+      });
       setNote('');
       setHeadcount(0);
       setSelectedCrew(null);
       onClose();
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      Alert.alert('Error al hacer check-in', err?.message || 'No se pudo registrar el check-in.');
+      showToast({ type: 'error', title: 'Error al hacer check-in', message: err?.message || 'No se pudo registrar el check-in.' });
     }
   };
 

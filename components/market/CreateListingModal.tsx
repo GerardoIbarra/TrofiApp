@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { X, Check, Users, User } from 'lucide-react-native';
 import { useCreateMarketListing } from '@/features/market/services/marketApi';
@@ -14,6 +15,7 @@ interface CreateListingModalProps {
 export function CreateListingModal({ onClose }: CreateListingModalProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const user = useAuthStore(state => state.user);
 
   const [listingType, setListingType] = useState<'team_seeking_player' | 'player_seeking_team'>('team_seeking_player');
@@ -55,17 +57,17 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
 
   const handleCreate = () => {
     if (!league) {
-      Alert.alert(t('common.error', 'Error'), t('market.error_no_league'));
+      showToast({ type: 'error', title: t('common.error', 'Error'), message: t('market.error_no_league') });
       return;
     }
-    
+
     if (listingType === 'team_seeking_player' && !team) {
-      Alert.alert(t('common.error', 'Error'), t('market.error_no_team'));
+      showToast({ type: 'error', title: t('common.error', 'Error'), message: t('market.error_no_team') });
       return;
     }
-    
+
     if (listingType === 'player_seeking_team' && !(user as any)?.player_profile_id) {
-      Alert.alert(t('common.error', 'Error'), t('market.error_no_player_profile'));
+      showToast({ type: 'error', title: t('common.error', 'Error'), message: t('market.error_no_player_profile') });
       return;
     }
 
@@ -80,18 +82,18 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
       },
       {
         onSuccess: () => {
-          Alert.alert(t('common.success', 'Éxito'), t('market.success_msg'));
+          showToast({ type: 'success', title: t('common.success', 'Éxito'), message: t('market.success_msg') });
           onClose();
         },
         onError: (err: any) => {
-          Alert.alert(t('common.error', 'Error'), err?.response?.data?.detail || t('market.error_creation'));
+          showToast({ type: 'error', title: t('common.error', 'Error'), message: err?.response?.data?.detail || t('market.error_creation') });
         }
       }
     );
   };
 
   return (
-    <Modal visible animationType="slide" transparent>
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
           <View style={styles.modalHeader}>

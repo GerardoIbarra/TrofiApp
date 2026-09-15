@@ -39,13 +39,14 @@ export function BottomTabBar({ state, navigation, descriptors }: any) {
   }
 
   const isLeaguesActive = currentRouteName === 'leagues' || currentRouteName === 'league-detail';
+  const isTeamsActive = currentRouteName === 'teams' || currentRouteName === 'team-detail';
 
   return (
     <View style={[
       styles.tabBar, 
       { 
-        paddingBottom: bottomPadding, 
-        height: 65 + bottomPadding,
+        paddingBottom: bottomPadding,
+        minHeight: 65 + bottomPadding,
         backgroundColor: isDark ? '#050A15' : '#FFFFFF',
         borderTopColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
       }
@@ -79,13 +80,11 @@ export function BottomTabBar({ state, navigation, descriptors }: any) {
         icon={
           <Users
             size={22}
-            color={
-              currentRouteName === "teams" ? theme.primary : theme.textSecondary
-            }
+            color={isTeamsActive ? theme.primary : theme.textSecondary}
           />
         }
         label={t('tabs.teams')}
-        active={currentRouteName === "teams"}
+        active={isTeamsActive}
         theme={theme}
         onPress={() => handlePress("teams", 3)}
       />
@@ -124,11 +123,19 @@ function TabItem({ icon, label, active = false, theme, onPress, isCenter = false
   return (
     <TouchableOpacity style={styles.tabItem} onPress={onPress} activeOpacity={0.7}>
       {icon}
-      <Text style={[
-        styles.tabLabel, 
-        { color: theme.textSecondary },
-        active && { color: theme.primary }
-      ]}>{label}</Text>
+      <Text
+        style={[
+          styles.tabLabel,
+          { color: theme.textSecondary },
+          active && { color: theme.primary },
+        ]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.75}
+        maxFontSizeMultiplier={1.4}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -149,12 +156,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 2,
   },
   tabLabel: {
     fontSize: 9,
     marginTop: 4,
     fontWeight: '600',
     letterSpacing: 0.3,
+    textAlign: 'center',
+    width: '100%',
   },
   centerTabWrapper: {
     flex: 1,

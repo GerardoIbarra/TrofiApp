@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, StyleProp, ViewStyle, Platform } from 'react-native';
+import { Pressable, Text, StyleSheet, StyleProp, ViewStyle, Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -23,23 +23,24 @@ export function SecondaryButton({ title, onPress, style, fullWidth, disabled }: 
   };
 
   return (
-    <TouchableOpacity 
-      style={[
-        styles.button, 
-        { 
+    <Pressable
+      style={({ pressed }) => [
+        styles.button,
+        {
           borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
           backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
         },
-        fullWidth && { width: '100%' }, 
+        fullWidth && { width: '100%' },
         disabled && { opacity: 0.5 },
-        style
+        Platform.OS !== 'android' && pressed && { opacity: 0.7 },
+        style,
       ]}
-      activeOpacity={0.7}
+      android_ripple={{ color: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)' }}
       onPress={handlePress}
       disabled={disabled}
     >
       <Text style={[styles.buttonText, { color: theme.text }]}>{title}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 

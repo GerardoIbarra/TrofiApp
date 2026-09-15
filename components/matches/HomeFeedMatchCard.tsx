@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { HomeFeedItem, RelationReason } from '@/features/matches/types/homeFeed';
 import { useConfirmAttendance } from '@/features/matches/services/matchApi';
+import { useToast } from '@/context/ToastContext';
 
 interface HomeFeedMatchCardProps {
   feedItem: HomeFeedItem;
@@ -88,6 +88,7 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const { match, relation_reasons, capabilities } = feedItem;
 
   const [hasConfirmed, setHasConfirmed] = useState<boolean | null>(null);
@@ -117,11 +118,13 @@ export const HomeFeedMatchCard: React.FC<HomeFeedMatchCardProps> = ({
         onError: (err: any) => {
           // Revert optimistic state on network/server failure
           setHasConfirmed(previous);
-          Alert.alert(
-            'Error',
-            err?.response?.data?.detail ||
-              (isEn ? 'Could not register attendance.' : 'No se pudo registrar la asistencia.')
-          );
+          showToast({
+            type: 'error',
+            title: 'Error',
+            message:
+              err?.response?.data?.detail ||
+              (isEn ? 'Could not register attendance.' : 'No se pudo registrar la asistencia.'),
+          });
         },
       }
     );

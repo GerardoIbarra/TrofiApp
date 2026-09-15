@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { X, Calendar, RefreshCw, CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { SponsorPlacement } from '@/features/sponsors/types/sponsor';
 import { useRenewSponsorPlacement } from '@/features/sponsors/services/sponsorApi';
 
@@ -29,6 +29,7 @@ export const RenewPlacementModal: React.FC<RenewPlacementModalProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [extendDays, setExtendDays] = useState<number>(30);
   const [customDays, setCustomDays] = useState<string>('30');
@@ -69,7 +70,7 @@ export const RenewPlacementModal: React.FC<RenewPlacementModalProps> = ({
 
   const handleRenew = () => {
     if (extendDays <= 0) {
-      Alert.alert('Error', 'Debes ingresar un número válido de días para renovar.');
+      showToast({ type: 'error', title: 'Error', message: 'Debes ingresar un número válido de días para renovar.' });
       return;
     }
 
@@ -80,10 +81,11 @@ export const RenewPlacementModal: React.FC<RenewPlacementModalProps> = ({
       },
       {
         onSuccess: () => {
-          Alert.alert(
-            '¡Renovación exitosa!',
-            `El espacio publicitario fue extendido por ${extendDays} días y reactivado.`
-          );
+          showToast({
+            type: 'success',
+            title: '¡Renovación exitosa!',
+            message: `El espacio publicitario fue extendido por ${extendDays} días y reactivado.`,
+          });
           onClose();
         },
         onError: (err: any) => {
@@ -91,7 +93,7 @@ export const RenewPlacementModal: React.FC<RenewPlacementModalProps> = ({
             err?.response?.data?.detail ||
             err?.message ||
             'No tienes permisos para renovar este patrocinio o ha ocurrido un error.';
-          Alert.alert('Error al renovar', detail);
+          showToast({ type: 'error', title: 'Error al renovar', message: detail });
         },
       }
     );

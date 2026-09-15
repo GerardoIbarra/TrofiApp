@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { Check, X, Users, AlertCircle, Settings } from 'lucide-react-native';
 import { useGetMatchAttendance, useConfirmAttendance } from '@/features/matches/services/matchApi';
 import { CaptainAttendanceModal } from './CaptainAttendanceModal';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useToast } from '@/context/ToastContext';
 
 interface AttendanceWidgetProps {
   matchId: string;
@@ -18,6 +19,7 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const user = useAuthStore(state => state.user);
+  const { showToast } = useToast();
 
   const [isCaptainModalVisible, setIsCaptainModalVisible] = useState(false);
   const { data, isLoading } = useGetMatchAttendance(matchId);
@@ -29,10 +31,18 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
       data: { status }
     }, {
       onSuccess: () => {
-        Alert.alert('Éxito', status === 'confirmed' ? t('attendance.success_confirm') : t('attendance.success_decline'));
+        showToast({
+          type: 'success',
+          title: 'Éxito',
+          message: status === 'confirmed' ? t('attendance.success_confirm') : t('attendance.success_decline'),
+        });
       },
       onError: (err: any) => {
-        Alert.alert('Error', err?.response?.data?.detail || t('attendance.error_default', 'No se pudo registrar la asistencia.'));
+        showToast({
+          type: 'error',
+          title: 'Error',
+          message: err?.response?.data?.detail || t('attendance.error_default', 'No se pudo registrar la asistencia.'),
+        });
       }
     });
   };

@@ -29,6 +29,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { DirectMessage, ConversationItem, UserBlock } from '@/features/chat/types/chat';
 import { ReportModal } from '@/components/ui/feedback/ReportModal';
@@ -62,6 +63,7 @@ export function DirectMessagesView({
   const isEn = i18n.language?.startsWith('en');
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const currentUser = useAuthStore((state) => state.user);
+  const { showToast } = useToast();
 
   const [activeUser, setActiveUser] = useState<{ id: string; name: string } | null>(
     initialWithUserId ? { id: initialWithUserId, name: initialWithUserName || 'Usuario' } : null
@@ -151,7 +153,7 @@ export function DirectMessagesView({
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permiso requerido', 'Se necesita acceso a tus fotos para enviar imágenes.');
+        showToast({ type: 'error', title: 'Permiso requerido', message: 'Se necesita acceso a tus fotos para enviar imágenes.' });
         return;
       }
 
@@ -170,7 +172,7 @@ export function DirectMessagesView({
       }
     } catch (err) {
       console.error('Error picking image:', err);
-      Alert.alert('Error', 'No se pudo seleccionar la imagen.');
+      showToast({ type: 'error', title: 'Error', message: 'No se pudo seleccionar la imagen.' });
     }
   };
 
@@ -178,13 +180,13 @@ export function DirectMessagesView({
     if (!activeUser) return;
 
     if (currentUser?.id && activeUser.id === currentUser.id) {
-      Alert.alert('Acción inválida', 'No puedes enviarte un mensaje a ti mismo.');
+      showToast({ type: 'error', title: 'Acción inválida', message: 'No puedes enviarte un mensaje a ti mismo.' });
       return;
     }
 
     const trimmed = inputText.trim();
     if (!trimmed && !selectedPhotoBase64) {
-      Alert.alert('Mensaje vacío', 'Debes ingresar un texto o adjuntar una foto.');
+      showToast({ type: 'error', title: 'Mensaje vacío', message: 'Debes ingresar un texto o adjuntar una foto.' });
       return;
     }
 
@@ -204,12 +206,13 @@ export function DirectMessagesView({
       }, 100);
     } catch (err: any) {
       if (err?.status === 403 || err?.message?.includes('403')) {
-        Alert.alert(
-          'Mensaje no enviado',
-          'No puedes enviar mensajes a este usuario debido a sus preferencias o bloqueo.'
-        );
+        showToast({
+          type: 'error',
+          title: 'Mensaje no enviado',
+          message: 'No puedes enviar mensajes a este usuario debido a sus preferencias o bloqueo.',
+        });
       } else {
-        Alert.alert('Error', 'No se pudo enviar el mensaje.');
+        showToast({ type: 'error', title: 'Error', message: 'No se pudo enviar el mensaje.' });
       }
     }
   };
@@ -230,7 +233,7 @@ export function DirectMessagesView({
                 await unblockMutation.mutateAsync(currentBlockRecord.id);
                 refetchBlocks();
               } catch {
-                Alert.alert('Error', 'No se pudo desbloquear al usuario.');
+                showToast({ type: 'error', title: 'Error', message: 'No se pudo desbloquear al usuario.' });
               }
             },
           },
@@ -250,7 +253,7 @@ export function DirectMessagesView({
                 await blockMutation.mutateAsync({ blocked: activeUser.id });
                 refetchBlocks();
               } catch {
-                Alert.alert('Error', 'No se pudo bloquear al usuario.');
+                showToast({ type: 'error', title: 'Error', message: 'No se pudo bloquear al usuario.' });
               }
             },
           },

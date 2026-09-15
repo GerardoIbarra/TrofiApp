@@ -29,7 +29,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
-  Dimensions,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -37,9 +36,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
-
-const { width } = Dimensions.get("window");
 
 // Fallback images array for a premium look
 const FALLBACK_IMAGES = [
@@ -62,7 +60,8 @@ const GAME_FORMATS = [
 export default function LeaguesExplorerScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme, isDark);
+  const { width } = useWindowDimensions();
+  const styles = createStyles(theme, isDark, width);
 
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -550,7 +549,7 @@ export default function LeaguesExplorerScreen() {
   );
 }
 
-const createStyles = (theme: any, isDark: boolean) =>
+const createStyles = (theme: any, isDark: boolean, width: number) =>
   StyleSheet.create({
     scrollContent: {
       paddingBottom: 150,

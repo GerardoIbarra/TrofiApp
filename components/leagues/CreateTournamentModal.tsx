@@ -40,6 +40,7 @@ import {
 } from "react-native";
 import { Tournament } from "@/features/tournaments/types/tournament";
 import { router } from "expo-router";
+import { useToast } from "@/context/ToastContext";
 
 interface CreateTournamentModalProps {
   visible: boolean;
@@ -58,6 +59,7 @@ export function CreateTournamentModal({
 }: CreateTournamentModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isEditing = !!initialData;
@@ -172,12 +174,12 @@ export function CreateTournamentModal({
 
       if (isEditing && initialData) {
         await api.patch(`/v1/tournaments/${initialData.id}/`, payload);
-        Alert.alert("¡Actualizado!", "Torneo actualizado correctamente.");
+        showToast({ type: "success", title: "¡Actualizado!", message: "Torneo actualizado correctamente." });
         onSuccess(initialData);
       } else {
         const res = await api.post<any>("/v1/tournaments/", payload);
         metrics.trackTournamentCreated(data.format || "11v11", data.gender || "mens");
-        Alert.alert("¡Éxito!", "Torneo creado correctamente.");
+        showToast({ type: "success", title: "¡Éxito!", message: "Torneo creado correctamente." });
         onSuccess(res);
       }
       onClose();
@@ -193,7 +195,7 @@ export function CreateTournamentModal({
           : null) ||
         error?.message ||
         "Ocurrió un problema al guardar el torneo.";
-      Alert.alert("Error", detail);
+      showToast({ type: "error", title: "Error", message: detail });
     }
   };
 
@@ -212,14 +214,14 @@ export function CreateTournamentModal({
             setIsDeleting(true);
             try {
               await api.delete(`/v1/tournaments/${initialData.id}/`);
-              Alert.alert("Torneo Eliminado", "La competición ha sido removida.");
+              showToast({ type: "success", title: "Torneo Eliminado", message: "La competición ha sido removida." });
               onSuccess();
               onClose();
               if (router.canGoBack()) {
                 router.back();
               }
             } catch (error: any) {
-              Alert.alert("Error", "No se pudo eliminar el torneo.");
+              showToast({ type: "error", title: "Error", message: "No se pudo eliminar el torneo." });
             } finally {
               setIsDeleting(false);
             }

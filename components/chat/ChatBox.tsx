@@ -17,6 +17,7 @@ import { Send, Image as ImageIcon, X, AlertCircle, Wifi, WifiOff, MessageSquare,
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { ChatMessage } from '@/features/chat/types/chat';
 import {
@@ -42,6 +43,7 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
   const isEn = i18n.language?.startsWith('en');
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
   const currentUser = useAuthStore((state) => state.user);
+  const { showToast } = useToast();
 
   const [inputText, setInputText] = useState('');
   const [selectedPhotoBase64, setSelectedPhotoBase64] = useState<string | null>(null);
@@ -110,7 +112,7 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permiso requerido', 'Se necesita acceso a tus fotos para enviar imágenes.');
+        showToast({ type: 'error', title: 'Permiso requerido', message: 'Se necesita acceso a tus fotos para enviar imágenes.' });
         return;
       }
 
@@ -129,14 +131,14 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
       }
     } catch (err) {
       console.error('Error picking image:', err);
-      Alert.alert('Error', 'No se pudo seleccionar la imagen.');
+      showToast({ type: 'error', title: 'Error', message: 'No se pudo seleccionar la imagen.' });
     }
   };
 
   const handleSendMessage = async () => {
     const trimmed = inputText.trim();
     if (!trimmed && !selectedPhotoBase64) {
-      Alert.alert('Mensaje vacío', 'Debes ingresar un texto o adjuntar una foto.');
+      showToast({ type: 'error', title: 'Mensaje vacío', message: 'Debes ingresar un texto o adjuntar una foto.' });
       return;
     }
 
@@ -163,7 +165,7 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
         err?.status === 403 || err?.message?.includes('403')
           ? 'No tienes permiso para escribir en este chat.'
           : 'No se pudo enviar el mensaje.';
-      Alert.alert('Error', msg);
+      showToast({ type: 'error', title: 'Error', message: msg });
     }
   };
 
@@ -201,14 +203,15 @@ export function ChatBox({ teamId, leagueId, title }: ChatBoxProps) {
                     onPress: async () => {
                       try {
                         await blockMutation.mutateAsync({ blocked: item.sender });
-                        Alert.alert(
-                          isEn ? 'User Blocked' : 'Usuario Bloqueado',
-                          isEn
+                        showToast({
+                          type: 'success',
+                          title: isEn ? 'User Blocked' : 'Usuario Bloqueado',
+                          message: isEn
                             ? 'You will no longer see messages from this user.'
-                            : 'Ya no verás mensajes de este usuario.'
-                        );
+                            : 'Ya no verás mensajes de este usuario.',
+                        });
                       } catch (_) {
-                        Alert.alert('Error', isEn ? 'Could not block user' : 'No se pudo bloquear');
+                        showToast({ type: 'error', title: 'Error', message: isEn ? 'Could not block user' : 'No se pudo bloquear' });
                       }
                     },
                   },

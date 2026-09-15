@@ -1,6 +1,7 @@
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/context/ToastContext";
 import { useEnrollTeam } from "@/features/teams/services/tournamentTeamApi";
 import api from "@/services/api";
 import { Team } from "@/features/teams/types/team";
@@ -8,7 +9,6 @@ import { CheckCircle2, ShieldHalf, X } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -34,7 +34,8 @@ export function EnrollTeamModal({
 }: EnrollTeamModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
-  
+  const { showToast } = useToast();
+
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -62,7 +63,7 @@ export function EnrollTeamModal({
 
   const onSubmit = () => {
     if (!selectedTeamId) {
-      Alert.alert("Error", "Debes seleccionar un equipo para inscribir.");
+      showToast({ type: "error", title: "Error", message: "Debes seleccionar un equipo para inscribir." });
       return;
     }
 
@@ -73,12 +74,12 @@ export function EnrollTeamModal({
       },
       {
         onSuccess: () => {
-          Alert.alert("¡Éxito!", "Equipo inscrito correctamente en el torneo.");
+          showToast({ type: "success", title: "¡Éxito!", message: "Equipo inscrito correctamente en el torneo." });
           onSuccess();
           onClose();
         },
         onError: (error: any) => {
-          Alert.alert("Error", error.message || "Ocurrió un problema al inscribir el equipo.");
+          showToast({ type: "error", title: "Error", message: error.message || "Ocurrió un problema al inscribir el equipo." });
         },
       }
     );

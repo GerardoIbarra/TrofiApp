@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { Match } from '@/features/tournaments/types/match';
 import { useTheme } from '@/context/ThemeContext';
 import { X, Check } from 'lucide-react-native';
 import { useAddMatchEvent } from '@/features/matches/services/liveMatchApi';
 import { MatchEventSchema } from '@/features/matches/schemas/liveMatchSchema';
+import { useToast } from '@/context/ToastContext';
 
 interface AddEventModalProps {
   visible: boolean;
@@ -22,15 +23,16 @@ const EVENT_TYPES = [
 
 export function AddEventModal({ visible, onClose, match }: AddEventModalProps) {
   const { theme, isDark } = useTheme();
+  const { showToast } = useToast();
   const addEvent = useAddMatchEvent();
-  
+
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<string>('goal');
   const [minute, setMinute] = useState<string>('');
 
   const handleSubmit = () => {
     if (!selectedTeam || !minute) {
-      Alert.alert('Error', 'Debes seleccionar un equipo y el minuto del evento.');
+      showToast({ type: 'error', title: 'Error', message: 'Debes seleccionar un equipo y el minuto del evento.' });
       return;
     }
 
@@ -49,13 +51,13 @@ export function AddEventModal({ visible, onClose, match }: AddEventModalProps) {
         setSelectedEvent('goal');
       },
       onError: (err: any) => {
-        Alert.alert('Error', err.message || 'No se pudo registrar el evento');
+        showToast({ type: 'error', title: 'Error', message: err.message || 'No se pudo registrar el evento' });
       }
     });
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
           <View style={styles.header}>

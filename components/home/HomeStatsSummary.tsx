@@ -1,11 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TrendingUp, ArrowUpRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
-
-const { width } = Dimensions.get('window');
 
 interface HomeStatsSummaryProps {
   onPressBanner?: () => void;
@@ -18,7 +16,8 @@ export const HomeStatsSummary = React.memo(function HomeStatsSummary({
 }: HomeStatsSummaryProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme, isDark);
+  const { width } = useWindowDimensions();
+  const styles = createStyles(theme, isDark, width);
 
   const played = stats?.played || 0;
   const wins = stats?.wins || 0;
@@ -87,7 +86,7 @@ export const HomeStatsSummary = React.memo(function HomeStatsSummary({
   );
 });
 
-const createStyles = (theme: any, isDark: boolean) =>
+const createStyles = (theme: any, isDark: boolean, width: number) =>
   StyleSheet.create({
     statsContainer: {
       flexDirection: 'row',

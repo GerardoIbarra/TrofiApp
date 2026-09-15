@@ -6,7 +6,6 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
@@ -28,6 +27,7 @@ import { PlayerCardView } from '@/components/players/profile/PlayerCardView';
 import { PlayerStatsWidget } from '@/components/players/profile/PlayerStatsWidget';
 import { PlayerAchievementsList } from '@/components/players/profile/PlayerAchievementsList';
 import * as Linking from 'expo-linking';
+import { useToast } from '@/context/ToastContext';
 
 export default function PlayerDetailScreen() {
   const { playerId, tournamentId, playerName } = useLocalSearchParams<{
@@ -38,6 +38,7 @@ export default function PlayerDetailScreen() {
   const router = useRouter();
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'CARD' | 'STATS'>('CARD');
   const [selectedTournamentId, setSelectedTournamentId] = useState<string | undefined>(
@@ -68,7 +69,7 @@ export default function PlayerDetailScreen() {
       const url = `https://api.trofiapp.com/api/v1/player-cards/${currentCard.id}/image/`;
       Linking.openURL(url).catch((err) => {
         console.error("Couldn't load page", err);
-        Alert.alert('Error', 'No se pudo abrir la imagen de la carta para compartir.');
+        showToast({ type: 'error', title: 'Error', message: 'No se pudo abrir la imagen de la carta para compartir.' });
       });
     }
   };
@@ -421,7 +422,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       letterSpacing: 0.5,
     },
     scrollContent: {
-      paddingBottom: 40,
+      paddingBottom: 100,
     },
     tabContent: {
       padding: 20,

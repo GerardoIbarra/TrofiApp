@@ -470,9 +470,26 @@ export default function RetasScreen() {
 
                       <TouchableOpacity
                         style={styles.deleteAlertBtn}
-                        onPress={async () => {
-                          await deleteAlertMutation.mutateAsync(item.id);
-                          refetchAlerts();
+                        onPress={() => {
+                          Alert.alert(
+                            'Eliminar alerta',
+                            '¿Seguro que querés eliminar esta alerta de reta? Esta acción no se puede deshacer.',
+                            [
+                              { text: 'Cancelar', style: 'cancel' },
+                              {
+                                text: 'Eliminar',
+                                style: 'destructive',
+                                onPress: async () => {
+                                  try {
+                                    await deleteAlertMutation.mutateAsync(item.id);
+                                    refetchAlerts();
+                                  } catch (err: any) {
+                                    Alert.alert('Error', err?.message || 'No se pudo eliminar la alerta.');
+                                  }
+                                },
+                              },
+                            ]
+                          );
                         }}
                       >
                         <Trash2 size={16} color="#EF4444" />

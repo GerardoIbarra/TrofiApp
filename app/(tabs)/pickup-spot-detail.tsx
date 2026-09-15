@@ -50,12 +50,14 @@ import {
 } from '@/features/pickup/services/pickupApi';
 import { PickupCheckInModal } from '@/components/pickup/PickupCheckInModal';
 import { CreatePickupAlertModal } from '@/components/pickup/CreatePickupAlertModal';
+import { useToast } from '@/context/ToastContext';
 
 export default function PickupSpotDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { theme, isDark } = useTheme();
   const styles = useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const { showToast } = useToast();
 
   const [isCheckInModalVisible, setIsCheckInModalVisible] = useState(false);
   const [isAlertModalVisible, setIsAlertModalVisible] = useState(false);
@@ -83,10 +85,10 @@ export default function PickupSpotDetailScreen() {
     setMyRating(stars);
     try {
       await rateMutation.mutateAsync({ spot: id, stars });
-      Alert.alert('¡Gracias!', `Has calificado esta cancha con ${stars} estrella${stars > 1 ? 's' : ''}.`);
+      showToast({ type: 'success', title: '¡Gracias!', message: `Has calificado esta cancha con ${stars} estrella${stars > 1 ? 's' : ''}.` });
       refetch();
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'No se pudo guardar la calificación.');
+      showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo guardar la calificación.' });
     }
   };
 
@@ -97,7 +99,7 @@ export default function PickupSpotDetailScreen() {
       setCommentText('');
       refetchComments();
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'No se pudo publicar el comentario.');
+      showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo publicar el comentario.' });
     }
   };
 
@@ -106,7 +108,7 @@ export default function PickupSpotDetailScreen() {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permiso requerido', 'Se requiere acceso a la galería.');
+        showToast({ type: 'info', title: 'Permiso requerido', message: 'Se requiere acceso a la galería.' });
         return;
       }
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -124,11 +126,11 @@ export default function PickupSpotDetailScreen() {
           photo: b64,
           caption: 'Foto de la cancha',
         });
-        Alert.alert('Foto subida', 'La foto se ha agregado a la galería del lugar.');
+        showToast({ type: 'success', title: 'Foto subida', message: 'La foto se ha agregado a la galería del lugar.' });
         refetch();
       }
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'No se pudo subir la foto.');
+      showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo subir la foto.' });
     }
   };
 
@@ -149,10 +151,10 @@ export default function PickupSpotDetailScreen() {
                 planned_for: futureDate,
                 note: 'Planeo jugar hoy',
               });
-              Alert.alert('Plan registrado', 'Se sumó tu intención de ir a la cancha.');
+              showToast({ type: 'success', title: 'Plan registrado', message: 'Se sumó tu intención de ir a la cancha.' });
               refetch();
             } catch (err: any) {
-              Alert.alert('Error', err?.message || 'No se pudo registrar el plan.');
+              showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo registrar el plan.' });
             }
           },
         },
@@ -178,11 +180,11 @@ export default function PickupSpotDetailScreen() {
         reason: reportReason,
         note: reportNote.trim() || undefined,
       });
-      Alert.alert('Reporte enviado', 'El equipo de moderación revisará el lugar.');
+      showToast({ type: 'success', title: 'Reporte enviado', message: 'El equipo de moderación revisará el lugar.' });
       setIsReportModalVisible(false);
       setReportNote('');
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'No se pudo enviar el reporte.');
+      showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo enviar el reporte.' });
     }
   };
 
@@ -610,6 +612,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     scrollContent: {
       padding: 16,
+      paddingBottom: 100,
       gap: 12,
       maxWidth: 800,
       width: '100%',

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,10 +22,12 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useToast } from '@/context/ToastContext';
 
 export default function ChangePasswordScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const signOut = useAuthStore((state) => state.signOut);
   const { t, i18n } = useTranslation();
   const isEn = i18n.language === 'en';
@@ -56,20 +57,20 @@ export default function ChangePasswordScreen() {
   const onSubmit = async (data: ChangePasswordSchema) => {
     try {
       await api.post('/v1/auth/change-password/', data);
-      Alert.alert(
-        isEn ? 'Password Updated' : 'Contraseña actualizada', 
-        isEn
+      showToast({
+        type: 'success',
+        title: isEn ? 'Password Updated' : 'Contraseña actualizada',
+        message: isEn
           ? 'Your password has been updated successfully. You have been logged out of other devices. Please sign in again here.'
           : 'Tu contraseña se ha actualizado correctamente. Se ha cerrado tu sesión en otros dispositivos. Deberás iniciar sesión de nuevo aquí.',
-        [
-          { text: isEn ? 'OK' : 'Aceptar', onPress: () => signOut() }
-        ]
-      );
+      });
+      signOut();
     } catch (err: any) {
-      Alert.alert(
-        isEn ? 'Error' : 'Error', 
-        err.message || (isEn ? 'The current password is wrong or an error occurred.' : 'La contraseña actual es incorrecta o hubo un error.')
-      );
+      showToast({
+        type: 'error',
+        title: isEn ? 'Error' : 'Error',
+        message: err.message || (isEn ? 'The current password is wrong or an error occurred.' : 'La contraseña actual es incorrecta o hubo un error.'),
+      });
     }
   };
 

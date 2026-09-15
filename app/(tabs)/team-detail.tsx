@@ -6,7 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -37,8 +37,6 @@ import { useTranslation } from 'react-i18next';
 
 import { ChatBox } from '@/components/chat/ChatBox';
 
-const { width } = Dimensions.get('window');
-
 type TabType = 'STATS' | 'ROSTER' | 'LINEUP' | 'HISTORY' | 'CHAT';
 
 export default function TeamDetailScreen() {
@@ -49,7 +47,8 @@ export default function TeamDetailScreen() {
   const router = useRouter();
   const { theme, isDark } = useTheme();
   const { t, i18n } = useTranslation();
-  const styles = createStyles(theme, isDark);
+  const { width } = useWindowDimensions();
+  const styles = createStyles(theme, isDark, width);
   const user = useAuthStore(state => state.user);
 
   const [activeTab, setActiveTab] = useState<TabType>('STATS');
@@ -241,52 +240,73 @@ export default function TeamDetailScreen() {
               { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' },
             ]}
           >
-            <TouchableOpacity
-              style={[styles.tabBtn, activeTab === 'STATS' && styles.tabBtnActive]}
-              onPress={() => setActiveTab('STATS')}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabsScrollContent}
             >
-              <Text style={[styles.tabText, activeTab === 'STATS' && styles.tabTextActive]}>
-                {t('team_detail.tab_stats', 'ESTADÍSTICAS')}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.tabBtn, activeTab === 'ROSTER' && styles.tabBtnActive]}
-              onPress={() => setActiveTab('ROSTER')}
-            >
-              <Text style={[styles.tabText, activeTab === 'ROSTER' && styles.tabTextActive]}>
-                {t('team_detail.tab_roster', { count: roster.length, defaultValue: `PLANTILLA (${roster.length})` })}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.tabBtn, activeTab === 'LINEUP' && styles.tabBtnActive]}
-              onPress={() => setActiveTab('LINEUP')}
-            >
-              <Text style={[styles.tabText, activeTab === 'LINEUP' && styles.tabTextActive]}>
-                {t('team_detail.tab_lineup', 'ALINEACIÓN')}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.tabBtn, activeTab === 'HISTORY' && styles.tabBtnActive]}
-              onPress={() => setActiveTab('HISTORY')}
-            >
-              <Text style={[styles.tabText, activeTab === 'HISTORY' && styles.tabTextActive]}>
-                {t('team_detail.tab_history', 'HISTORIAL')}
-              </Text>
-            </TouchableOpacity>
-
-            {canAccessChat && (
               <TouchableOpacity
-                style={[styles.tabBtn, activeTab === 'CHAT' && styles.tabBtnActive]}
-                onPress={() => setActiveTab('CHAT')}
+                style={[styles.tabBtn, activeTab === 'STATS' && styles.tabBtnActive]}
+                onPress={() => setActiveTab('STATS')}
               >
-                <Text style={[styles.tabText, activeTab === 'CHAT' && styles.tabTextActive]}>
-                  {t('team_detail.tab_chat', 'CHAT')}
+                <Text
+                  style={[styles.tabText, activeTab === 'STATS' && styles.tabTextActive]}
+                  numberOfLines={1}
+                >
+                  {t('team_detail.tab_stats', 'ESTADÍSTICAS')}
                 </Text>
               </TouchableOpacity>
-            )}
+
+              <TouchableOpacity
+                style={[styles.tabBtn, activeTab === 'ROSTER' && styles.tabBtnActive]}
+                onPress={() => setActiveTab('ROSTER')}
+              >
+                <Text
+                  style={[styles.tabText, activeTab === 'ROSTER' && styles.tabTextActive]}
+                  numberOfLines={1}
+                >
+                  {t('team_detail.tab_roster', { count: roster.length, defaultValue: `PLANTILLA (${roster.length})` })}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tabBtn, activeTab === 'LINEUP' && styles.tabBtnActive]}
+                onPress={() => setActiveTab('LINEUP')}
+              >
+                <Text
+                  style={[styles.tabText, activeTab === 'LINEUP' && styles.tabTextActive]}
+                  numberOfLines={1}
+                >
+                  {t('team_detail.tab_lineup', 'ALINEACIÓN')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.tabBtn, activeTab === 'HISTORY' && styles.tabBtnActive]}
+                onPress={() => setActiveTab('HISTORY')}
+              >
+                <Text
+                  style={[styles.tabText, activeTab === 'HISTORY' && styles.tabTextActive]}
+                  numberOfLines={1}
+                >
+                  {t('team_detail.tab_history', 'HISTORIAL')}
+                </Text>
+              </TouchableOpacity>
+
+              {canAccessChat && (
+                <TouchableOpacity
+                  style={[styles.tabBtn, activeTab === 'CHAT' && styles.tabBtnActive]}
+                  onPress={() => setActiveTab('CHAT')}
+                >
+                  <Text
+                    style={[styles.tabText, activeTab === 'CHAT' && styles.tabTextActive]}
+                    numberOfLines={1}
+                  >
+                    {t('team_detail.tab_chat', 'CHAT')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
           </View>
 
           {/* TAB CONTENT */}
@@ -671,11 +691,13 @@ function StatTile({
   theme: any;
   isDark: boolean;
 }) {
+  const { width } = useWindowDimensions();
   return (
     <View
       style={[
         tileStyles.tile,
         {
+          width: (width - 64) / 4,
           backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
           borderColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
         },
@@ -689,7 +711,6 @@ function StatTile({
 
 const tileStyles = StyleSheet.create({
   tile: {
-    width: (width - 64) / 4,
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: 14,
@@ -709,10 +730,10 @@ const tileStyles = StyleSheet.create({
   },
 });
 
-const createStyles = (theme: any, isDark: boolean) =>
+const createStyles = (theme: any, isDark: boolean, width: number) =>
   StyleSheet.create({
     scrollContent: {
-      paddingBottom: 40,
+      paddingBottom: 100,
     },
     webContainer: {
       maxWidth: 800,
@@ -822,20 +843,24 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: '#FFF',
     },
     tabsContainer: {
-      flexDirection: 'row',
-      paddingHorizontal: 16,
+      paddingHorizontal: 12,
       borderBottomWidth: 1,
       marginTop: 4,
+      paddingBottom: 10,
+    },
+    tabsScrollContent: {
+      flexDirection: 'row',
+      gap: 8,
+      paddingHorizontal: 4,
     },
     tabBtn: {
-      flex: 1,
-      paddingVertical: 12,
-      alignItems: 'center',
-      borderBottomWidth: 2,
-      borderBottomColor: 'transparent',
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: 20,
+      backgroundColor: 'transparent',
     },
     tabBtnActive: {
-      borderBottomColor: theme.primary,
+      backgroundColor: theme.primary,
     },
     tabText: {
       fontSize: 11,
@@ -844,7 +869,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       letterSpacing: 0.5,
     },
     tabTextActive: {
-      color: theme.primary,
+      color: isDark ? '#001A2C' : '#FFFFFF',
       fontWeight: '800',
     },
     tabContentContainer: {

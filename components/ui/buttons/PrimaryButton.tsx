@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   StyleSheet,
   StyleProp,
@@ -54,9 +54,13 @@ export function PrimaryButton({
         style,
       ]}
     >
-      <TouchableOpacity
-        style={[styles.button, (disabled || isLoading) && { opacity: 0.6 }]}
-        activeOpacity={0.8}
+      <Pressable
+        style={({ pressed }) => [
+          styles.button,
+          (disabled || isLoading) && { opacity: 0.6 },
+          Platform.OS !== 'android' && pressed && { opacity: 0.8 },
+        ]}
+        android_ripple={{ color: 'rgba(0,0,0,0.15)' }}
         onPress={handlePress}
         disabled={disabled || isLoading}
       >
@@ -74,7 +78,7 @@ export function PrimaryButton({
             <Text style={styles.buttonText}>{textContent}</Text>
           )}
         </LinearGradient>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }

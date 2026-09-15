@@ -111,8 +111,12 @@ export default function TournamentDetailScreen() {
   return (
     <View style={GlobalStyles.container}>
       <BackgroundGradient />
-      
-      <View style={styles.contentWrapper}>
+
+      <ScrollView
+        style={styles.contentWrapper}
+        contentContainerStyle={styles.scrollContentOuter}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.webContainer}>
           <TournamentHeader 
             tournament={tournament} 
@@ -287,7 +291,7 @@ export default function TournamentDetailScreen() {
             )}
 
             {activeTab === 'TEAMS' && (
-               <TournamentTeamsWidget tournamentId={tournament.id} />
+              <TournamentTeamsWidget tournamentId={tournament.id} />
             )}
 
             {activeTab === 'DISCIPLINE' && (
@@ -299,10 +303,7 @@ export default function TournamentDetailScreen() {
             )}
 
             {activeTab === 'INFO' && (
-              <ScrollView 
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.infoScrollContent}
-              >
+              <View style={styles.infoScrollContent}>
                 <View style={styles.infoSection}>
                   <View style={styles.sectionHeader}>
                     <Info size={16} color={theme.primary} />
@@ -422,11 +423,11 @@ export default function TournamentDetailScreen() {
                   <Info size={18} color={theme.primary} />
                   <Text style={styles.rulesText}>{t("tournament.view_rules")}</Text>
                 </TouchableOpacity>
-              </ScrollView>
+              </View>
             )}
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       <CreateTournamentModal
         visible={isEditModalVisible}
@@ -482,28 +483,29 @@ export default function TournamentDetailScreen() {
 
 const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
   contentWrapper: {
     flex: 1,
+  },
+  scrollContentOuter: {
+    paddingBottom: 100,
   },
   webContainer: {
     maxWidth: 800,
     width: '100%',
     alignSelf: 'center',
-    flex: 1,
   },
   contentPadding: {
     paddingHorizontal: 20,
     marginTop: 20,
   },
   tabContentArea: {
-    flex: 1,
     paddingHorizontal: 20,
     marginTop: 20,
   },
   infoScrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 20,
   },
   infoSection: {
     marginBottom: 25,

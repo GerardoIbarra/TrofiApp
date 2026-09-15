@@ -2,6 +2,7 @@ import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient"
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
+import { Skeleton } from "@/components/ui/feedback/Skeleton";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { User as UserType } from "@/features/auth/types/auth";
 import {
@@ -30,10 +31,10 @@ import { AppSettingsModal } from "@/components/profile/AppSettingsModal";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  Dimensions,
+  useWindowDimensions,
   Image,
   ScrollView,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -41,7 +42,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
 
 const PERFORMANCE_DATA = [
   { height: 5, active: false },
@@ -61,6 +61,10 @@ export default function ProfileScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
   const { t, i18n } = useTranslation();
   const signOut = useAuthStore((state) => state.signOut);
+  const { height: screenHeight } = useWindowDimensions();
+  // 480 en el baseline de diseño (812pt de alto) y hacia abajo; se achica
+  // proporcionalmente solo en pantallas más bajas que ese baseline (ej. iPhone SE).
+  const heroHeight = Math.min(480, Math.max(360, screenHeight * (480 / 812)));
   const styles = createStyles(theme, isDark);
   const { id, userId } = useLocalSearchParams<{ id?: string, userId?: string }>();
 
@@ -69,6 +73,7 @@ export default function ProfileScreen() {
   const [card, setCard] = useState<PlayerCard | null>(null);
   const [achievements, setAchievements] = useState<PlayerAchievement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
   const [showNotificationPrefsModal, setShowNotificationPrefsModal] = useState(false);
@@ -95,8 +100,12 @@ export default function ProfileScreen() {
     }, [id])
   );
 
-  const fetchData = async () => {
-    setIsLoading(true);
+  const fetchData = async (isRefresh = false) => {
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
     try {
       let activePlayerId = id;
 
@@ -178,6 +187,7 @@ export default function ProfileScreen() {
       setHasError(true);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -252,23 +262,25 @@ export default function ProfileScreen() {
       <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => fetchData(true)}
+              tintColor={theme.primary}
+              colors={[theme.primary]}
+            />
+          }
         >
           <View style={styles.webContainer}>
             {/* Player Hero Section with Ultimate Card */}
-            <View style={styles.heroSection}>
+            <View style={[styles.heroSection, { height: heroHeight }]}>
               {isLoading ? (
-                <View
-                  style={[
-                    styles.heroImage,
-                    {
-                      justifyContent: "center",
-                      alignItems: "center",
-                      backgroundColor: theme.surface,
-                    },
-                  ]}
-                >
-                  <ActivityIndicator size="large" color={theme.primary} />
-                </View>
+                <Skeleton
+                  width="100%"
+                  height="100%"
+                  borderRadius={0}
+                  style={styles.heroImage}
+                />
               ) : (
                 <>
                   {activePhoto ? (
@@ -726,7 +738,6 @@ const createStyles = (theme: any, isDark: boolean) =>
       paddingHorizontal: 20,
     },
     heroSection: {
-      height: 480,
       width: "100%",
       borderRadius: 24,
       overflow: "hidden",

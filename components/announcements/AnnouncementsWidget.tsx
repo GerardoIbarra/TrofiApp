@@ -17,6 +17,7 @@ import {
   BellRing,
 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import {
   useGetAnnouncements,
   useDeleteAnnouncement,
@@ -39,6 +40,7 @@ export function AnnouncementsWidget({
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
@@ -76,9 +78,9 @@ export function AnnouncementsWidget({
                 leagueId,
                 tournamentId,
               });
-              Alert.alert(t('common.done', 'Listo'), t('announcements.deleted_success'));
+              showToast({ type: 'success', title: t('common.done', 'Listo'), message: t('announcements.deleted_success') });
             } catch (err: any) {
-              Alert.alert('Error', err?.message || t('announcements.deleted_error'));
+              showToast({ type: 'error', title: 'Error', message: err?.message || t('announcements.deleted_error') });
             }
           },
         },

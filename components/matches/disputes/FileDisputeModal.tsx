@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { AlertTriangle, X, ShieldAlert } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useFileMatchDispute } from '@/features/tournaments/services/matchDisputeApi';
+import { useToast } from '@/context/ToastContext';
 
 interface FileDisputeModalProps {
   visible: boolean;
@@ -32,6 +32,7 @@ export function FileDisputeModal({
 }: FileDisputeModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const [reason, setReason] = useState('');
 
   const fileMutation = useFileMatchDispute();
@@ -39,7 +40,7 @@ export function FileDisputeModal({
   const handleSubmit = async () => {
     const trimmed = reason.trim();
     if (!trimmed) {
-      Alert.alert('Campo requerido', 'Por favor describe el motivo de la disputa.');
+      showToast({ type: 'error', title: 'Campo requerido', message: 'Por favor describe el motivo de la disputa.' });
       return;
     }
 
@@ -49,15 +50,16 @@ export function FileDisputeModal({
         reason: trimmed,
       });
 
-      Alert.alert(
-        'Disputa presentada',
-        'Tu reclamo ha sido registrado. Se ha notificado al árbitro, capitán contrario y a la administración de la liga.'
-      );
+      showToast({
+        type: 'success',
+        title: 'Disputa presentada',
+        message: 'Tu reclamo ha sido registrado. Se ha notificado al árbitro, capitán contrario y a la administración de la liga.',
+      });
       setReason('');
       onClose();
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      Alert.alert('Error al presentar disputa', err?.message || 'No se pudo registrar la disputa.');
+      showToast({ type: 'error', title: 'Error al presentar disputa', message: err?.message || 'No se pudo registrar la disputa.' });
     }
   };
 

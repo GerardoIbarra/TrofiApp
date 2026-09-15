@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { X, Settings2, Check } from 'lucide-react-native';
 import { useUpdateTournamentTiebreaker } from '@/features/tournaments/services/tournamentApi';
 import { Tournament } from '@/features/tournaments/types/tournament';
@@ -13,6 +14,7 @@ interface TiebreakerConfigModalProps {
 
 export function TiebreakerConfigModal({ visible, onClose, tournament }: TiebreakerConfigModalProps) {
   const { theme, isDark } = useTheme();
+  const { showToast } = useToast();
   const updateTiebreaker = useUpdateTournamentTiebreaker();
   
   const [selected, setSelected] = useState<'goal_difference' | 'head_to_head'>(
@@ -28,17 +30,17 @@ export function TiebreakerConfigModal({ visible, onClose, tournament }: Tiebreak
   const handleSubmit = () => {
     updateTiebreaker.mutate({ id: tournament.id, standings_tiebreaker: selected }, {
       onSuccess: () => {
-        Alert.alert('Éxito', 'Configuración de desempate actualizada');
+        showToast({ type: 'success', title: 'Éxito', message: 'Configuración de desempate actualizada' });
         onClose();
       },
       onError: (err: any) => {
-        Alert.alert('Error', err.message || 'No se pudo actualizar la configuración');
+        showToast({ type: 'error', title: 'Error', message: err.message || 'No se pudo actualizar la configuración' });
       }
     });
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
           <View style={styles.header}>

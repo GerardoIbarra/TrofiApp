@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/context/ThemeContext";
+import { ToastProvider } from "@/context/ToastContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { loadSavedLanguage } from "@/i18n";
 import { LocationService } from "@/services/locationService";
@@ -26,6 +27,7 @@ LogBox.ignoreLogs([
 
 import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
 import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
+import { OfflineBanner } from "@/components/ui/feedback/OfflineBanner";
 import * as Sentry from "@sentry/react-native";
 import { isCancellationError } from "@/services/logger";
 
@@ -234,7 +236,6 @@ function InitialNavigation() {
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="league-detail" />
     </Stack>
   );
 }
@@ -254,9 +255,12 @@ function RootLayout() {
             maxAge: 1000 * 60 * 60 * 24, // 24 hours cache retention
           }}
         >
-          <ThemeAwareStatusBar />
-          <InitialNavigation />
-          <UpdatePrompt />
+          <ToastProvider>
+            <ThemeAwareStatusBar />
+            <InitialNavigation />
+            <OfflineBanner />
+            <UpdatePrompt />
+          </ToastProvider>
         </PersistQueryClientProvider>
       </ThemeProvider>
     </ErrorBoundary>

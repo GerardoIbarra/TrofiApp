@@ -8,7 +8,6 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import {
   X,
@@ -23,6 +22,7 @@ import {
   Info,
 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { PlacementType } from '@/features/sponsors/types/sponsor';
 import { useCreateSponsorPlacement } from '@/features/sponsors/services/sponsorApi';
@@ -51,6 +51,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
   const isEn = i18n.language === 'en';
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+  const { showToast } = useToast();
 
   const [targetType, setTargetType] = useState<TargetType>(
     preselectedTournamentId
@@ -163,19 +164,31 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
     if (targetType === 'league') {
       if (!selectedLeagueId) {
-        Alert.alert(isEn ? 'Error' : 'Error', isEn ? 'You must select a league.' : 'Debes seleccionar una liga.');
+        showToast({
+          type: 'error',
+          title: isEn ? 'Error' : 'Error',
+          message: isEn ? 'You must select a league.' : 'Debes seleccionar una liga.',
+        });
         return;
       }
       leagueTarget = selectedLeagueId;
     } else if (targetType === 'tournament') {
       if (!selectedTournamentId) {
-        Alert.alert(isEn ? 'Error' : 'Error', isEn ? 'You must select a tournament.' : 'Debes seleccionar un torneo.');
+        showToast({
+          type: 'error',
+          title: isEn ? 'Error' : 'Error',
+          message: isEn ? 'You must select a tournament.' : 'Debes seleccionar un torneo.',
+        });
         return;
       }
       tournamentTarget = selectedTournamentId;
     } else if (targetType === 'team') {
       if (!selectedTeamId) {
-        Alert.alert(isEn ? 'Error' : 'Error', isEn ? 'You must select a team.' : 'Debes seleccionar un equipo.');
+        showToast({
+          type: 'error',
+          title: isEn ? 'Error' : 'Error',
+          message: isEn ? 'You must select a team.' : 'Debes seleccionar un equipo.',
+        });
         return;
       }
       teamTarget = selectedTeamId;
@@ -183,12 +196,13 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
     // 2. Pre-check sponsors_enabled
     if (isSponsorsDisabled) {
-      Alert.alert(
-        isEn ? 'Sponsorships Disabled' : 'Patrocinios Deshabilitados',
-        isEn
+      showToast({
+        type: 'error',
+        title: isEn ? 'Sponsorships Disabled' : 'Patrocinios Deshabilitados',
+        message: isEn
           ? `The league "${governingLeague?.name || ''}" does not have sponsorships enabled (sponsors_enabled = false).`
-          : `La liga "${governingLeague?.name || ''}" no tiene habilitada la función de patrocinadores (sponsors_enabled = false). El pedido será rechazado con 400.`
-      );
+          : `La liga "${governingLeague?.name || ''}" no tiene habilitada la función de patrocinadores (sponsors_enabled = false). El pedido será rechazado con 400.`,
+      });
       return;
     }
 
@@ -210,12 +224,13 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
 
     createMutation.mutate(payload, {
       onSuccess: () => {
-        Alert.alert(
-          isEn ? 'Placement Requested!' : '¡Espacio Solicitado!',
-          isEn
+        showToast({
+          type: 'success',
+          title: isEn ? 'Placement Requested!' : '¡Espacio Solicitado!',
+          message: isEn
             ? 'The sponsor placement has been requested successfully with active analytics.'
-            : 'El espacio publicitario ha sido creado exitosamente con métricas activadas.'
-        );
+            : 'El espacio publicitario ha sido creado exitosamente con métricas activadas.',
+        });
         onClose();
       },
       onError: (err: any) => {
@@ -224,7 +239,11 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
           err?.response?.data?.error ||
           err?.message ||
           (isEn ? 'An error occurred while requesting the sponsor placement.' : 'Ocurrió un error al solicitar el espacio publicitario.');
-        Alert.alert(isEn ? 'Error requesting sponsorship' : 'Error al solicitar patrocinio', detail);
+        showToast({
+          type: 'error',
+          title: isEn ? 'Error requesting sponsorship' : 'Error al solicitar patrocinio',
+          message: detail,
+        });
       },
     });
   };

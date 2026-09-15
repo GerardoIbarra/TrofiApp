@@ -15,6 +15,7 @@ import {
   useLockMVPVote,
 } from '@/features/matches/services/matchApi';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useToast } from '@/context/ToastContext';
 
 interface MatchMVPVoteWidgetProps {
   matchId: string;
@@ -40,6 +41,7 @@ export function MatchMVPVoteWidget({
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+  const { showToast } = useToast();
 
   const [selectedMembershipId, setSelectedMembershipId] = useState<string | null>(null);
 
@@ -93,16 +95,16 @@ export function MatchMVPVoteWidget({
 
   const handleVote = async () => {
     if (!selectedMembershipId) {
-      Alert.alert('Selecciona un candidato', 'Elige al jugador que consideres el MVP del encuentro.');
+      showToast({ type: 'error', title: 'Selecciona un candidato', message: 'Elige al jugador que consideres el MVP del encuentro.' });
       return;
     }
 
     try {
       await voteMutation.mutateAsync({ voted_for: selectedMembershipId });
-      Alert.alert('¡Voto registrado!', 'Tu voto por el MVP ha sido contabilizado.');
+      showToast({ type: 'success', title: '¡Voto registrado!', message: 'Tu voto por el MVP ha sido contabilizado.' });
       refetch();
     } catch (err: any) {
-      Alert.alert('Error al votar', err?.message || 'No se pudo registrar tu voto.');
+      showToast({ type: 'error', title: 'Error al votar', message: err?.message || 'No se pudo registrar tu voto.' });
     }
   };
 
@@ -118,10 +120,10 @@ export function MatchMVPVoteWidget({
           onPress: async () => {
             try {
               const res = await lockMutation.mutateAsync();
-              Alert.alert('Votación Cerrada', `El MVP ha sido asignado formalmente.`);
+              showToast({ type: 'success', title: 'Votación Cerrada', message: `El MVP ha sido asignado formalmente.` });
               refetch();
             } catch (err: any) {
-              Alert.alert('Error', err?.message || 'No se pudo cerrar la votación.');
+              showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo cerrar la votación.' });
             }
           },
         },

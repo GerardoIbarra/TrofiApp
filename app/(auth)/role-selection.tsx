@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
@@ -17,6 +16,7 @@ import { metrics } from '@/services/metrics';
 import { router } from 'expo-router';
 import { PrimaryButton } from '@/components/ui/buttons/PrimaryButton';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useToast } from '@/context/ToastContext';
 
 const ROLES = [
   { id: 'spectator', endpoint: '/v1/spectator-profiles/', title: 'Espectador', description: 'Sigue a tus equipos y ligas favoritas.' },
@@ -28,6 +28,7 @@ const ROLES = [
 export default function RoleSelectionScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const user = useAuthStore((state) => state.user);
   const [selectedRole, setSelectedRole] = useState<typeof ROLES[0] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +56,7 @@ export default function RoleSelectionScreen() {
       
       router.replace('/(tabs)' as any);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Hubo un problema al crear tu perfil.');
+      showToast({ type: 'error', title: 'Error', message: err.message || 'Hubo un problema al crear tu perfil.' });
     } finally {
       setIsSubmitting(false);
     }

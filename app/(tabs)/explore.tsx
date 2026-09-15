@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, useWindowDimensions } from 'react-native';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { LayoutHeader } from '@/components/ui/layout/LayoutHeader';
@@ -8,8 +8,6 @@ import { router } from 'expo-router';
 import { Search as SearchIcon, SlidersHorizontal, X, Star, ChevronRight, User as UserIcon, CircleDot, Sun, Zap, Mountain, Map as MapIcon, Flame } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-
-const { width } = Dimensions.get('window');
 
 const RECENT_SEARCHES = ['Elite Soccer League', 'City Tigers FC', 'Top Scorers'];
 
@@ -23,7 +21,8 @@ const POPULAR_TEAMS = [
 export default function ExploreScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  const styles = createStyles(theme, isDark);
+  const { width } = useWindowDimensions();
+  const styles = createStyles(theme, isDark, width);
 
   return (
     <View style={GlobalStyles.container}>
@@ -183,7 +182,8 @@ export default function ExploreScreen() {
 
 function SportCard({ title, image }: { title: string, image: string }) {
   const { theme, isDark } = useTheme();
-  const styles = createStyles(theme, isDark);
+  const { width } = useWindowDimensions();
+  const styles = createStyles(theme, isDark, width);
   return (
     <TouchableOpacity style={styles.sportCard}>
       <Image source={{ uri: image }} style={styles.sportImage} />
@@ -196,7 +196,7 @@ function SportCard({ title, image }: { title: string, image: string }) {
   );
 }
 
-const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
+const createStyles = (theme: any, isDark: boolean, width: number) => StyleSheet.create({
   scrollContent: {
     paddingBottom: 110,
   },

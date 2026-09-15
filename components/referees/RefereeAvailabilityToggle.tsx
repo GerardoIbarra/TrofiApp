@@ -7,10 +7,10 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { Radio, Check, FileText } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useSetRefereeAvailability } from '@/features/referees/services/refereeApi';
 
 interface RefereeAvailabilityToggleProps {
@@ -26,6 +26,7 @@ export const RefereeAvailabilityToggle: React.FC<RefereeAvailabilityToggleProps>
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [isOpen, setIsOpen] = useState(initialIsOpen);
   const [notes, setNotes] = useState(initialNotes);
@@ -49,12 +50,13 @@ export const RefereeAvailabilityToggle: React.FC<RefereeAvailabilityToggleProps>
       },
       {
         onSuccess: () => {
-          Alert.alert(
-            'Disponibilidad Actualizada',
-            isOpen
+          showToast({
+            type: 'success',
+            title: 'Disponibilidad Actualizada',
+            message: isOpen
               ? 'Ahora apareces como disponible en el Mercado de Árbitros para recibir ofertas de partidos.'
-              : 'Has desactivado tu disponibilidad para nuevas ofertas.'
-          );
+              : 'Has desactivado tu disponibilidad para nuevas ofertas.',
+          });
           onUpdated?.();
         },
         onError: (err: any) => {
@@ -62,7 +64,7 @@ export const RefereeAvailabilityToggle: React.FC<RefereeAvailabilityToggleProps>
             err?.response?.data?.detail ||
             err?.message ||
             'Necesitas tener un perfil de Árbitro activo para gestionar disponibilidad.';
-          Alert.alert('Error', detail);
+          showToast({ type: 'error', title: 'Error', message: detail });
         },
       }
     );

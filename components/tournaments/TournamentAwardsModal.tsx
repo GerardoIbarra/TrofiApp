@@ -21,6 +21,7 @@ import {
   Users,
 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import {
   useDetermineChampion,
   useCrownSeasonAwards,
@@ -53,6 +54,7 @@ export function TournamentAwardsModal({
 }: TournamentAwardsModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<TabType>('CHAMPION');
 
@@ -94,7 +96,7 @@ export function TournamentAwardsModal({
 
   const handleAwardTeam = async () => {
     if (!selectedTeamId) {
-      Alert.alert('Selecciona un equipo', 'Elige al equipo que recibirá el logro.');
+      showToast({ type: 'error', title: 'Selecciona un equipo', message: 'Elige al equipo que recibirá el logro.' });
       return;
     }
     try {
@@ -103,9 +105,9 @@ export function TournamentAwardsModal({
         tournament: tournamentId,
         achievement_type: selectedAchievementType,
       });
-      Alert.alert('¡Logro Otorgado!', 'El logro ha sido asignado al equipo exitosamente.');
+      showToast({ type: 'success', title: '¡Logro Otorgado!', message: 'El logro ha sido asignado al equipo exitosamente.' });
     } catch (err: any) {
-      Alert.alert('Error al otorgar logro', err?.message || 'No se pudo otorgar el logro al equipo.');
+      showToast({ type: 'error', title: 'Error al otorgar logro', message: err?.message || 'No se pudo otorgar el logro al equipo.' });
     }
   };
 
@@ -122,7 +124,7 @@ export function TournamentAwardsModal({
               const res = await determineChampionMutation.mutateAsync(tournamentId);
               setChampionResult(res);
             } catch (err: any) {
-              Alert.alert('Error', err?.message || 'No se pudo determinar al campeón. Asegúrate de que se hayan jugado partidos.');
+              showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo determinar al campeón. Asegúrate de que se hayan jugado partidos.' });
             }
           },
         },
@@ -134,9 +136,9 @@ export function TournamentAwardsModal({
     try {
       const res = await crownSeasonAwardsMutation.mutateAsync(tournamentId);
       setSeasonResult(res);
-      Alert.alert('Premios Asignados', 'Se han otorgado los logros de goleador, asistencias, fair play y Once Ideal.');
+      showToast({ type: 'success', title: 'Premios Asignados', message: 'Se han otorgado los logros de goleador, asistencias, fair play y Once Ideal.' });
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'No se pudieron calcular los premios de la temporada.');
+      showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudieron calcular los premios de la temporada.' });
     }
   };
 
@@ -145,12 +147,12 @@ export function TournamentAwardsModal({
       const res = await computeWeeklyMVPMutation.mutateAsync({ tournamentId });
       setWeeklyResult(res);
       if (res.winner) {
-        Alert.alert('¡MVP Calculado!', `${res.winner.name} ha ganado el MVP de la semana.`);
+        showToast({ type: 'success', title: '¡MVP Calculado!', message: `${res.winner.name} ha ganado el MVP de la semana.` });
       } else {
-        Alert.alert('Sin Ganador', 'No se encontraron jugadores calificados en esta semana.');
+        showToast({ type: 'info', title: 'Sin Ganador', message: 'No se encontraron jugadores calificados en esta semana.' });
       }
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'No se pudo calcular el MVP semanal.');
+      showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo calcular el MVP semanal.' });
     }
   };
 

@@ -6,10 +6,10 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { X, Star } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useRateReferee } from '@/features/referees/services/refereeApi';
 import { metrics } from '@/services/metrics';
 
@@ -38,6 +38,7 @@ export const RateRefereeModal: React.FC<RateRefereeModalProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [stars, setStars] = useState<number>(currentRating || 5);
   const rateMutation = useRateReferee(matchId);
@@ -48,10 +49,11 @@ export const RateRefereeModal: React.FC<RateRefereeModalProps> = ({
       {
         onSuccess: () => {
           metrics.trackRefereeRating(matchId, stars);
-          Alert.alert(
-            '¡Calificación Enviada!',
-            'Tu evaluación ha sido registrada exitosamente.'
-          );
+          showToast({
+            type: 'success',
+            title: '¡Calificación Enviada!',
+            message: 'Tu evaluación ha sido registrada exitosamente.',
+          });
           onClose();
         },
         onError: (err: any) => {
@@ -59,7 +61,7 @@ export const RateRefereeModal: React.FC<RateRefereeModalProps> = ({
             err?.response?.data?.detail ||
             err?.message ||
             'Solo jugadores del roster pueden calificar al árbitro una vez finalizado el encuentro.';
-          Alert.alert('No se pudo calificar', detail);
+          showToast({ type: 'error', title: 'No se pudo calificar', message: detail });
         },
       }
     );

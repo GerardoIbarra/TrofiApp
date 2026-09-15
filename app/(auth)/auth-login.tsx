@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,12 +22,13 @@ import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { AuthResponse } from '@/features/auth/types/auth';
-
+import { useToast } from '@/context/ToastContext';
 
 
 export default function SignInScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const signIn = useAuthStore((state) => state.signIn);
 
   const {
@@ -49,7 +49,7 @@ export default function SignInScreen() {
       
       await signIn(res);
     } catch (err: any) {
-      Alert.alert('Error al iniciar sesión', err.message ?? 'Credenciales incorrectas.');
+      showToast({ type: 'error', title: 'Error al iniciar sesión', message: err.message ?? 'Credenciales incorrectas.' });
     }
   };
 

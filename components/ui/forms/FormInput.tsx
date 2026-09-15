@@ -111,7 +111,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
       paddingHorizontal: 15,
-      height: 56,
+      minHeight: 56,
     },
     inputError: {
       borderColor: '#ff4444',

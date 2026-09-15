@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView, Alert } from "react-native";
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView } from "react-native";
 import { useForm } from "react-hook-form";
 import { X, MapPin } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
@@ -8,10 +8,12 @@ import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { FormInput } from "@/components/ui/forms/FormInput";
 import { useCreateVenue, useCreateField } from "@/features/venues/services/venueApi";
 import { LocationService } from "@/services/locationService";
+import { useToast } from "@/context/ToastContext";
 
 export function VenueManagerModal({ visible, onClose, leagueId }: { visible: boolean; onClose: () => void; leagueId?: string; }) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const venueMutation = useCreateVenue();
   const fieldMutation = useCreateField();
@@ -30,10 +32,10 @@ export function VenueManagerModal({ visible, onClose, leagueId }: { visible: boo
         setValueVenue("latitude", Number(loc.latitude.toFixed(6)));
         setValueVenue("longitude", Number(loc.longitude.toFixed(6)));
       } else {
-        Alert.alert("Ubicación", "No se pudo obtener la ubicación GPS.");
+        showToast({ type: "error", title: "Ubicación", message: "No se pudo obtener la ubicación GPS." });
       }
     } catch {
-      Alert.alert("Error", "Error al capturar ubicación.");
+      showToast({ type: "error", title: "Error", message: "Error al capturar ubicación." });
     } finally {
       setIsGettingLocation(false);
     }
@@ -51,7 +53,7 @@ export function VenueManagerModal({ visible, onClose, leagueId }: { visible: boo
       league: leagueId // si se pasa leagueId, es exclusiva
     }, {
       onSuccess: () => {
-        Alert.alert("Éxito", "Sede creada con coordenadas. Ahora puedes crearle canchas.");
+        showToast({ type: "success", title: "Éxito", message: "Sede creada con coordenadas. Ahora puedes crearle canchas." });
         resetVenue();
         setActiveTab('field');
       }
@@ -65,7 +67,7 @@ export function VenueManagerModal({ visible, onClose, leagueId }: { visible: boo
       surface: data.surface
     }, {
       onSuccess: () => {
-        Alert.alert("Éxito", "Cancha creada exitosamente.");
+        showToast({ type: "success", title: "Éxito", message: "Cancha creada exitosamente." });
         resetField();
       }
     });

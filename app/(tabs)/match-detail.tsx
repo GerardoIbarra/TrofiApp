@@ -4,9 +4,8 @@ import {
   Text, 
   StyleSheet, 
   ScrollView, 
-  ActivityIndicator, 
+  ActivityIndicator,
   TouchableOpacity,
-  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -51,8 +50,6 @@ import {
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-
-const { width } = Dimensions.get('window');
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -815,6 +812,7 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   tabContent: {
     flex: 1,
     paddingHorizontal: 20,
+    paddingBottom: 100,
   },
   section: {
     marginBottom: 25,

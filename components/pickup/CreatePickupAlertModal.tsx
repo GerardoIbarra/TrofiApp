@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -16,6 +15,7 @@ import { Bell, X, MapPin, Navigation } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useCreatePickupAlert } from '@/features/pickup/services/pickupApi';
 import { LocationService } from '@/services/locationService';
+import { useToast } from '@/context/ToastContext';
 
 interface CreatePickupAlertModalProps {
   visible: boolean;
@@ -44,6 +44,7 @@ export function CreatePickupAlertModal({
 }: CreatePickupAlertModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [label, setLabel] = useState('');
   const [mode, setMode] = useState<'spot' | 'radius'>(initialSpotId ? 'spot' : 'radius');
@@ -86,7 +87,7 @@ export function CreatePickupAlertModal({
 
     if (mode === 'spot') {
       if (!spotId.trim()) {
-        Alert.alert('Cancha requerida', 'Especifica el ID de la cancha.');
+        showToast({ type: 'error', title: 'Cancha requerida', message: 'Especifica el ID de la cancha.' });
         return;
       }
       payload.spot = spotId.trim();
@@ -96,7 +97,7 @@ export function CreatePickupAlertModal({
       const rad = parseFloat(radiusKm);
 
       if (isNaN(lat) || isNaN(lng)) {
-        Alert.alert('Ubicación requerida', 'Captura las coordenadas para el aviso por radio.');
+        showToast({ type: 'error', title: 'Ubicación requerida', message: 'Captura las coordenadas para el aviso por radio.' });
         return;
       }
       payload.latitude = lat;
@@ -106,11 +107,15 @@ export function CreatePickupAlertModal({
 
     if (enableTimeWindow) {
       if (!startTime || !endTime) {
-        Alert.alert('Horario incompleto', 'Debes ingresar hora de inicio y fin.');
+        showToast({ type: 'error', title: 'Horario incompleto', message: 'Debes ingresar hora de inicio y fin.' });
         return;
       }
       if (startTime >= endTime) {
-        Alert.alert('Horario inválido', 'La hora de fin debe ser posterior a la hora de inicio (no medianoche).');
+        showToast({
+          type: 'error',
+          title: 'Horario inválido',
+          message: 'La hora de fin debe ser posterior a la hora de inicio (no medianoche).',
+        });
         return;
       }
       payload.start_time = startTime;
@@ -119,14 +124,15 @@ export function CreatePickupAlertModal({
 
     try {
       await createMutation.mutateAsync(payload);
-      Alert.alert(
-        'Aviso programado',
-        'Te notificaremos en tiempo real cuando alguien haga check-in que coincida con tus criterios.'
-      );
+      showToast({
+        type: 'success',
+        title: 'Aviso programado',
+        message: 'Te notificaremos en tiempo real cuando alguien haga check-in que coincida con tus criterios.',
+      });
       onClose();
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'No se pudo registrar el aviso.');
+      showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo registrar el aviso.' });
     }
   };
 

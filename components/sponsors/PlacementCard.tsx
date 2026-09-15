@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import { useToast } from '@/context/ToastContext';
 import {
   Award,
   Eye,
@@ -40,6 +41,7 @@ export const PlacementCard: React.FC<PlacementCardProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [renewModalVisible, setRenewModalVisible] = useState(false);
 
@@ -64,17 +66,18 @@ export const PlacementCard: React.FC<PlacementCardProps> = ({
       },
       {
         onSuccess: () => {
-          Alert.alert(
-            nextState ? 'Espacio Activado' : 'Espacio Pausado',
-            `El espacio publicitario ha sido ${nextState ? 'activado' : 'pausado'} correctamente.`
-          );
+          showToast({
+            type: 'success',
+            title: nextState ? 'Espacio Activado' : 'Espacio Pausado',
+            message: `El espacio publicitario ha sido ${nextState ? 'activado' : 'pausado'} correctamente.`,
+          });
           onRefresh?.();
         },
         onError: (err: any) => {
           const detail =
             err?.response?.data?.detail ||
             'No tienes permisos para modificar este espacio publicitario (403).';
-          Alert.alert('Error', detail);
+          showToast({ type: 'error', title: 'Error', message: detail });
         },
       }
     );
@@ -92,14 +95,14 @@ export const PlacementCard: React.FC<PlacementCardProps> = ({
           onPress: () => {
             deleteMutation.mutate(placement.id, {
               onSuccess: () => {
-                Alert.alert('Eliminado', 'El patrocinio ha sido eliminado.');
+                showToast({ type: 'success', title: 'Eliminado', message: 'El patrocinio ha sido eliminado.' });
                 onRefresh?.();
               },
               onError: (err: any) => {
                 const detail =
                   err?.response?.data?.detail ||
                   'No tienes permisos para eliminar este espacio publicitario (403).';
-                Alert.alert('Error', detail);
+                showToast({ type: 'error', title: 'Error', message: detail });
               },
             });
           },

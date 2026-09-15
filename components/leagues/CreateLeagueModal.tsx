@@ -28,6 +28,7 @@ import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { LocationService } from "@/services/locationService";
+import { useToast } from "@/context/ToastContext";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -68,6 +69,7 @@ export function CreateLeagueModal({
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+  const { showToast } = useToast();
 
   const isEditing = !!initialData;
 
@@ -100,10 +102,10 @@ export function CreateLeagueModal({
         setValue("latitude", Number(loc.latitude.toFixed(6)));
         setValue("longitude", Number(loc.longitude.toFixed(6)));
       } else {
-        Alert.alert("Ubicación", "No se pudo obtener la ubicación GPS.");
+        showToast({ type: "error", title: "Ubicación", message: "No se pudo obtener la ubicación GPS." });
       }
     } catch {
-      Alert.alert("Error", "Error al capturar la ubicación.");
+      showToast({ type: "error", title: "Error", message: "Error al capturar la ubicación." });
     } finally {
       setIsGettingLocation(false);
     }
@@ -161,7 +163,7 @@ export function CreateLeagueModal({
 
   const onSubmit = async (data: LeagueSchema) => {
     if (!user?.id) {
-      Alert.alert("Error", "No se pudo identificar al usuario.");
+      showToast({ type: "error", title: "Error", message: "No se pudo identificar al usuario." });
       return;
     }
 
@@ -215,11 +217,11 @@ export function CreateLeagueModal({
 
       if (isEditing) {
         await api.patch(`/v1/leagues/${initialData.id}/`, formData);
-        Alert.alert(t('common.save'), t('leagues_form.success_update'));
+        showToast({ type: "success", title: t('common.save'), message: t('leagues_form.success_update') });
       } else {
         await api.post("/v1/leagues/", formData);
         metrics.trackLeagueCreated(data.city, data.country);
-        Alert.alert(t('common.save'), t('leagues_form.success_create'));
+        showToast({ type: "success", title: t('common.save'), message: t('leagues_form.success_create') });
       }
 
       reset();
@@ -227,10 +229,11 @@ export function CreateLeagueModal({
       onClose();
     } catch (error: any) {
       console.error("Error saving league:", error);
-      Alert.alert(
-        "Error",
-        error.message || "Ocurrió un problema al guardar la liga.",
-      );
+      showToast({
+        type: "error",
+        title: "Error",
+        message: error.message || "Ocurrió un problema al guardar la liga.",
+      });
     }
   };
 
@@ -254,7 +257,7 @@ export function CreateLeagueModal({
               onSuccess();
             } catch (error: any) {
               console.error("Error deleting league:", error);
-              Alert.alert("Error", "No se pudo eliminar la liga.");
+              showToast({ type: "error", title: "Error", message: "No se pudo eliminar la liga." });
             }
           },
         },

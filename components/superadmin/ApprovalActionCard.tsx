@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Layers, Trophy, Check, X, Calendar, MapPin } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { League } from '@/features/leagues/types/league';
 import { Tournament } from '@/features/tournaments/types/tournament';
 import {
@@ -32,6 +33,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const approveLeagueMutation = useApproveLeague();
   const rejectLeagueMutation = useRejectLeague();
@@ -61,22 +63,30 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
               approveLeagueMutation.mutate(item.id, {
                 onSuccess: () => {
                   metrics.trackApprovalAction('league', 'approved');
-                  Alert.alert('¡Aprobada!', `La liga "${item.name}" fue aprobada.`);
+                  showToast({ type: 'success', title: '¡Aprobada!', message: `La liga "${item.name}" fue aprobada.` });
                   onSuccess?.();
                 },
                 onError: (err: any) => {
-                  Alert.alert('Error', err?.response?.data?.detail || 'No se pudo aprobar.');
+                  showToast({
+                    type: 'error',
+                    title: 'Error',
+                    message: err?.response?.data?.detail || 'No se pudo aprobar.',
+                  });
                 },
               });
             } else {
               approveTournamentMutation.mutate(item.id, {
                 onSuccess: () => {
                   metrics.trackApprovalAction('tournament', 'approved');
-                  Alert.alert('¡Aprobado!', `El torneo "${item.name}" fue aprobado.`);
+                  showToast({ type: 'success', title: '¡Aprobado!', message: `El torneo "${item.name}" fue aprobado.` });
                   onSuccess?.();
                 },
                 onError: (err: any) => {
-                  Alert.alert('Error', err?.response?.data?.detail || 'No se pudo aprobar.');
+                  showToast({
+                    type: 'error',
+                    title: 'Error',
+                    message: err?.response?.data?.detail || 'No se pudo aprobar.',
+                  });
                 },
               });
             }
@@ -100,22 +110,30 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
               rejectLeagueMutation.mutate(item.id, {
                 onSuccess: () => {
                   metrics.trackApprovalAction('league', 'rejected');
-                  Alert.alert('Rechazada', `La liga "${item.name}" fue rechazada.`);
+                  showToast({ type: 'success', title: 'Rechazada', message: `La liga "${item.name}" fue rechazada.` });
                   onSuccess?.();
                 },
                 onError: (err: any) => {
-                  Alert.alert('Error', err?.response?.data?.detail || 'No se pudo rechazar.');
+                  showToast({
+                    type: 'error',
+                    title: 'Error',
+                    message: err?.response?.data?.detail || 'No se pudo rechazar.',
+                  });
                 },
               });
             } else {
               rejectTournamentMutation.mutate(item.id, {
                 onSuccess: () => {
                   metrics.trackApprovalAction('tournament', 'rejected');
-                  Alert.alert('Rechazado', `El torneo "${item.name}" fue rechazado.`);
+                  showToast({ type: 'success', title: 'Rechazado', message: `El torneo "${item.name}" fue rechazado.` });
                   onSuccess?.();
                 },
                 onError: (err: any) => {
-                  Alert.alert('Error', err?.response?.data?.detail || 'No se pudo rechazar.');
+                  showToast({
+                    type: 'error',
+                    title: 'Error',
+                    message: err?.response?.data?.detail || 'No se pudo rechazar.',
+                  });
                 },
               });
             }

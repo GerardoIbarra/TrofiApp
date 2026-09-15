@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, TextInput } from 'react-native';
+import { View, Text, Modal, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput } from 'react-native';
 import { Match } from '@/features/tournaments/types/match';
 import { useTheme } from '@/context/ThemeContext';
 import { X, AlertTriangle } from 'lucide-react-native';
 import { useChangeMatchStatus, useForfeitMatch } from '@/features/matches/services/liveMatchApi';
 import { ChangeStatusSchema } from '@/features/matches/schemas/liveMatchSchema';
+import { useToast } from '@/context/ToastContext';
 
 interface MatchStatusModalProps {
   visible: boolean;
@@ -20,9 +21,10 @@ const STATUS_OPTIONS = [
 
 export function MatchStatusModal({ visible, onClose, match }: MatchStatusModalProps) {
   const { theme, isDark } = useTheme();
+  const { showToast } = useToast();
   const changeStatus = useChangeMatchStatus(match.id);
   const forfeitMatch = useForfeitMatch(match.id);
-  
+
   const [selectedStatus, setSelectedStatus] = useState<string>('postponed');
   const [forfeitingTeam, setForfeitingTeam] = useState<string | null>(null);
   const [note, setNote] = useState('');
@@ -30,23 +32,23 @@ export function MatchStatusModal({ visible, onClose, match }: MatchStatusModalPr
   const handleSubmit = () => {
     if (selectedStatus === 'forfeit') {
       if (!forfeitingTeam) {
-        Alert.alert('Error', 'Selecciona qué equipo comete el forfeit.');
+        showToast({ type: 'error', title: 'Error', message: 'Selecciona qué equipo comete el forfeit.' });
         return;
       }
       forfeitMatch.mutate({ forfeiting_team: forfeitingTeam, note }, {
         onSuccess: onClose,
-        onError: (err: any) => Alert.alert('Error', err.message || 'No se pudo aplicar el forfeit'),
+        onError: (err: any) => showToast({ type: 'error', title: 'Error', message: err.message || 'No se pudo aplicar el forfeit' }),
       });
     } else {
       changeStatus.mutate({ status: selectedStatus as any, note }, {
         onSuccess: onClose,
-        onError: (err: any) => Alert.alert('Error', err.message || 'No se pudo cambiar el estado'),
+        onError: (err: any) => showToast({ type: 'error', title: 'Error', message: err.message || 'No se pudo cambiar el estado' }),
       });
     }
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
           <View style={styles.header}>

@@ -5,16 +5,14 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { HomeFeedMatchCard } from '@/components/matches/HomeFeedMatchCard';
-
-const { width } = Dimensions.get('window');
+import { Skeleton } from '@/components/ui/feedback/Skeleton';
 
 interface HomeFeaturedCarouselProps {
   homeFeed: any[];
@@ -33,6 +31,7 @@ export const HomeFeaturedCarousel = React.memo(function HomeFeaturedCarousel({
 }: HomeFeaturedCarouselProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
+  const { width } = useWindowDimensions();
   const styles = createStyles(theme, isDark);
   const cardWidth = width - 40;
 
@@ -44,13 +43,20 @@ export const HomeFeaturedCarousel = React.memo(function HomeFeaturedCarousel({
             styles.featuredCard,
             {
               width: cardWidth,
-              justifyContent: 'center',
-              alignItems: 'center',
+              padding: 20,
               backgroundColor: isDark ? '#16082A' : '#FFFFFF',
             },
           ]}
         >
-          <ActivityIndicator size="small" color={theme.primary} />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Skeleton width={80} height={14} borderRadius={6} />
+            <Skeleton width={50} height={14} borderRadius={6} />
+          </View>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 }}>
+            <Skeleton width={64} height={64} borderRadius={32} />
+            <Skeleton width={140} height={16} borderRadius={6} />
+          </View>
+          <Skeleton width="100%" height={40} borderRadius={12} />
         </View>
       ) : homeFeed && homeFeed.length > 0 ? (
         <>

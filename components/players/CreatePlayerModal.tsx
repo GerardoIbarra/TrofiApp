@@ -25,7 +25,6 @@ import {
 import React, { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -35,6 +34,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useToast } from "@/context/ToastContext";
 
 interface CreatePlayerModalProps {
   visible: boolean;
@@ -65,6 +65,7 @@ export function CreatePlayerModal({
 }: CreatePlayerModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const {
     control,
@@ -108,10 +109,11 @@ export function CreatePlayerModal({
   const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
-        "Permiso denegado",
-        "Necesitamos permiso para usar la cámara.",
-      );
+      showToast({
+        type: "error",
+        title: "Permiso denegado",
+        message: "Necesitamos permiso para usar la cámara.",
+      });
       return;
     }
 
@@ -171,15 +173,20 @@ export function CreatePlayerModal({
       }
 
       await api.post("/v1/players/", formData);
-      Alert.alert("¡Fichaje Completado!", "El jugador ha sido registrado.");
+      showToast({
+        type: "success",
+        title: "¡Fichaje Completado!",
+        message: "El jugador ha sido registrado.",
+      });
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error("Error creating player:", error);
-      Alert.alert(
-        "Error",
-        error.message || "Ocurrió un problema al registrar al jugador.",
-      );
+      showToast({
+        type: "error",
+        title: "Error",
+        message: error.message || "Ocurrió un problema al registrar al jugador.",
+      });
     }
   };
 

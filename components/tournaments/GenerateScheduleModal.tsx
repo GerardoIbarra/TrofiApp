@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView, Alert } from "react-native";
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView } from "react-native";
 import { useForm } from "react-hook-form";
 import { X, CalendarPlus } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/context/ToastContext";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { FormInput } from "@/components/ui/forms/FormInput";
@@ -18,6 +19,7 @@ interface Props {
 export function GenerateScheduleModal({ visible, onClose, tournamentId }: Props) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const weeklyMutation = useGenerateWeeklySchedule();
   const roundRobinMutation = useGenerateRoundRobin();
@@ -35,11 +37,11 @@ export function GenerateScheduleModal({ visible, onClose, tournamentId }: Props)
       data: { start_date: data.start_date }
     }, {
       onSuccess: () => {
-        Alert.alert("Éxito", "Calendario semanal generado.");
+        showToast({ type: 'success', title: "Éxito", message: "Calendario semanal generado." });
         onClose();
       },
       onError: (err: any) => {
-        Alert.alert("Error", err.message || "Revisa que tengas una configuración guardada.");
+        showToast({ type: 'error', title: "Error", message: err.message || "Revisa que tengas una configuración guardada." });
       }
     });
   };
@@ -53,7 +55,7 @@ export function GenerateScheduleModal({ visible, onClose, tournamentId }: Props)
       }
     }, {
       onSuccess: () => {
-        Alert.alert("Éxito", "Calendario Round-Robin generado.");
+        showToast({ type: 'success', title: "Éxito", message: "Calendario Round-Robin generado." });
         onClose();
       }
     });

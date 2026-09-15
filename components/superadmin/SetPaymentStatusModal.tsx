@@ -6,10 +6,10 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { X, CheckCircle, Clock, AlertTriangle, Settings2 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { LeaguePaymentStatus } from '@/features/superadmin/types/superadmin';
 import { useSetLeaguePaymentStatus } from '@/features/superadmin/services/superadminApi';
 
@@ -32,6 +32,7 @@ export const SetPaymentStatusModal: React.FC<SetPaymentStatusModalProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [selectedStatus, setSelectedStatus] = useState<LeaguePaymentStatus>(currentStatus);
   const setStatusMutation = useSetLeaguePaymentStatus();
@@ -44,21 +45,26 @@ export const SetPaymentStatusModal: React.FC<SetPaymentStatusModalProps> = ({
       },
       {
         onSuccess: () => {
-          Alert.alert(
-            'Estado de Pago Actualizado',
-            `La liga ahora figura como "${
+          showToast({
+            type: 'success',
+            title: 'Estado de Pago Actualizado',
+            message: `La liga ahora figura como "${
               selectedStatus === 'up_to_date'
                 ? 'Al día'
                 : selectedStatus === 'overdue'
                 ? 'Pago Vencido (bloquea creación de torneos)'
                 : 'Pendiente'
-            }".`
-          );
+            }".`,
+          });
           onSuccess?.();
           onClose();
         },
         onError: (err: any) => {
-          Alert.alert('Error', err?.response?.data?.detail || 'No se pudo actualizar el estado.');
+          showToast({
+            type: 'error',
+            title: 'Error',
+            message: err?.response?.data?.detail || 'No se pudo actualizar el estado.',
+          });
         },
       }
     );

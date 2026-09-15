@@ -4,15 +4,16 @@ import {
   View,
   Text,
   StyleSheet,
+  ScrollView,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { Megaphone, X, Send } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import {
   useCreateAnnouncement,
   useUpdateAnnouncement,
@@ -36,6 +37,7 @@ export function CreateAnnouncementModal({
 }: CreateAnnouncementModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
@@ -58,11 +60,11 @@ export function CreateAnnouncementModal({
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      Alert.alert('Campo requerido', 'Por favor ingresa un título para el aviso.');
+      showToast({ type: 'error', title: 'Campo requerido', message: 'Por favor ingresa un título para el aviso.' });
       return;
     }
     if (!body.trim()) {
-      Alert.alert('Campo requerido', 'Por favor ingresa el contenido del aviso.');
+      showToast({ type: 'error', title: 'Campo requerido', message: 'Por favor ingresa el contenido del aviso.' });
       return;
     }
 
@@ -74,7 +76,7 @@ export function CreateAnnouncementModal({
           leagueId,
           tournamentId,
         });
-        Alert.alert('¡Aviso actualizado!', 'Las modificaciones se han guardado.');
+        showToast({ type: 'success', title: '¡Aviso actualizado!', message: 'Las modificaciones se han guardado.' });
       } else {
         await createMutation.mutateAsync({
           title: title.trim(),
@@ -82,11 +84,11 @@ export function CreateAnnouncementModal({
           league: leagueId,
           tournament: tournamentId,
         });
-        Alert.alert('¡Aviso publicado!', 'Se ha transmitido a todos los miembros y seguidores.');
+        showToast({ type: 'success', title: '¡Aviso publicado!', message: 'Se ha transmitido a todos los miembros y seguidores.' });
       }
       onClose();
     } catch (err: any) {
-      Alert.alert('Error', err?.message || 'No se pudo publicar el aviso.');
+      showToast({ type: 'error', title: 'Error', message: err?.message || 'No se pudo publicar el aviso.' });
     }
   };
 
@@ -117,58 +119,60 @@ export function CreateAnnouncementModal({
             </TouchableOpacity>
           </View>
 
-          {/* Form */}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>TÍTULO DEL AVISO</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ej. Cambio de sede — Fecha 9"
-              placeholderTextColor={theme.textSecondary + '77'}
-              value={title}
-              onChangeText={setTitle}
-              maxLength={120}
-            />
-          </View>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollBody}>
+            {/* Form */}
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>TÍTULO DEL AVISO</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ej. Cambio de sede — Fecha 9"
+                placeholderTextColor={theme.textSecondary + '77'}
+                value={title}
+                onChangeText={setTitle}
+                maxLength={120}
+              />
+            </View>
 
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>MENSAJE / COMUNICADO</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              placeholder="Escribe el mensaje oficial que recibirán los participantes..."
-              placeholderTextColor={theme.textSecondary + '77'}
-              value={body}
-              onChangeText={setBody}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>MENSAJE / COMUNICADO</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Escribe el mensaje oficial que recibirán los participantes..."
+                placeholderTextColor={theme.textSecondary + '77'}
+                value={body}
+                onChangeText={setBody}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
 
-          {/* Notice */}
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              ℹ️ Este aviso generará una notificación inmediata (+ push) para todos los miembros registrados.
-            </Text>
-          </View>
+            {/* Notice */}
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>
+                ℹ️ Este aviso generará una notificación inmediata (+ push) para todos los miembros registrados.
+              </Text>
+            </View>
 
-          {/* Action Button */}
-          <TouchableOpacity
-            style={[styles.submitBtn, isSubmitting && { opacity: 0.6 }]}
-            onPress={handleSubmit}
-            disabled={isSubmitting}
-            activeOpacity={0.8}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="#001A2C" />
-            ) : (
-              <>
-                <Send size={16} color="#001A2C" />
-                <Text style={styles.submitBtnText}>
-                  {isEditing ? 'Guardar Cambios' : 'Publicar Comunicado'}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+            {/* Action Button */}
+            <TouchableOpacity
+              style={[styles.submitBtn, isSubmitting && { opacity: 0.6 }]}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
+              activeOpacity={0.8}
+            >
+              {isSubmitting ? (
+                <ActivityIndicator size="small" color="#001A2C" />
+              ) : (
+                <>
+                  <Send size={16} color="#001A2C" />
+                  <Text style={styles.submitBtnText}>
+                    {isEditing ? 'Guardar Cambios' : 'Publicar Comunicado'}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -187,11 +191,15 @@ const createStyles = (theme: any, isDark: boolean) =>
     modalCard: {
       width: '100%',
       maxWidth: 460,
+      maxHeight: '85%',
       backgroundColor: theme.surface,
       borderRadius: 22,
       padding: 20,
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+      gap: 14,
+    },
+    scrollBody: {
       gap: 14,
     },
     header: {

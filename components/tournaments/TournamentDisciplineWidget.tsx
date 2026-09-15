@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, FlatList } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import { ShieldAlert, AlertCircle, AlertOctagon, Check, Plus } from 'lucide-react-native';
 import { useGetActiveSuspensions, useGetDisciplinaryRecords, useLiftSuspension } from '@/features/discipline/services/disciplineApi';
@@ -15,6 +16,7 @@ interface TournamentDisciplineWidgetProps {
 export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: TournamentDisciplineWidgetProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'suspensions' | 'records'>('suspensions');
   const [isManualModalVisible, setIsManualModalVisible] = useState(false);
@@ -35,8 +37,8 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
           style: 'destructive',
           onPress: () => {
             liftSuspension.mutate(id, {
-              onSuccess: () => Alert.alert('Éxito', t('discipline.lift_success')),
-              onError: (err: any) => Alert.alert('Error', err?.response?.data?.detail || 'No se pudo levantar.')
+              onSuccess: () => showToast({ type: 'success', title: 'Éxito', message: t('discipline.lift_success') }),
+              onError: (err: any) => showToast({ type: 'error', title: 'Error', message: err?.response?.data?.detail || 'No se pudo levantar.' })
             });
           }
         }
@@ -83,6 +85,7 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
       ) : activeTab === 'suspensions' ? (
         <View style={styles.list}>
           <FlatList
+            scrollEnabled={false}
             data={suspensions}
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={() => (
@@ -129,6 +132,7 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
       ) : (
         <View style={styles.list}>
           <FlatList
+            scrollEnabled={false}
             data={records}
             contentContainerStyle={{ paddingBottom: 40 }}
             ListEmptyComponent={() => (
@@ -169,7 +173,6 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     marginTop: 10,
   },
   header: {
@@ -207,7 +210,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   list: {
-    flex: 1,
     paddingHorizontal: 20,
     paddingBottom: 40,
   },

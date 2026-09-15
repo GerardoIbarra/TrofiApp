@@ -89,9 +89,10 @@ export function FormDatePicker<T extends FieldValues>({
             </TouchableOpacity>
 
             {Platform.OS === 'ios' ? (
-              <Modal visible={show} transparent animationType="slide">
+              <Modal visible={show} transparent animationType="slide" onRequestClose={() => setShow(false)}>
                 <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShow(false)}>
                   <TouchableOpacity style={styles.modalContent} activeOpacity={1}>
+                    <View style={styles.modalGrabber} />
                     <View style={styles.modalHeader}>
                       <TouchableOpacity onPress={() => setShow(false)}>
                         <Text style={styles.doneText}>Listo</Text>
@@ -183,6 +184,14 @@ const createStyles = (theme: any, isDark: boolean) =>
       borderTopLeftRadius: 16,
       borderTopRightRadius: 16,
       paddingBottom: 20,
+    },
+    modalGrabber: {
+      alignSelf: 'center',
+      width: 36,
+      height: 5,
+      borderRadius: 3,
+      marginTop: 8,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.15)',
     },
     modalHeader: {
       flexDirection: 'row',

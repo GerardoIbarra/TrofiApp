@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 export const LightTheme = {
-  primary: '#00A3AC', // Cian Oceánico (más legible en claro)
+  primary: '#00838F', // Cian Oceánico oscurecido: ~4.5:1 sobre blanco (WCAG AA para texto normal)
   background: '#F1F5F9', // Gris suave para contraste con tarjetas
   surface: '#FFFFFF',    // Blanco puro para tarjetas
   surfaceSubtle: 'rgba(0, 0, 0, 0.03)',
@@ -14,7 +14,7 @@ export const LightTheme = {
   liveRed: '#FF4B4B',
   border: '#CBD5E1', // Borde más visible
   borderSubtle: 'rgba(0, 0, 0, 0.06)',
-  tint: '#00A3AC',
+  tint: '#00838F',
   icon: '#687076',
 };
 

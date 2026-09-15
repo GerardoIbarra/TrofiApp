@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Modal, 
-  TouchableOpacity, 
-  ScrollView, 
-  ActivityIndicator,
-  Alert
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator
 } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { FormInput } from '@/components/ui/forms/FormInput';
 import { FormDatePicker } from '@/components/ui/forms/FormDatePicker';
 import { X, MapPin } from 'lucide-react-native';
@@ -48,6 +48,7 @@ export function CreateMatchModal({
 }: CreateMatchModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,7 +112,7 @@ export function CreateMatchModal({
 
   const onSubmit = async (data: MatchFormData) => {
     if (data.home_team === data.away_team) {
-      Alert.alert('Error', 'El equipo local y el visitante no pueden ser el mismo.');
+      showToast({ type: 'error', title: 'Error', message: 'El equipo local y el visitante no pueden ser el mismo.' });
       return;
     }
 
@@ -130,16 +131,16 @@ export function CreateMatchModal({
 
       if (initialData) {
         await api.put(`/v1/matches/${initialData.id}/`, payload);
-        Alert.alert('¡Éxito!', 'El partido ha sido actualizado.');
+        showToast({ type: 'success', title: '¡Éxito!', message: 'El partido ha sido actualizado.' });
       } else {
         await api.post('/v1/matches/', payload);
-        Alert.alert('¡Éxito!', 'El partido ha sido programado.');
+        showToast({ type: 'success', title: '¡Éxito!', message: 'El partido ha sido programado.' });
       }
       onSuccess();
       onClose();
     } catch (error) {
         console.error('Error saving match:', error);
-        Alert.alert('Error', 'No se pudo guardar el partido.');
+        showToast({ type: 'error', title: 'Error', message: 'No se pudo guardar el partido.' });
     } finally {
       setIsSubmitting(false);
     }

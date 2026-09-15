@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { X, DollarSign, CheckCircle2 } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useCreatePaymentRecord } from '@/features/superadmin/services/superadminApi';
 import { metrics } from '@/services/metrics';
 
@@ -31,6 +31,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [amount, setAmount] = useState('150.00');
   const [notes, setNotes] = useState('');
@@ -40,7 +41,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
   const handleRecord = () => {
     const cleanAmount = amount.trim();
     if (!cleanAmount || isNaN(Number(cleanAmount)) || Number(cleanAmount) <= 0) {
-      Alert.alert('Error', 'Ingresa un monto válido.');
+      showToast({ type: 'error', title: 'Error', message: 'Ingresa un monto válido.' });
       return;
     }
 
@@ -53,10 +54,11 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       {
         onSuccess: () => {
           metrics.trackPaymentLogged(Number(cleanAmount));
-          Alert.alert(
-            '¡Pago Registrado!',
-            `El pago de $${cleanAmount} fue asentado correctamente. La liga ha quedado marcada como "Al día" (up_to_date).`
-          );
+          showToast({
+            type: 'success',
+            title: '¡Pago Registrado!',
+            message: `El pago de $${cleanAmount} fue asentado correctamente. La liga ha quedado marcada como "Al día" (up_to_date).`,
+          });
           onSuccess?.();
           onClose();
         },
@@ -65,7 +67,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             err?.response?.data?.detail ||
             err?.message ||
             'No se pudo registrar el pago. Asegúrate de tener permisos de staff de Trofi.';
-          Alert.alert('Error al registrar pago', detail);
+          showToast({ type: 'error', title: 'Error al registrar pago', message: detail });
         },
       }
     );

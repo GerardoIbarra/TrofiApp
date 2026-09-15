@@ -1,4 +1,5 @@
 import { CreateTeamModal } from "@/components/teams/CreateTeamModal";
+import { TeamCardSkeleton } from "@/components/teams/TeamCardSkeleton";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
@@ -10,8 +11,7 @@ import { AlertCircle, Plus } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
-  Dimensions,
+  RefreshControl,
   Image,
   ScrollView,
   StyleSheet,
@@ -19,8 +19,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-const { width } = Dimensions.get("window");
 
 // Fallback logos for teams
 const FALLBACK_LOGOS = [
@@ -39,14 +37,19 @@ export default function TeamsScreen() {
 
   const [teams, setTeams] = useState<Team[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     fetchTeams();
   }, []);
 
-  const fetchTeams = async () => {
-    setIsLoading(true);
+  const fetchTeams = async (silent = false) => {
+    if (silent) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
     try {
       const response = await api.get<TeamsResponse>("/v1/teams/");
       setTeams(response.results);
@@ -54,6 +57,7 @@ export default function TeamsScreen() {
       console.error("Error fetching teams:", error);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -65,15 +69,25 @@ export default function TeamsScreen() {
       <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => fetchTeams(true)}
+              tintColor={theme.primary}
+              colors={[theme.primary]}
+            />
+          }
         >
           <View style={styles.webContainer}>
             {/* Header Section */}
 
             {/* Teams List */}
             {isLoading ? (
-              <View style={{ marginTop: 50, alignItems: "center" }}>
-                <ActivityIndicator color={theme.primary} size="large" />
-              </View>
+              <>
+                <TeamCardSkeleton />
+                <TeamCardSkeleton />
+                <TeamCardSkeleton />
+              </>
             ) : teams.length > 0 ? (
               teams.map((team, index) => (
                 <TouchableOpacity
@@ -93,8 +107,10 @@ export default function TeamsScreen() {
                       style={styles.teamLogo}
                     />
                     <View style={styles.teamInfo}>
-                      <Text style={styles.teamNameText}>{team.name}</Text>
-                      <Text style={styles.leagueNameText}>
+                      <Text style={styles.teamNameText} numberOfLines={1}>
+                        {team.name}
+                      </Text>
+                      <Text style={styles.leagueNameText} numberOfLines={1}>
                         {team.league_name || t("teams.free_agent")}
                       </Text>
                     </View>
@@ -236,6 +252,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     teamInfo: {
       marginLeft: 18,
+      flex: 1,
     },
     teamNameText: {
       fontSize: 22,

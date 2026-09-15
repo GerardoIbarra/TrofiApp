@@ -8,7 +8,6 @@ import { Copy, X, Check, Info } from "lucide-react-native";
 import React from "react";
 import { useForm } from "react-hook-form";
 import {
-  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -18,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useToast } from "@/context/ToastContext";
 
 interface CloneTournamentModalProps {
   visible: boolean;
@@ -45,6 +45,7 @@ export function CloneTournamentModal({
 }: CloneTournamentModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const cloneMutation = useCloneTournament();
 
   const { control, handleSubmit, reset } = useForm<CloneFormValues>({
@@ -77,24 +78,18 @@ export function CloneTournamentModal({
       {
         onSuccess: (response: any) => {
           const teamsCloned = response?.teams_cloned ?? 0;
-          Alert.alert(
-            "¡Temporada Clonada!",
-            `Torneo clonado exitosamente.${
+          showToast({
+            type: "success",
+            title: "¡Temporada Clonada!",
+            message: `Torneo clonado exitosamente.${
               teamsCloned > 0
                 ? ` Se transfirieron ${teamsCloned} equipo${teamsCloned === 1 ? "" : "s"} con su capitán.`
                 : " Sin equipos transferidos."
             }\n\nLos planteles inician vacíos para nuevas altas y el nuevo torneo arranca en estado pendiente de aprobación.`,
-            [
-              {
-                text: "Aceptar",
-                onPress: () => {
-                  reset();
-                  onSuccess(response);
-                  onClose();
-                },
-              },
-            ]
-          );
+          });
+          reset();
+          onSuccess(response);
+          onClose();
         },
         onError: (error: any) => {
           const detail =
@@ -108,7 +103,7 @@ export function CloneTournamentModal({
               : null) ||
             error?.message ||
             "No se pudo clonar la temporada.";
-          Alert.alert("Error", detail);
+          showToast({ type: "error", title: "Error", message: detail });
         },
       }
     );

@@ -26,6 +26,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
+import { useToast } from "@/context/ToastContext";
 
 interface CreateTeamModalProps {
   visible: boolean;
@@ -44,6 +45,7 @@ export function CreateTeamModal({
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+  const { showToast } = useToast();
 
   const isEditing = !!initialData;
 
@@ -93,7 +95,7 @@ export function CreateTeamModal({
 
   const onSubmit = async (data: TeamSchema) => {
     if (!user?.id) {
-      Alert.alert("Error", "No se pudo identificar al usuario.");
+      showToast({ type: "error", title: "Error", message: "No se pudo identificar al usuario." });
       return;
     }
 
@@ -107,11 +109,11 @@ export function CreateTeamModal({
 
       if (isEditing && initialData) {
         await api.patch(`/v1/teams/${initialData.id}/`, payload);
-        Alert.alert(t('common.save'), t('teams_form.success_update'));
+        showToast({ type: "success", title: t('common.save'), message: t('teams_form.success_update') });
       } else {
         await api.post("/v1/teams/", payload);
         metrics.trackTeamCreated(data.league);
-        Alert.alert(t('common.save'), t('teams_form.success_create'));
+        showToast({ type: "success", title: t('common.save'), message: t('teams_form.success_create') });
       }
 
       reset();
@@ -119,10 +121,11 @@ export function CreateTeamModal({
       onClose();
     } catch (error: any) {
       console.error("Error saving team:", error);
-      Alert.alert(
-        "Error",
-        error.message || "Ocurrió un problema al guardar el equipo.",
-      );
+      showToast({
+        type: "error",
+        title: "Error",
+        message: error.message || "Ocurrió un problema al guardar el equipo.",
+      });
     }
   };
 
@@ -145,7 +148,7 @@ export function CreateTeamModal({
               onSuccess();
             } catch (error: any) {
               console.error("Error deleting team:", error);
-              Alert.alert("Error", "No se pudo eliminar el equipo.");
+              showToast({ type: "error", title: "Error", message: "No se pudo eliminar el equipo." });
             }
           },
         },

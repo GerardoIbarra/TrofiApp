@@ -14,7 +14,7 @@ export function PenaltyShootoutModal({ visible, onClose, match }: PenaltyShootou
   const { theme } = useTheme();
   
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
         <View style={{ backgroundColor: theme.surface, padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, minHeight: 500 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>

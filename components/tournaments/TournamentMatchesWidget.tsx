@@ -8,7 +8,6 @@ import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
-  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -65,11 +64,6 @@ export function TournamentMatchesWidget({
       setIsLoading(false);
       setRefreshing(false);
     }
-  };
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchMatches();
   };
 
   const handleEditResult = (match: Match) => {
@@ -231,13 +225,7 @@ export function TournamentMatchesWidget({
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.primary}
-          />
-        }
+        scrollEnabled={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Calendar size={40} color={theme.textSecondary} opacity={0.3} />
@@ -273,7 +261,6 @@ export function TournamentMatchesWidget({
 const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     container: {
-      flex: 1,
       marginTop: 10,
     },
     adminActionRow: {

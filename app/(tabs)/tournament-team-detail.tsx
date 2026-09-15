@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
@@ -10,6 +10,7 @@ import { useCreateJoinRequest, useApproveJoinRequest, useRejectJoinRequest } fro
 import { Users, UserPlus, Check, X, ShieldHalf, Star } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/context/ToastContext";
 
 export default function TournamentTeamDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -18,6 +19,7 @@ export default function TournamentTeamDetailScreen() {
   const { t, i18n } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
+  const { showToast } = useToast();
 
   const [teamInfo, setTeamInfo] = useState<any>(null);
   const [roster, setRoster] = useState<any[]>([]);
@@ -65,10 +67,11 @@ export default function TournamentTeamDetailScreen() {
   const handleJoinRequest = () => {
     const playerProfileId = user?.player_profile_id || user?.player_profile?.id;
     if (!user || !playerProfileId) {
-      Alert.alert(
-        t("tournament_team.req_profile_title", "Perfil Requerido"),
-        t("tournament_team.req_profile_msg", "Debes crear tu perfil de jugador primero.")
-      );
+      showToast({
+        type: 'info',
+        title: t("tournament_team.req_profile_title", "Perfil Requerido"),
+        message: t("tournament_team.req_profile_msg", "Debes crear tu perfil de jugador primero."),
+      });
       return;
     }
 
@@ -78,17 +81,19 @@ export default function TournamentTeamDetailScreen() {
       player: playerProfileId
     }, {
       onSuccess: () => {
-        Alert.alert(
-          t("tournament_team.req_sent_title", "Solicitud Enviada"),
-          t("tournament_team.req_sent_msg", "El capitán debe aprobar tu solicitud.")
-        );
+        showToast({
+          type: 'success',
+          title: t("tournament_team.req_sent_title", "Solicitud Enviada"),
+          message: t("tournament_team.req_sent_msg", "El capitán debe aprobar tu solicitud."),
+        });
         fetchData();
       },
       onError: (err: any) => {
-        Alert.alert(
-          t("tournament_team.error_title", "Error"),
-          err.message || t("tournament_team.error_send_msg", "No se pudo enviar la solicitud.")
-        );
+        showToast({
+          type: 'error',
+          title: t("tournament_team.error_title", "Error"),
+          message: err.message || t("tournament_team.error_send_msg", "No se pudo enviar la solicitud."),
+        });
       }
     });
   };
@@ -217,7 +222,7 @@ export default function TournamentTeamDetailScreen() {
 }
 
 const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
-  scrollContent: { paddingBottom: 40, paddingHorizontal: 20 },
+  scrollContent: { paddingBottom: 100, paddingHorizontal: 20 },
   header: { alignItems: 'center', marginVertical: 30 },
   iconBox: {
     width: 80, height: 80, borderRadius: 20,

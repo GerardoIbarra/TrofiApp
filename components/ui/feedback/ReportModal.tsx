@@ -7,13 +7,13 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { ShieldAlert, X, Check, Flag } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
 import { logger } from '@/services/logger';
@@ -50,6 +50,7 @@ export function ReportModal({
   const { theme, isDark } = useTheme();
   const { i18n } = useTranslation();
   const isEn = i18n.language?.startsWith('en');
+  const { showToast } = useToast();
 
   const [selectedReason, setSelectedReason] = useState<string>('harassment');
   const [comments, setComments] = useState<string>('');
@@ -96,27 +97,22 @@ export function ReportModal({
         } catch (_) {}
       }
 
-      Alert.alert(
-        isEn ? 'Report Received' : 'Reporte Recibido',
-        isEn
+      showToast({
+        type: 'success',
+        title: isEn ? 'Report Received' : 'Reporte Recibido',
+        message: isEn
           ? 'Thank you for helping keep Trofi safe. Our moderation team reviews all reports within 24 hours.'
           : 'Gracias por mantener a Trofi seguro. Nuestro equipo de moderación revisa todo reporte en un plazo máximo de 24 horas.',
-        [
-          {
-            text: isEn ? 'OK' : 'Entendido',
-            onPress: () => {
-              handleReset();
-              onClose();
-              onSuccess?.();
-            },
-          },
-        ]
-      );
+      });
+      handleReset();
+      onClose();
+      onSuccess?.();
     } catch (e) {
-      Alert.alert(
-        isEn ? 'Error' : 'Error',
-        isEn ? 'Could not submit report. Please try again.' : 'No se pudo enviar el reporte. Por favor intenta de nuevo.'
-      );
+      showToast({
+        type: 'error',
+        title: isEn ? 'Error' : 'Error',
+        message: isEn ? 'Could not submit report. Please try again.' : 'No se pudo enviar el reporte. Por favor intenta de nuevo.',
+      });
     } finally {
       setIsSubmitting(false);
     }

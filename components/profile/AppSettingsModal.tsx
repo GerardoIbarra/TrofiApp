@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { queryClient } from '@/services/queryClient';
+import { useToast } from '@/context/ToastContext';
 
 interface AppSettingsModalProps {
   visible: boolean;
@@ -41,6 +42,7 @@ export const AppSettingsModal = React.memo(function AppSettingsModal({
   const { t, i18n } = useTranslation();
   const styles = createStyles(theme, isDark);
   const isEn = i18n.language === 'en';
+  const { showToast } = useToast();
 
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
 
@@ -50,12 +52,13 @@ export const AppSettingsModal = React.memo(function AppSettingsModal({
       if (__DEV__ || !Updates.isEnabled) {
         setTimeout(() => {
           setIsCheckingUpdates(false);
-          Alert.alert(
-            isEn ? 'Up to Date' : 'Actualizado',
-            isEn
+          showToast({
+            type: 'success',
+            title: isEn ? 'Up to Date' : 'Actualizado',
+            message: isEn
               ? 'Trofi is running the latest available build.'
-              : 'Trofi está ejecutando la versión más reciente disponible.'
-          );
+              : 'Trofi está ejecutando la versión más reciente disponible.',
+          });
         }, 800);
         return;
       }
@@ -80,21 +83,23 @@ export const AppSettingsModal = React.memo(function AppSettingsModal({
           ]
         );
       } else {
-        Alert.alert(
-          isEn ? 'Up to Date' : 'Actualizado',
-          isEn
+        showToast({
+          type: 'success',
+          title: isEn ? 'Up to Date' : 'Actualizado',
+          message: isEn
             ? 'Trofi is running the latest build.'
-            : 'Trofi cuenta con la versión más reciente.'
-        );
+            : 'Trofi cuenta con la versión más reciente.',
+        });
       }
     } catch (e) {
       setIsCheckingUpdates(false);
-      Alert.alert(
-        isEn ? 'Check Updates' : 'Buscar Actualizaciones',
-        isEn
+      showToast({
+        type: 'error',
+        title: isEn ? 'Check Updates' : 'Buscar Actualizaciones',
+        message: isEn
           ? 'Could not check for updates at this moment.'
-          : 'No se pudo comprobar actualizaciones en este momento.'
-      );
+          : 'No se pudo comprobar actualizaciones en este momento.',
+      });
     }
   };
 
@@ -111,12 +116,13 @@ export const AppSettingsModal = React.memo(function AppSettingsModal({
           style: 'destructive',
           onPress: () => {
             queryClient.clear();
-            Alert.alert(
-              isEn ? 'Cache Cleared' : 'Caché Limpia',
-              isEn
+            showToast({
+              type: 'success',
+              title: isEn ? 'Cache Cleared' : 'Caché Limpia',
+              message: isEn
                 ? 'Temporary cache has been cleared successfully.'
-                : 'La memoria caché se ha limpiado correctamente.'
-            );
+                : 'La memoria caché se ha limpiado correctamente.',
+            });
           },
         },
       ]

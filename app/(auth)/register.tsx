@@ -38,8 +38,8 @@ import { metrics } from '@/services/metrics';
 import { RegisterResponse } from '@/features/auth/types/auth';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { AuthStorage } from '@/features/auth/services/authStorage';
-import { Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useToast } from '@/context/ToastContext';
 
 const { width } = Layout.window;
 
@@ -249,6 +249,7 @@ export default function RegisterScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme, isDark, insets);
+  const { showToast } = useToast();
 
   const signIn = useAuthStore((state) => state.signIn);
   const [step, setStep] = useState(1);
@@ -306,7 +307,7 @@ export default function RegisterScreen() {
           : null) ||
         err?.message ||
         t('auth.register_error_msg');
-      Alert.alert(t('auth.register_error_title'), detail);
+      showToast({ type: 'error', title: t('auth.register_error_title'), message: detail });
     }
   };
 

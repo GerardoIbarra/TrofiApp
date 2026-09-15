@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
-  Alert,
 } from "react-native";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useQuery } from "@tanstack/react-query";
@@ -22,11 +21,13 @@ import { Player, PaginatedPlayers } from "@/features/players/types/player";
 import { PlayerAvatar } from "@/components/PlayerAvatar";
 import { ChevronRight, Search, Filter } from "lucide-react-native";
 import { useState } from "react";
+import { useToast } from "@/context/ToastContext";
 
 export default function PlayersListScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 400);
 
@@ -83,7 +84,7 @@ export default function PlayersListScreen() {
           </View>
           <TouchableOpacity 
             style={styles.filterButton}
-            onPress={() => Alert.alert("Próximamente", "Los filtros avanzados estarán disponibles muy pronto.")}
+            onPress={() => showToast({ type: 'info', title: "Próximamente", message: "Los filtros avanzados estarán disponibles muy pronto." })}
           >
             <Filter size={18} color={theme.primary} />
           </TouchableOpacity>

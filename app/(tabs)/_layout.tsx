@@ -13,20 +13,27 @@ export default function TabsLayout() {
       <Tabs.Screen name="market" />
       <Tabs.Screen name="teams" />
       <Tabs.Screen name="profile" />
-      <Tabs.Screen 
-        name="change-password" 
-        options={{ 
+      <Tabs.Screen
+        name="change-password"
+        options={{
           href: null,
           tabBarStyle: { display: 'none' },
-        }} 
+        }}
       />
-      <Tabs.Screen 
-        name="edit-profile" 
-        options={{ 
+      <Tabs.Screen
+        name="edit-profile"
+        options={{
           href: null,
           tabBarStyle: { display: 'none' },
-        }} 
+        }}
       />
+      <Tabs.Screen name="league-detail" options={{ href: null }} />
+      <Tabs.Screen name="team-detail" options={{ href: null }} />
+      <Tabs.Screen name="match-detail" options={{ href: null }} />
+      <Tabs.Screen name="tournament-detail" options={{ href: null }} />
+      <Tabs.Screen name="player-detail" options={{ href: null }} />
+      <Tabs.Screen name="pickup-spot-detail" options={{ href: null }} />
+      <Tabs.Screen name="tournament-team-detail" options={{ href: null }} />
     </Tabs>
   );
 }

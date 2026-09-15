@@ -23,6 +23,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
 import { router } from 'expo-router';
 import { queryClient } from '@/services/queryClient';
+import { useToast } from '@/context/ToastContext';
 
 interface PrivacySecurityModalProps {
   visible: boolean;
@@ -39,6 +40,7 @@ export const PrivacySecurityModal = React.memo(function PrivacySecurityModal({
   const { t, i18n } = useTranslation();
   const styles = createStyles(theme, isDark);
   const isEn = i18n.language === 'en';
+  const { showToast } = useToast();
 
   const handleClearCache = () => {
     Alert.alert(
@@ -53,12 +55,13 @@ export const PrivacySecurityModal = React.memo(function PrivacySecurityModal({
           style: 'destructive',
           onPress: () => {
             queryClient.clear();
-            Alert.alert(
-              isEn ? 'Cache Cleared' : 'Caché Limpia',
-              isEn
+            showToast({
+              type: 'success',
+              title: isEn ? 'Cache Cleared' : 'Caché Limpia',
+              message: isEn
                 ? 'Local temporary cache has been reset.'
-                : 'La memoria caché local se ha restablecido correctamente.'
-            );
+                : 'La memoria caché local se ha restablecido correctamente.',
+            });
           },
         },
       ]
@@ -66,13 +69,13 @@ export const PrivacySecurityModal = React.memo(function PrivacySecurityModal({
   };
 
   const handleDeleteAccount = () => {
-    Alert.alert(
-      isEn ? 'Account Deletion Request' : 'Solicitud de Eliminación de Cuenta',
-      isEn
+    showToast({
+      type: 'info',
+      title: isEn ? 'Account Deletion Request' : 'Solicitud de Eliminación de Cuenta',
+      message: isEn
         ? 'To permanently delete your account and all associated player data per privacy guidelines, contact support at soporte@trofi.club or request deletion from your account settings.'
         : 'Para eliminar permanentemente tu cuenta y todos los datos asociados conforme a las políticas de privacidad, envía un correo a soporte@trofi.club o confirma con soporte de Trofi.',
-      [{ text: 'OK' }]
-    );
+    });
   };
 
   const handleChangePassword = () => {

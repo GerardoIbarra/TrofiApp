@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   Image,
 } from 'react-native';
 import { Plus, Star, ChevronRight } from 'lucide-react-native';
@@ -13,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/context/ThemeContext';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { Player } from '@/features/players/types/player';
+import { PlayerCardSkeleton } from '@/components/home/PlayerCardSkeleton';
 
 interface HomePlayersListProps {
   players: Player[];
@@ -61,8 +61,10 @@ export const HomePlayersList = React.memo(function HomePlayersList({
       </View>
 
       {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color={theme.primary} size="small" />
+        <View style={[styles.playersScrollContent, { flexDirection: 'row' }]}>
+          <PlayerCardSkeleton />
+          <PlayerCardSkeleton />
+          <PlayerCardSkeleton />
         </View>
       ) : (
         <ScrollView

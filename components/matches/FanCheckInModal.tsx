@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Image,
 } from 'react-native';
 import {
@@ -24,6 +23,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { LocationService } from '@/services/locationService';
 import { useFanCheckIn } from '@/features/matches/services/matchApi';
 import { FanCheckInResponse } from '@/features/matches/types/fanCheckIn';
+import { useToast } from '@/context/ToastContext';
 
 interface FanCheckInModalProps {
   visible: boolean;
@@ -42,6 +42,7 @@ export function FanCheckInModal({
 }: FanCheckInModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -58,13 +59,14 @@ export function FanCheckInModal({
       if (pos) {
         setCoords({ latitude: pos.latitude, longitude: pos.longitude });
       } else {
-        Alert.alert(
-          'GPS no disponible',
-          'Asegúrate de conceder permisos de ubicación para verificar tu asistencia en la cancha.'
-        );
+        showToast({
+          type: 'error',
+          title: 'GPS no disponible',
+          message: 'Asegúrate de conceder permisos de ubicación para verificar tu asistencia en la cancha.',
+        });
       }
     } catch {
-      Alert.alert('Error', 'No se pudo obtener la posición GPS actual.');
+      showToast({ type: 'error', title: 'Error', message: 'No se pudo obtener la posición GPS actual.' });
     } finally {
       setIsDetectingGps(false);
     }
@@ -77,7 +79,11 @@ export function FanCheckInModal({
         // Fallback to media library if camera permission is denied
         const libStatus = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (libStatus.status !== 'granted') {
-          Alert.alert('Permiso requerido', 'Se requiere acceso a la cámara o galería para adjuntar tu foto.');
+          showToast({
+            type: 'error',
+            title: 'Permiso requerido',
+            message: 'Se requiere acceso a la cámara o galería para adjuntar tu foto.',
+          });
           return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -113,7 +119,7 @@ export function FanCheckInModal({
       }
     } catch (err) {
       console.error('Error al capturar foto:', err);
-      Alert.alert('Error', 'No se pudo abrir la cámara.');
+      showToast({ type: 'error', title: 'Error', message: 'No se pudo abrir la cámara.' });
     }
   };
 
@@ -130,7 +136,7 @@ export function FanCheckInModal({
 
       setCheckInResult(result);
     } catch (err: any) {
-      Alert.alert('Error al registrar', err?.message || 'No se pudo completar el check-in.');
+      showToast({ type: 'error', title: 'Error al registrar', message: err?.message || 'No se pudo completar el check-in.' });
     }
   };
 

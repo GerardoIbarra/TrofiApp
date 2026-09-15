@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Alert,
   Modal,
   TextInput,
 } from 'react-native';
@@ -33,12 +32,14 @@ import { PlacementCard } from '@/components/sponsors/PlacementCard';
 import { CreatePlacementModal } from '@/components/sponsors/CreatePlacementModal';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
+import { useToast } from '@/context/ToastContext';
 
 export default function SponsorPlacementsScreen() {
   const { theme, isDark } = useTheme();
   const { i18n } = useTranslation();
   const isEn = i18n.language === 'en';
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
   const user = useAuthStore((state) => state.user);
 
   const [filterType, setFilterType] = useState<'my' | 'all'>('my');
@@ -62,10 +63,11 @@ export default function SponsorPlacementsScreen() {
   const handleCreateSponsorProfile = async () => {
     const trimmed = companyName.trim();
     if (!trimmed) {
-      Alert.alert(
-        isEn ? 'Name required' : 'Nombre requerido',
-        isEn ? 'Please enter your company or brand name.' : 'Por favor ingresa el nombre de tu empresa o marca.'
-      );
+      showToast({
+        type: 'error',
+        title: isEn ? 'Name required' : 'Nombre requerido',
+        message: isEn ? 'Please enter your company or brand name.' : 'Por favor ingresa el nombre de tu empresa o marca.',
+      });
       return;
     }
 
@@ -78,16 +80,17 @@ export default function SponsorPlacementsScreen() {
       useAuthStore.setState({ user: meRes });
       setIsSponsorModalVisible(false);
       setCompanyName('');
-      Alert.alert(
-        isEn ? 'Profile Created!' : '¡Perfil Creado!',
-        isEn ? 'Your Sponsor profile is now active.' : 'Ya tienes tu perfil de Sponsor activo.'
-      );
+      showToast({
+        type: 'success',
+        title: isEn ? 'Profile Created!' : '¡Perfil Creado!',
+        message: isEn ? 'Your Sponsor profile is now active.' : 'Ya tienes tu perfil de Sponsor activo.',
+      });
     } catch (err: any) {
       const errMsg =
         err?.response?.data?.company_name?.[0] ||
         err?.response?.data?.detail ||
         (isEn ? 'There was an error creating your sponsor profile.' : 'Hubo un error al crear tu perfil de sponsor.');
-      Alert.alert(isEn ? 'Error' : 'Error', errMsg);
+      showToast({ type: 'error', title: isEn ? 'Error' : 'Error', message: errMsg });
     } finally {
       setIsCreatingProfile(false);
     }

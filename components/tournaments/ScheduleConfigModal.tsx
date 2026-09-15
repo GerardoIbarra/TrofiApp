@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { X, Calendar, Clock, MapPin, CheckSquare, Square } from "lucide-react-native";
 import { useTheme } from "@/context/ThemeContext";
+import { useToast } from "@/context/ToastContext";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 import { FormInput } from "@/components/ui/forms/FormInput";
@@ -29,6 +30,7 @@ const DAYS = [
 export function ScheduleConfigModal({ visible, onClose, tournamentId }: Props) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const { data: config, isLoading: isConfigLoading } = useGetScheduleConfig(tournamentId);
   const { data: venues } = useGetVenues();
@@ -82,7 +84,7 @@ export function ScheduleConfigModal({ visible, onClose, tournamentId }: Props) {
 
   const onSubmit = (data: ScheduleConfigSchema) => {
     if (selectedDays.length === 0) {
-      Alert.alert("Error", "Selecciona al menos un día");
+      showToast({ type: 'error', title: "Error", message: "Selecciona al menos un día" });
       return;
     }
     
@@ -95,7 +97,7 @@ export function ScheduleConfigModal({ visible, onClose, tournamentId }: Props) {
       }
     }, {
       onSuccess: () => {
-        Alert.alert("Éxito", "Configuración guardada correctamente");
+        showToast({ type: 'success', title: "Éxito", message: "Configuración guardada correctamente" });
         onClose();
       }
     });

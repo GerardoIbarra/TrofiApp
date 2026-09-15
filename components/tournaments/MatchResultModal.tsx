@@ -8,11 +8,12 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
   ActivityIndicator
 } from 'react-native';
 import { X, Trophy, Save } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { Match } from '@/features/tournaments/types/match';
 import api from '@/services/api';
 
@@ -26,6 +27,7 @@ interface MatchResultModalProps {
 export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchResultModalProps) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const [homeScore, setHomeScore] = useState('');
   const [awayScore, setAwayScore] = useState('');
@@ -49,12 +51,18 @@ export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchRe
         result_type: 'normal',
       });
       
-      Alert.alert("¡Resultado Guardado!", "El marcador ha sido actualizado correctamente.");
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      showToast({ type: 'success', title: "¡Resultado Guardado!", message: "El marcador ha sido actualizado correctamente." });
       onSuccess();
       onClose();
     } catch (error: any) {
       console.error('Error saving match result:', error);
-      Alert.alert("Error", "No se pudo guardar el resultado.");
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+      showToast({ type: 'error', title: "Error", message: "No se pudo guardar el resultado." });
     } finally {
       setIsSubmitting(false);
     }
@@ -63,7 +71,7 @@ export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchRe
   if (!match) return null;
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

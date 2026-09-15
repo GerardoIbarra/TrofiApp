@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { X, Check } from 'lucide-react-native';
 import { useCreateManualSuspension } from '@/features/discipline/services/disciplineApi';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
+import { useToast } from '@/context/ToastContext';
 
 interface ManualSuspensionModalProps {
   tournamentId: string;
@@ -14,7 +15,8 @@ interface ManualSuspensionModalProps {
 export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensionModalProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
-  
+  const { showToast } = useToast();
+
   const [teams, setTeams] = useState<any[]>([]);
   const [roster, setRoster] = useState<any[]>([]);
   
@@ -57,12 +59,12 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
 
   const handleSubmit = () => {
     if (!selectedRoster) {
-      Alert.alert('Error', t('discipline.error_no_player'));
+      showToast({ type: 'error', title: 'Error', message: t('discipline.error_no_player') });
       return;
     }
-    
+
     if (!matchesSuspended || isNaN(Number(matchesSuspended)) || Number(matchesSuspended) < 1) {
-      Alert.alert('Error', t('discipline.error_no_matches'));
+      showToast({ type: 'error', title: 'Error', message: t('discipline.error_no_matches') });
       return;
     }
 
@@ -74,17 +76,17 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
       notes: notes,
     }, {
       onSuccess: () => {
-        Alert.alert('Éxito', t('discipline.success_manual'));
+        showToast({ type: 'success', title: 'Éxito', message: t('discipline.success_manual') });
         onClose();
       },
       onError: (err: any) => {
-        Alert.alert('Error', err?.response?.data?.detail || 'Error al aplicar sanción.');
+        showToast({ type: 'error', title: 'Error', message: err?.response?.data?.detail || 'Error al aplicar sanción.' });
       }
     });
   };
 
   return (
-    <Modal visible animationType="slide" transparent>
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
           <View style={styles.modalHeader}>

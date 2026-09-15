@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Animated, Dimensions, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Animated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,8 +10,6 @@ import { useTheme } from '@/context/ThemeContext';
 import { Trophy, MapPin, Users, Activity } from 'lucide-react-native';
 
 import { useTranslation } from 'react-i18next';
-
-const { width } = Dimensions.get('window');
 
 export default function OnboardingScreen() {
   const { theme, isDark } = useTheme();

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, CheckCircle2, ShieldCheck } from 'lucide-react-native';
@@ -20,10 +19,12 @@ import { FormInput } from '@/components/ui/forms/FormInput';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import api from '@/services/api';
+import { useToast } from '@/context/ToastContext';
 
 export default function ResetPasswordScreen() {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const params = useLocalSearchParams<{ uid?: string; token?: string }>();
   const initialUid = typeof params.uid === 'string' ? params.uid : '';
@@ -58,15 +59,14 @@ export default function ResetPasswordScreen() {
         new_password: data.new_password,
         new_password2: data.new_password2,
       });
-      Alert.alert(
-        'Contraseña restablecida', 
-        'Tu contraseña se ha restablecido exitosamente. Inicia sesión con tu nueva contraseña.',
-        [
-          { text: 'OK', onPress: () => router.replace('/(auth)/auth-login' as any) }
-        ]
-      );
+      showToast({
+        type: 'success',
+        title: 'Contraseña restablecida',
+        message: 'Tu contraseña se ha restablecido exitosamente. Inicia sesión con tu nueva contraseña.',
+      });
+      router.replace('/(auth)/auth-login' as any);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'El enlace es inválido o ha expirado.');
+      showToast({ type: 'error', title: 'Error', message: err.message || 'El enlace es inválido o ha expirado.' });
     }
   };
 

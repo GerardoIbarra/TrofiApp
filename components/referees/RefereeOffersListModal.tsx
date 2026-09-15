@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { X, Calendar, MapPin, Trophy, Check, Trash2, Mail } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useToast } from '@/context/ToastContext';
 import { RefereeOffer } from '@/features/referees/types/referee';
 import {
   useGetRefereeOffers,
@@ -31,6 +32,7 @@ export const RefereeOffersListModal: React.FC<RefereeOffersListModalProps> = ({
 }) => {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
+  const { showToast } = useToast();
 
   const {
     data: offers,
@@ -55,17 +57,18 @@ export const RefereeOffersListModal: React.FC<RefereeOffersListModalProps> = ({
           onPress: () => {
             acceptMutation.mutate(offer.id, {
               onSuccess: () => {
-                Alert.alert(
-                  '¡Partido Asignado!',
-                  'Has aceptado la oferta y quedaste registrado como árbitro del partido.'
-                );
+                showToast({
+                  type: 'success',
+                  title: '¡Partido Asignado!',
+                  message: 'Has aceptado la oferta y quedaste registrado como árbitro del partido.',
+                });
                 refetch();
               },
               onError: (err: any) => {
                 const detail =
                   err?.response?.data?.detail ||
                   'No se pudo aceptar la oferta o ya fue asignada a otro árbitro.';
-                Alert.alert('Error', detail);
+                showToast({ type: 'error', title: 'Error', message: detail });
               },
             });
           },
@@ -77,13 +80,13 @@ export const RefereeOffersListModal: React.FC<RefereeOffersListModalProps> = ({
   const handleDecline = (offer: RefereeOffer) => {
     declineMutation.mutate(offer.id, {
       onSuccess: () => {
-        Alert.alert('Oferta Rechazada', 'Has rechazado esta oferta.');
+        showToast({ type: 'success', title: 'Oferta Rechazada', message: 'Has rechazado esta oferta.' });
         refetch();
       },
       onError: (err: any) => {
         const detail =
           err?.response?.data?.detail || 'No se pudo rechazar la oferta.';
-        Alert.alert('Error', detail);
+        showToast({ type: 'error', title: 'Error', message: detail });
       },
     });
   };
