@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
@@ -17,15 +17,14 @@ export function TiebreakerConfigModal({ visible, onClose, tournament }: Tiebreak
   const { showToast } = useToast();
   const updateTiebreaker = useUpdateTournamentTiebreaker();
   
-  const [selected, setSelected] = useState<'goal_difference' | 'head_to_head'>(
-    tournament.standings_tiebreaker || 'goal_difference'
-  );
+  const currentTiebreaker = tournament.standings_tiebreaker || 'goal_difference';
+  const [prevTiebreaker, setPrevTiebreaker] = useState(currentTiebreaker);
+  const [selected, setSelected] = useState<'goal_difference' | 'head_to_head'>(currentTiebreaker);
 
-  useEffect(() => {
-    if (visible) {
-      setSelected(tournament.standings_tiebreaker || 'goal_difference');
-    }
-  }, [visible, tournament.standings_tiebreaker]);
+  if (currentTiebreaker !== prevTiebreaker) {
+    setPrevTiebreaker(currentTiebreaker);
+    setSelected(currentTiebreaker);
+  }
 
   const handleSubmit = () => {
     updateTiebreaker.mutate({ id: tournament.id, standings_tiebreaker: selected }, {

@@ -134,7 +134,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             <View style={[styles.infoBanner, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
               <CheckCircle2 size={16} color="#10B981" />
               <Text style={styles.infoText}>
-                Al asentar el pago, el estado de la liga se actualizará automáticamente a "Al día" (up_to_date).
+                Al asentar el pago, el estado de la liga se actualizará automáticamente a &quot;Al día&quot; (up_to_date).
               </Text>
             </View>
 

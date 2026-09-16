@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform } from 'react-native';
 import * as Updates from 'expo-updates';
 import { RefreshCw, Sparkles } from 'lucide-react-native';
 
 export function UpdatePrompt() {
   const { isUpdatePending, isUpdateAvailable } = Updates.useUpdates();
-  const slideAnim = useRef(new Animated.Value(150)).current; // starts offscreen at bottom
+  const [slideAnim] = useState(() => new Animated.Value(150)); // starts offscreen at bottom
 
   useEffect(() => {
     if (isUpdatePending || isUpdateAvailable) {
@@ -24,7 +24,7 @@ export function UpdatePrompt() {
         useNativeDriver: true,
       }).start();
     }
-  }, [isUpdatePending, isUpdateAvailable]);
+  }, [isUpdatePending, isUpdateAvailable, slideAnim]);
 
   const handleUpdate = async () => {
     try {

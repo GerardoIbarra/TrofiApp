@@ -66,13 +66,6 @@ export default function NearbyMapScreen() {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [selectedEntity, setSelectedEntity] = useState<SelectedNearbyEntity | null>(null);
 
-  // Initialize or request location if not set
-  useEffect(() => {
-    if (!location) {
-      handleRefreshLocation();
-    }
-  }, []);
-
   const handleRefreshLocation = async () => {
     setIsLocating(true);
     try {
@@ -84,6 +77,21 @@ export default function NearbyMapScreen() {
       setIsLocating(false);
     }
   };
+
+  // Initialize or request location if not set
+  useEffect(() => {
+    let isMounted = true;
+    if (!location) {
+      LocationService.fetchCurrentPosition().then((pos) => {
+        if (isMounted && pos) {
+          setLocation(pos);
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [location]);
 
   const hasValidCoords =
     !!location &&

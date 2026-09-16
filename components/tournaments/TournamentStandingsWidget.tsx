@@ -1,8 +1,8 @@
 import { useTheme } from "@/context/ThemeContext";
 import { StandingItem } from "@/features/leagues/types/standings";
 import api from "@/services/api";
-import { AlertCircle, Trophy } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { AlertCircle, Trophy, Settings2, Share2 } from "lucide-react-native";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -10,12 +10,11 @@ import {
   StyleSheet,
   Text,
   View,
+  TouchableOpacity,
 } from "react-native";
-
+import { useQuery } from "@tanstack/react-query";
 import { Tournament } from "@/features/tournaments/types/tournament";
 import { TiebreakerConfigModal } from "./modals/TiebreakerConfigModal";
-import { Settings2, Share2 } from "lucide-react-native";
-import { TouchableOpacity } from "react-native";
 import { SponsorBanner } from "@/components/sponsors/SponsorBanner";
 import { shareStandings } from "@/features/share/services/shareService";
 
@@ -34,32 +33,22 @@ export function TournamentStandingsWidget({
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
-  const [standings, setStandings] = useState<StandingItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isConfigVisible, setIsConfigVisible] = useState(false);
 
-  useEffect(() => {
-    fetchStandings();
-  }, [tournamentId]);
-
-  const fetchStandings = async () => {
-    setIsLoading(true);
-    try {
-      // Endpoint basado en tu información: /api/v1/standings/by_tournament/
+  const {
+    data: standings = [],
+    isLoading,
+    refetch: fetchStandings,
+  } = useQuery({
+    queryKey: ["standings", tournamentId],
+    queryFn: async () => {
       const response = await api.get<StandingItem[]>(
         `/v1/standings/by_tournament/?tournament_id=${tournamentId}`,
       );
-      // Ordenamos por posición por si acaso el backend no lo entrega ordenado
-      const sortedResult = [...response].sort(
-        (a, b) => a.position - b.position,
-      );
-      setStandings(sortedResult);
-    } catch (error) {
-      console.error("Error fetching standings:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return [...response].sort((a, b) => a.position - b.position);
+    },
+    enabled: Boolean(tournamentId),
+  });
 
   const getPositionStyle = (pos: number) => {
     if (pos === 1) return styles.posFirst;

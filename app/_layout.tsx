@@ -168,12 +168,6 @@ function InitialNavigation() {
     }
   }, [navigationRef]);
 
-  useEffect(() => {
-    initialize();
-    loadSavedLanguage();
-    requestLocation();
-  }, []);
-
   const requestLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -189,6 +183,12 @@ function InitialNavigation() {
       console.error("Error capturing location:", err);
     }
   };
+
+  useEffect(() => {
+    initialize();
+    loadSavedLanguage();
+    requestLocation();
+  }, []);
 
   // Setup Notification listeners
   useEffect(() => {

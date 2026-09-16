@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
@@ -27,9 +28,9 @@ export default function TournamentDetailScreen() {
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
-  const ServiceItem = ({ icon: Icon, label, active }: { icon: any, label: string, active: boolean }) => {
+  const renderServiceItem = (Icon: any, label: string, active: boolean) => {
     return (
-      <View style={[styles.featureBox, !active && styles.featureDisabled]}>
+      <View key={label} style={[styles.featureBox, !active && styles.featureDisabled]}>
         <Icon size={20} color={active ? theme.primary : theme.textSecondary} />
         <Text style={[styles.featureLabel, !active && { color: theme.textSecondary }]}>
           {label}
@@ -38,17 +39,29 @@ export default function TournamentDetailScreen() {
     );
   };
   
-  const [tournament, setTournament] = useState<Tournament | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isCloneModalVisible, setIsCloneModalVisible] = useState(false);
   const [isAwardsModalVisible, setIsAwardsModalVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('STANDINGS');
+  const [now] = useState(() => Date.now());
   const isAdmin = true;
 
   const openRegistration = useOpenRegistration();
   const closeRegistration = useCloseRegistration();
+
+  const {
+    data: tournament = null,
+    isLoading,
+    refetch: fetchTournamentDetails,
+  } = useQuery({
+    queryKey: ['tournament-detail', id],
+    queryFn: async () => {
+      if (!id) return null;
+      return await api.get<Tournament>(`/v1/tournaments/${id}/`);
+    },
+    enabled: !!id,
+  });
 
   const handleToggleRegistration = () => {
     if (!tournament) return;
@@ -63,23 +76,12 @@ export default function TournamentDetailScreen() {
     }
   };
 
-  useEffect(() => {
-    if (id) {
-      fetchTournamentDetails();
-    }
-  }, [id]);
-
-  const fetchTournamentDetails = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.get<Tournament>(`/v1/tournaments/${id}/`);
-      setTournament(response);
-    } catch (error) {
-      console.error('Error fetching tournament details:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const isTournamentEnded = useMemo(() => {
+    if (!tournament) return false;
+    if (tournament.status === 'completed') return true;
+    if (!tournament.end_date) return false;
+    return new Date(tournament.end_date).getTime() < now;
+  }, [tournament, now]);
 
   if (isLoading) {
     return (
@@ -100,13 +102,6 @@ export default function TournamentDetailScreen() {
       />
     );
   }
-
-  const FEATURE_LIST = [
-    { key: 'payments_enabled', label: t("tournament.service_payments"), icon: CreditCard },
-    { key: 'qr_checkin_enabled', label: t("tournament.service_qr"), icon: QrCode },
-    { key: 'comms_enabled', label: t("tournament.service_comms"), icon: MessageSquare },
-    { key: 'discipline_enabled', label: t("tournament.service_discipline"), icon: ShieldCheck },
-  ];
 
   return (
     <View style={GlobalStyles.container}>
@@ -143,7 +138,7 @@ export default function TournamentDetailScreen() {
             </View>
           )}
 
-          {(tournament.status === 'completed' || (!!tournament.end_date && new Date(tournament.end_date).getTime() < Date.now())) && (
+          {isTournamentEnded && (
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -377,10 +372,10 @@ export default function TournamentDetailScreen() {
                     <Text style={styles.sectionTitle}>{t("tournament.league_services")}</Text>
                   </View>
                   <View style={styles.featuresGrid}>
-                    <ServiceItem icon={CreditCard} label={t("tournament.service_payments")} active={!!tournament.features?.payments_enabled} />
-                    <ServiceItem icon={QrCode} label={t("tournament.service_qr")} active={!!tournament.features?.qr_checkin_enabled} />
-                    <ServiceItem icon={MessageSquare} label={t("tournament.service_comms")} active={!!tournament.features?.comms_enabled} />
-                    <ServiceItem icon={ShieldCheck} label={t("tournament.service_discipline")} active={!!tournament.features?.discipline_enabled} />
+                    {renderServiceItem(CreditCard, t("tournament.service_payments"), !!tournament.features?.payments_enabled)}
+                    {renderServiceItem(QrCode, t("tournament.service_qr"), !!tournament.features?.qr_checkin_enabled)}
+                    {renderServiceItem(MessageSquare, t("tournament.service_comms"), !!tournament.features?.comms_enabled)}
+                    {renderServiceItem(ShieldCheck, t("tournament.service_discipline"), !!tournament.features?.discipline_enabled)}
                   </View>
                 </View>
 

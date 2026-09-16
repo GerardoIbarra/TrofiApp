@@ -318,7 +318,7 @@ export default function RetasScreen() {
                     <Text style={styles.challengeTitle}>
                       {ch.challenger_crew_name} vs {ch.challenged_crew_name}
                     </Text>
-                    {ch.message && <Text style={styles.challengeMsg}>"{ch.message}"</Text>}
+                    {ch.message && <Text style={styles.challengeMsg}>&quot;{ch.message}&quot;</Text>}
                     <Text style={styles.challengeSub}>
                       {ch.spot_name ? `En ${ch.spot_name}` : 'Lugar por acordar'}
                     </Text>

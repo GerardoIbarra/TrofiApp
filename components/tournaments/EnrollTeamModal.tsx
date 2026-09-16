@@ -6,7 +6,8 @@ import { useEnrollTeam } from "@/features/teams/services/tournamentTeamApi";
 import api from "@/services/api";
 import { Team } from "@/features/teams/types/team";
 import { CheckCircle2, ShieldHalf, X } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -36,30 +37,18 @@ export function EnrollTeamModal({
   const styles = createStyles(theme, isDark);
   const { showToast } = useToast();
 
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
   const enrollMutation = useEnrollTeam();
 
-  useEffect(() => {
-    if (visible) {
-      fetchUserTeams();
-    }
-  }, [visible]);
-
-  const fetchUserTeams = async () => {
-    setIsLoading(true);
-    try {
-      // Usualmente el backend filtra los equipos donde el usuario es owner o capitán
+  const { data: teams = [], isLoading } = useQuery({
+    queryKey: ['user-teams-enroll'],
+    queryFn: async () => {
       const response = await api.get<any>("/v1/teams/");
-      setTeams(response.results || response);
-    } catch (error) {
-      console.error("Error fetching teams:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return (response.results || response || []) as Team[];
+    },
+    enabled: visible,
+  });
 
   const onSubmit = () => {
     if (!selectedTeamId) {

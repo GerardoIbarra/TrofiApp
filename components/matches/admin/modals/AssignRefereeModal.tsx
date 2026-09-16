@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { RefereeBadge } from '@/components/referees/RefereeBadge';
 import { RefereeAvailability } from '@/features/referees/types/referee';
 import api from '@/services/api';
 import { useToast } from '@/context/ToastContext';
+import { useQuery } from '@tanstack/react-query';
 
 interface AssignRefereeModalProps {
   visible: boolean;
@@ -32,8 +33,6 @@ export function AssignRefereeModal({ visible, onClose, match }: AssignRefereeMod
   const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState<'marketplace' | 'direct'>('marketplace');
-  const [leagueFeatures, setLeagueFeatures] = useState<any>(null);
-  const [isLoadingLeague, setIsLoadingLeague] = useState(false);
 
   const {
     data: availableReferees,
@@ -44,29 +43,19 @@ export function AssignRefereeModal({ visible, onClose, match }: AssignRefereeMod
   const offerMutation = useOfferMatchReferee(match.id);
   const assignMutation = useAssignReferee(match.id);
 
-  useEffect(() => {
-    if (visible && match) {
-      checkLeagueFeatures();
-    }
-  }, [visible, match?.id]);
-
-  const checkLeagueFeatures = async () => {
-    setIsLoadingLeague(true);
-    try {
-      // Find tournament or league governing this match
-      if (match.tournament) {
-        const tournamentData = await api.get<any>(`/v1/tournaments/${match.tournament}/`);
-        if (tournamentData?.league) {
-          const leagueData = await api.get<any>(`/v1/leagues/${tournamentData.league}/`);
-          setLeagueFeatures(leagueData?.features || null);
-        }
+  const { data: leagueFeatures = null, isLoading: isLoadingLeague } = useQuery({
+    queryKey: ['league-features-match', match?.tournament],
+    queryFn: async () => {
+      if (!match?.tournament) return null;
+      const tournamentData = await api.get<any>(`/v1/tournaments/${match.tournament}/`);
+      if (tournamentData?.league) {
+        const leagueData = await api.get<any>(`/v1/leagues/${tournamentData.league}/`);
+        return leagueData?.features || null;
       }
-    } catch (e) {
-      console.warn('Error checking league features for referee marketplace:', e);
-    } finally {
-      setIsLoadingLeague(false);
-    }
-  };
+      return null;
+    },
+    enabled: visible && !!match?.tournament,
+  });
 
   const isMarketplaceDisabled = leagueFeatures && leagueFeatures.referee_marketplace_enabled === false;
 
@@ -158,7 +147,7 @@ export function AssignRefereeModal({ visible, onClose, match }: AssignRefereeMod
 
         {item.notes && (
           <Text style={[styles.notesText, { color: theme.textSecondary }]}>
-            "{item.notes}"
+            &quot;{item.notes}&quot;
           </Text>
         )}
 

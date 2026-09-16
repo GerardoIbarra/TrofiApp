@@ -28,7 +28,7 @@ export function GoldenBootWidget() {
             <Text style={styles.statLabel}>GOALS</Text>
           </View>
           <View style={styles.kpiContainer}>
-            <Text style={styles.statGiant}>88'</Text>
+            <Text style={styles.statGiant}>88&apos;</Text>
             <Text style={styles.statLabel}>MINS/GOAL</Text>
           </View>
         </View>

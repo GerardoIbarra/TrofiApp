@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CheckCircle2, XCircle, Info, X } from 'lucide-react-native';
@@ -27,12 +27,15 @@ const ICONS: Record<ToastType, typeof CheckCircle2> = {
 export function Toast({ toast, onDismiss }: ToastProps) {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const slideAnim = useRef(new Animated.Value(-140)).current;
-  const lastToastRef = useRef<ToastData | null>(null);
+  const [slideAnim] = useState(() => new Animated.Value(-140));
+  const [cachedToast, setCachedToast] = useState<ToastData | null>(toast);
+
+  if (toast && toast !== cachedToast) {
+    setCachedToast(toast);
+  }
 
   useEffect(() => {
     if (toast) {
-      lastToastRef.current = toast;
       Animated.spring(slideAnim, {
         toValue: 0,
         useNativeDriver: true,
@@ -44,11 +47,15 @@ export function Toast({ toast, onDismiss }: ToastProps) {
         toValue: -140,
         duration: 200,
         useNativeDriver: true,
-      }).start();
+      }).start(({ finished }) => {
+        if (finished) {
+          setCachedToast(null);
+        }
+      });
     }
   }, [toast, slideAnim]);
 
-  const data = toast ?? lastToastRef.current;
+  const data = toast ?? cachedToast;
   if (!data) return null;
 
   const Icon = ICONS[data.type];

@@ -28,19 +28,23 @@ export const RefereeAvailabilityToggle: React.FC<RefereeAvailabilityToggleProps>
   const styles = createStyles(theme, isDark);
   const { showToast } = useToast();
 
+  const [prevInitialIsOpen, setPrevInitialIsOpen] = useState(initialIsOpen);
   const [isOpen, setIsOpen] = useState(initialIsOpen);
-  const [notes, setNotes] = useState(initialNotes);
-  const setAvailabilityMutation = useSetRefereeAvailability();
 
-  useEffect(() => {
+  if (initialIsOpen !== prevInitialIsOpen) {
+    setPrevInitialIsOpen(initialIsOpen);
     setIsOpen(initialIsOpen);
-  }, [initialIsOpen]);
+  }
 
-  useEffect(() => {
-    if (initialNotes) {
-      setNotes(initialNotes);
-    }
-  }, [initialNotes]);
+  const [prevInitialNotes, setPrevInitialNotes] = useState(initialNotes);
+  const [notes, setNotes] = useState(initialNotes);
+
+  if (initialNotes !== prevInitialNotes) {
+    setPrevInitialNotes(initialNotes);
+    setNotes(initialNotes);
+  }
+
+  const setAvailabilityMutation = useSetRefereeAvailability();
 
   const handleSave = () => {
     setAvailabilityMutation.mutate(

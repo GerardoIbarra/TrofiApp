@@ -225,7 +225,7 @@ export default function RefereeMarketplaceScreen() {
 
             {item.notes && (
               <Text style={[styles.notesText, { color: theme.textSecondary }]}>
-                "{item.notes}"
+                &quot;{item.notes}&quot;
               </Text>
             )}
           </View>

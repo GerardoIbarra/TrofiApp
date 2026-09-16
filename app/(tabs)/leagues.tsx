@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -63,9 +64,6 @@ export default function LeaguesExplorerScreen() {
   const { width } = useWindowDimensions();
   const styles = createStyles(theme, isDark, width);
 
-  const [leagues, setLeagues] = useState<League[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -81,35 +79,29 @@ export default function LeaguesExplorerScreen() {
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  useEffect(() => {
-    fetchLeagues(debouncedSearch);
-  }, [debouncedSearch]);
-
-  const fetchLeagues = async (query?: string) => {
-    const isSearchMode = Boolean(query && query.trim());
-    if (isSearchMode) {
-      setIsSearching(true);
-    } else {
-      setIsLoading(true);
-    }
-
-    try {
+  const {
+    data: leaguesData,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ['leagues-explorer', debouncedSearch],
+    queryFn: async () => {
+      const isSearchMode = Boolean(debouncedSearch && debouncedSearch.trim());
       const endpoint = isSearchMode
-        ? `/v1/leagues/?search=${encodeURIComponent(query!.trim())}`
+        ? `/v1/leagues/?search=${encodeURIComponent(debouncedSearch.trim())}`
         : "/v1/leagues/";
       const response = await api.get<LeaguesResponse>(endpoint);
-      setLeagues(response?.results || []);
-    } catch (error) {
-      console.error("Error fetching leagues:", error);
-    } finally {
-      setIsLoading(false);
-      setIsSearching(false);
-    }
-  };
+      return response?.results || [];
+    },
+  });
+
+  const leagues = leaguesData || [];
+  const isSearching = Boolean(debouncedSearch.trim() && isFetching);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchLeagues(debouncedSearch);
+    await refetch();
     setRefreshing(false);
   };
 
@@ -542,7 +534,7 @@ export default function LeaguesExplorerScreen() {
           visible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
           onSuccess={() => {
-            fetchLeagues(debouncedSearch);
+            refetch();
           }}
         />
     </View>

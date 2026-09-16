@@ -29,16 +29,16 @@ export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchRe
   const styles = createStyles(theme, isDark);
   const { showToast } = useToast();
 
-  const [homeScore, setHomeScore] = useState('');
-  const [awayScore, setAwayScore] = useState('');
+  const [prevMatchId, setPrevMatchId] = useState(match?.id);
+  const [homeScore, setHomeScore] = useState(match?.result?.home_score?.toString() || '0');
+  const [awayScore, setAwayScore] = useState(match?.result?.away_score?.toString() || '0');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (match) {
-      setHomeScore(match.result?.home_score?.toString() || '0');
-      setAwayScore(match.result?.away_score?.toString() || '0');
-    }
-  }, [match]);
+  if (match?.id !== prevMatchId) {
+    setPrevMatchId(match?.id);
+    setHomeScore(match?.result?.home_score?.toString() || '0');
+    setAwayScore(match?.result?.away_score?.toString() || '0');
+  }
 
   const handleSubmit = async () => {
     if (!match) return;

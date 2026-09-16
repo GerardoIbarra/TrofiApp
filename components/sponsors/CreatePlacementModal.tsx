@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   View,
   Text,
@@ -72,22 +73,11 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
   const [imageUrl, setImageUrl] = useState('');
   const [redirectUrl, setRedirectUrl] = useState('');
 
-  const [leaguesList, setLeaguesList] = useState<any[]>([]);
-  const [tournamentsList, setTournamentsList] = useState<any[]>([]);
-  const [teamsList, setTeamsList] = useState<any[]>([]);
-  const [isLoadingContext, setIsLoadingContext] = useState(false);
-
   const createMutation = useCreateSponsorPlacement();
 
-  useEffect(() => {
-    if (visible) {
-      loadContextData();
-    }
-  }, [visible]);
-
-  const loadContextData = async () => {
-    setIsLoadingContext(true);
-    try {
+  const { data: placementContext, isLoading: isLoadingContext } = useQuery({
+    queryKey: ['sponsor-placement-context'],
+    queryFn: async () => {
       const [leaguesRes, tournamentsRes, teamsRes] = await Promise.allSettled([
         api.get<any>('/v1/leagues/'),
         api.get<any>('/v1/tournaments/'),
@@ -115,38 +105,35 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
             : teamsRes.value?.results || []
           : [];
 
-      setLeaguesList(fetchedLeagues);
-      setTournamentsList(fetchedTournaments);
-      setTeamsList(fetchedTeams);
+      return {
+        leagues: fetchedLeagues,
+        tournaments: fetchedTournaments,
+        teams: fetchedTeams,
+      };
+    },
+    enabled: visible,
+  });
 
-      if (!selectedLeagueId && fetchedLeagues.length > 0) {
-        setSelectedLeagueId(fetchedLeagues[0].id);
-      }
-      if (!selectedTournamentId && fetchedTournaments.length > 0) {
-        setSelectedTournamentId(fetchedTournaments[0].id);
-      }
-      if (!selectedTeamId && fetchedTeams.length > 0) {
-        setSelectedTeamId(fetchedTeams[0].id);
-      }
-    } catch (e) {
-      console.warn('Error loading context for sponsor placement:', e);
-    } finally {
-      setIsLoadingContext(false);
-    }
-  };
+  const leaguesList = placementContext?.leagues || [];
+  const tournamentsList = placementContext?.tournaments || [];
+  const teamsList = placementContext?.teams || [];
+
+  const activeLeagueId = selectedLeagueId || (leaguesList[0]?.id || '');
+  const activeTournamentId = selectedTournamentId || (tournamentsList[0]?.id || '');
+  const activeTeamId = selectedTeamId || (teamsList[0]?.id || '');
 
   // Find governing league to verify sponsors_enabled flag
   const getGoverningLeague = () => {
     if (targetType === 'league') {
-      return leaguesList.find((l) => l.id === selectedLeagueId);
+      return leaguesList.find((l) => l.id === activeLeagueId);
     }
     if (targetType === 'tournament') {
-      const tournament = tournamentsList.find((t) => t.id === selectedTournamentId);
+      const tournament = tournamentsList.find((t) => t.id === activeTournamentId);
       if (!tournament) return null;
       return leaguesList.find((l) => l.id === tournament.league || l.name === tournament.league_name);
     }
     if (targetType === 'team') {
-      const team = teamsList.find((t) => t.id === selectedTeamId);
+      const team = teamsList.find((t) => t.id === activeTeamId);
       if (!team) return null;
       return leaguesList.find((l) => l.id === team.league);
     }
@@ -163,7 +150,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
     let teamTarget: string | undefined = undefined;
 
     if (targetType === 'league') {
-      if (!selectedLeagueId) {
+      if (!activeLeagueId) {
         showToast({
           type: 'error',
           title: isEn ? 'Error' : 'Error',
@@ -171,9 +158,9 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
         });
         return;
       }
-      leagueTarget = selectedLeagueId;
+      leagueTarget = activeLeagueId;
     } else if (targetType === 'tournament') {
-      if (!selectedTournamentId) {
+      if (!activeTournamentId) {
         showToast({
           type: 'error',
           title: isEn ? 'Error' : 'Error',
@@ -181,9 +168,9 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
         });
         return;
       }
-      tournamentTarget = selectedTournamentId;
+      tournamentTarget = activeTournamentId;
     } else if (targetType === 'team') {
-      if (!selectedTeamId) {
+      if (!activeTeamId) {
         showToast({
           type: 'error',
           title: isEn ? 'Error' : 'Error',
@@ -191,7 +178,7 @@ export const CreatePlacementModal: React.FC<CreatePlacementModalProps> = ({
         });
         return;
       }
-      teamTarget = selectedTeamId;
+      teamTarget = activeTeamId;
     }
 
     // 2. Pre-check sponsors_enabled

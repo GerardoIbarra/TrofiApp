@@ -180,7 +180,7 @@ export default function PlayerDetailScreen() {
           onPress={() => setActiveTab('CARD')}
         >
           <Text style={[styles.tabText, { color: activeTab === 'CARD' ? theme.primary : theme.textSecondary }]}>
-            CARD & ELO
+            CARD {'&'} ELO
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -246,7 +246,7 @@ export default function PlayerDetailScreen() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.pickupTitle, { color: theme.text }]}>
-                      Fútbol Informal & Retas
+                      Fútbol Informal {'&'} Retas
                     </Text>
                     <Text style={[styles.pickupSubtitle, { color: theme.textSecondary }]}>
                       Nivel {profile.pickup_stats.tier?.level || 1} • {profile.pickup_stats.tier?.name || 'Novato'}

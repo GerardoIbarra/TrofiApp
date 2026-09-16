@@ -91,6 +91,8 @@ export function CreatePlayerModal({
     },
   });
 
+  const selectedPosition = useWatch({ control, name: "position" });
+
   const photo = useWatch({ control, name: "photo" });
 
   const pickImage = async () => {
@@ -303,8 +305,7 @@ export function CreatePlayerModal({
                   <Text style={styles.fieldLabel}>POSICIÓN</Text>
                   <View style={styles.positionContainer}>
                     {POSITIONS.map((pos) => {
-                      const isSelected =
-                        useWatch({ control, name: "position" }) === pos.value;
+                      const isSelected = selectedPosition === pos.value;
                       return (
                         <TouchableOpacity
                           key={pos.value}

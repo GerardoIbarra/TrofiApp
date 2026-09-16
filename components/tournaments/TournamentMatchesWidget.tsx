@@ -2,11 +2,10 @@ import { useTheme } from "@/context/ThemeContext";
 import { Match, PaginatedMatches } from "@/features/tournaments/types/match";
 import api from "@/services/api";
 import { useRouter } from "expo-router";
-import { Calendar, MapPin, Trophy } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { Calendar, MapPin, Trophy, Settings, CalendarPlus } from "lucide-react-native";
+import React, { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
-  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -16,7 +15,8 @@ import {
 import { MatchResultModal } from "./MatchResultModal";
 import { ScheduleConfigModal } from "./ScheduleConfigModal";
 import { GenerateScheduleModal } from "./GenerateScheduleModal";
-import { Settings, CalendarPlus } from "lucide-react-native";
+import { MatchCardSkeleton } from "@/components/matches/MatchCardSkeleton";
+import { useQuery } from "@tanstack/react-query";
 
 interface TournamentMatchesWidgetProps {
   tournamentId: string;
@@ -33,38 +33,29 @@ export function TournamentMatchesWidget({
   const styles = createStyles(theme, isDark);
   const router = useRouter();
 
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isResultModalVisible, setIsResultModalVisible] = useState(false);
   const [isConfigModalVisible, setIsConfigModalVisible] = useState(false);
   const [isGenerateModalVisible, setIsGenerateModalVisible] = useState(false);
 
-  useEffect(() => {
-    fetchMatches();
-  }, [tournamentId]);
-
-  const fetchMatches = async () => {
-    setIsLoading(true);
-    try {
+  const {
+    data: matches = [],
+    isLoading,
+    refetch: fetchMatches,
+  } = useQuery({
+    queryKey: ['tournament-matches', tournamentId],
+    queryFn: async () => {
       const response = await api.get<PaginatedMatches>(
         `/v1/matches/?tournament=${tournamentId}`,
       );
-      // Ordenamos por start_datetime
-      const sortedMatches = response.results.sort(
+      return response.results.sort(
         (a, b) =>
           new Date(a.start_datetime).getTime() -
           new Date(b.start_datetime).getTime(),
       );
-      setMatches(sortedMatches);
-    } catch (error) {
-      console.error("Error fetching matches:", error);
-    } finally {
-      setIsLoading(false);
-      setRefreshing(false);
-    }
-  };
+    },
+    enabled: !!tournamentId,
+  });
 
   const handleEditResult = (match: Match) => {
     setSelectedMatch(match);
@@ -115,6 +106,7 @@ export function TournamentMatchesWidget({
             <TouchableOpacity
               style={styles.editBtn}
               onPress={() => handleEditResult(item)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Trophy size={14} color={theme.primary} />
               <Text style={styles.editBtnText}>{t("match_list.scoreboard")}</Text>
@@ -191,9 +183,10 @@ export function TournamentMatchesWidget({
 
   if (isLoading && !refreshing) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator color={theme.primary} />
-        <Text style={styles.loadingText}>{t("match_list.loading")}</Text>
+      <View style={styles.container}>
+        <MatchCardSkeleton />
+        <MatchCardSkeleton />
+        <MatchCardSkeleton />
       </View>
     );
   }
@@ -205,6 +198,7 @@ export function TournamentMatchesWidget({
           <TouchableOpacity 
             style={styles.adminBtn} 
             onPress={() => setIsConfigModalVisible(true)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Settings size={14} color={theme.primary} />
             <Text style={styles.adminBtnText}>{t('tournament.config_schedule')}</Text>
@@ -212,6 +206,7 @@ export function TournamentMatchesWidget({
           <TouchableOpacity 
             style={[styles.adminBtn, { backgroundColor: theme.primary }]} 
             onPress={() => setIsGenerateModalVisible(true)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <CalendarPlus size={14} color="#001A2C" />
             <Text style={[styles.adminBtnText, { color: "#001A2C" }]}>{t('tournament.generate_fixture')}</Text>

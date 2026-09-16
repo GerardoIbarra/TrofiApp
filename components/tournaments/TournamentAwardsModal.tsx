@@ -380,7 +380,7 @@ export function TournamentAwardsModal({
             {activeTab === 'WEEKLY_MVP' && (
               <View style={styles.sectionContainer}>
                 <Text style={styles.sectionDesc}>
-                  Pondera el promedio de calificación y los MVP de partido obtenidos en los últimos 7 días para otorgar el logro 'mvp_week'.
+                  Pondera el promedio de calificación y los MVP de partido obtenidos en los últimos 7 días para otorgar el logro &apos;mvp_week&apos;.
                 </Text>
 
                 {weeklyResult ? (

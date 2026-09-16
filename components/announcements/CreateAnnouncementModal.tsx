@@ -39,24 +39,17 @@ export function CreateAnnouncementModal({
   const styles = createStyles(theme, isDark);
   const { showToast } = useToast();
 
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
+  const [prevVisible, setPrevVisible] = useState(visible);
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [body, setBody] = useState(initialData?.body || '');
 
-  const createMutation = useCreateAnnouncement();
-  const updateMutation = useUpdateAnnouncement();
-
-  const isEditing = Boolean(initialData);
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
-
-  useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.title);
-      setBody(initialData.body);
-    } else {
-      setTitle('');
-      setBody('');
-    }
-  }, [initialData, visible]);
+  if (initialData !== prevInitialData || visible !== prevVisible) {
+    setPrevInitialData(initialData);
+    setPrevVisible(visible);
+    setTitle(initialData?.title || '');
+    setBody(initialData?.body || '');
+  }
 
   const handleSubmit = async () => {
     if (!title.trim()) {

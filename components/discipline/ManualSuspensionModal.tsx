@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { X, Check } from 'lucide-react-native';
@@ -6,6 +6,7 @@ import { useCreateManualSuspension } from '@/features/discipline/services/discip
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
 import { useToast } from '@/context/ToastContext';
+import { useQuery } from '@tanstack/react-query';
 
 interface ManualSuspensionModalProps {
   tournamentId: string;
@@ -17,33 +18,24 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
   const { t } = useTranslation();
   const { showToast } = useToast();
 
-  const [teams, setTeams] = useState<any[]>([]);
   const [roster, setRoster] = useState<any[]>([]);
   
   const [selectedTeam, setSelectedTeam] = useState('');
   const [selectedRoster, setSelectedRoster] = useState('');
   const [matchesSuspended, setMatchesSuspended] = useState('1');
   const [notes, setNotes] = useState('');
-  
-  const [loadingContext, setLoadingContext] = useState(true);
-  
+
   const suspendMutation = useCreateManualSuspension();
 
-  useEffect(() => {
-    fetchTeams();
-  }, []);
-
-  const fetchTeams = async () => {
-    setLoadingContext(true);
-    try {
+  const { data: teams = [], isLoading: loadingContext } = useQuery({
+    queryKey: ['tournament-teams-manual-suspension', tournamentId],
+    queryFn: async () => {
+      if (!tournamentId) return [];
       const res = await api.get<any>(`/v1/tournaments/${tournamentId}/teams/`);
-      setTeams(res.results || res || []);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingContext(false);
-    }
-  };
+      return res.results || res || [];
+    },
+    enabled: !!tournamentId,
+  });
 
   const fetchRoster = async (teamId: string) => {
     setSelectedTeam(teamId);

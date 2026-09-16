@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "@/context/ThemeContext";
@@ -7,10 +7,11 @@ import { GlobalStyles } from "@/constants/GlobalStyles";
 import { NotFoundState } from "@/components/ui/feedback/NotFoundState";
 import api from "@/services/api";
 import { useCreateJoinRequest, useApproveJoinRequest, useRejectJoinRequest } from "@/features/players/services/rosterApi";
-import { Users, UserPlus, Check, X, ShieldHalf, Star } from "lucide-react-native";
+import { Users, UserPlus, Check, X, ShieldHalf, Star, ChevronRight } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/context/ToastContext";
+import { useQuery } from "@tanstack/react-query";
 
 export default function TournamentTeamDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -21,48 +22,42 @@ export default function TournamentTeamDetailScreen() {
   const user = useAuthStore((state) => state.user);
   const { showToast } = useToast();
 
-  const [teamInfo, setTeamInfo] = useState<any>(null);
-  const [roster, setRoster] = useState<any[]>([]);
-  const [joinRequests, setJoinRequests] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
   const joinMutation = useCreateJoinRequest();
   const approveMutation = useApproveJoinRequest();
   const rejectMutation = useRejectJoinRequest();
 
-  // Basic role check - in a real app this uses the 'captain' property or admin role
-  const isCaptain = teamInfo?.captain_id === user?.id;
-
-  useEffect(() => {
-    if (id) {
-      fetchData();
-    }
-  }, [id]);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      // 1. Fetch team details for this tournament
-      const teamRes = await api.get(`/v1/tournament-teams/${id}/`);
-      setTeamInfo(teamRes);
-
-      // 2. Fetch roster
+  const {
+    data: teamData,
+    isLoading,
+    refetch: fetchData,
+  } = useQuery({
+    queryKey: ['tournament-team-detail', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const teamRes = await api.get<any>(`/v1/tournament-teams/${id}/`);
       const rosterRes = await api.get<any>(`/v1/roster/?tournament_team=${id}`);
-      setRoster(rosterRes.results || []);
-
-      // 3. Fetch join requests (only if captain/admin, but backend might filter)
+      let requests: any[] = [];
       try {
         const requestsRes = await api.get<any>(`/v1/join-requests/?tournament_team=${id}`);
-        setJoinRequests(requestsRes.results || []);
-      } catch (e) {
-        // Ignored if user doesn't have permission to view requests
+        requests = requestsRes.results || [];
+      } catch {
+        // Ignored
       }
-    } catch (error) {
-      console.error("Error fetching tournament team:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      return {
+        teamInfo: teamRes,
+        roster: rosterRes.results || [],
+        joinRequests: requests,
+      };
+    },
+    enabled: !!id,
+  });
+
+  const teamInfo = teamData?.teamInfo || null;
+  const roster = teamData?.roster || [];
+  const joinRequests = teamData?.joinRequests || [];
+
+  // Basic role check - in a real app this uses the 'captain' property or admin role
+  const isCaptain = teamInfo?.captain_id === user?.id;
 
   const handleJoinRequest = () => {
     const playerProfileId = user?.player_profile_id || user?.player_profile?.id;

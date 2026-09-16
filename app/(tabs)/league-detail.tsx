@@ -2,7 +2,9 @@ import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient"
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -38,9 +40,7 @@ import {
   Clock,
   AlertTriangle,
 } from "lucide-react-native";
-import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator } from "react-native";
 
 export default function LeagueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,11 +52,6 @@ export default function LeagueDetailScreen() {
     useState(false);
 
   const user = useAuthStore((state) => state.user);
-  const isOwner = user?.id === league?.created_by;
-  const isLeagueAdmin = league?.memberships?.some(
-    (m: any) => (m.user === user?.id || m.user_id === user?.id) && (m.role === 'admin' || m.role === 'owner')
-  );
-  const canManage = isOwner || isLeagueAdmin || Boolean(user?.is_staff);
   const [refreshTournamentsKey, setRefreshTournamentsKey] = useState(0);
 
   const { data: leagueAchievements = [] } = useGetLeagueAchievements(id);
@@ -65,23 +60,24 @@ export default function LeagueDetailScreen() {
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
-  useEffect(() => {
-    if (id) {
-      fetchLeagueDetails();
-    }
-  }, [id]);
+  const {
+    data: league = null,
+    isLoading,
+    refetch: fetchLeagueDetails,
+  } = useQuery({
+    queryKey: ['league-detail', id],
+    queryFn: async () => {
+      if (!id) return null;
+      return await api.get<League>(`/v1/leagues/${id}/`);
+    },
+    enabled: !!id,
+  });
 
-  const fetchLeagueDetails = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.get<League>(`/v1/leagues/${id}/`);
-      setLeague(response);
-    } catch (error) {
-      console.error("Error fetching league details:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const isOwner = user?.id === league?.created_by;
+  const isLeagueAdmin = league?.memberships?.some(
+    (m: any) => (m.user === user?.id || m.user_id === user?.id) && (m.role === 'admin' || m.role === 'owner')
+  );
+  const canManage = isOwner || isLeagueAdmin || Boolean(user?.is_staff);
 
   const FEATURE_CONFIG = [
     { key: "payments_enabled", label: t("league_detail.feature_payments"), icon: CreditCard },
@@ -106,12 +102,7 @@ export default function LeagueDetailScreen() {
   if (league?.features?.payments_enabled) dynamicTabs.push("PAYMENTS");
   if (league?.features?.sponsors_enabled) dynamicTabs.push("SPONSORS");
 
-  // Fallback to first tab if activeTab is not in dynamicTabs
-  useEffect(() => {
-    if (league && dynamicTabs.length > 0 && !dynamicTabs.includes(activeTab)) {
-      setActiveTab(dynamicTabs[0]);
-    }
-  }, [id, activeTab, league === null]); // Only care if league just loaded or id changed
+  const currentTab = dynamicTabs.includes(activeTab) ? activeTab : (dynamicTabs[0] || "STANDINGS");
 
   if (isLoading) {
     return (
@@ -139,7 +130,7 @@ export default function LeagueDetailScreen() {
   }
 
   const renderTabContent = () => {
-    switch (activeTab) {
+    switch (currentTab) {
       case "PLAYERS":
         return <LeagueMembersWidget leagueId={league.id} />;
       case "PAYMENTS":
@@ -297,7 +288,7 @@ export default function LeagueDetailScreen() {
           <View style={styles.contentWrapper}>
             <LeagueTabsList
               tabs={dynamicTabs}
-              activeTab={activeTab}
+              activeTab={currentTab}
               onTabChange={setActiveTab}
             />
 
@@ -307,7 +298,7 @@ export default function LeagueDetailScreen() {
       </ScrollView>
 
       {/* FAB PARA NUEVO TORNEO (Dueño o admin en pestaña de torneos) */}
-      {canManage && (activeTab === "STANDINGS" || activeTab === "POSICIONES") && (
+      {canManage && (currentTab === "STANDINGS" || currentTab === "POSICIONES") && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => setIsTournamentModalVisible(true)}

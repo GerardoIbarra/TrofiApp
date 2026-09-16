@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '@/context/ThemeContext';
 import { Tournament, TournamentsResponse } from '@/features/tournaments/types/tournament';
 import api from '@/services/api';
@@ -25,31 +26,25 @@ export function LeagueTournamentsWidget({
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
-  const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [tournamentToClone, setTournamentToClone] = useState<Tournament | null>(null);
+  const [now] = useState(() => Date.now());
 
-  useEffect(() => {
-    fetchTournaments();
-  }, [leagueId, refreshKey]);
-
-  const fetchTournaments = async () => {
-    setIsLoading(true);
-    try {
-      const response = await api.get<TournamentsResponse>(`/v1/tournaments/?league=${leagueId}`);
-      setTournaments(response.results || []);
-    } catch (error) {
-      console.error('Error fetching tournaments:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data: tournamentsData,
+    isLoading,
+    refetch: fetchTournaments,
+  } = useQuery({
+    queryKey: ["league-tournaments", leagueId, refreshKey],
+    queryFn: () => api.get<TournamentsResponse>(`/v1/tournaments/?league=${leagueId}`),
+    enabled: Boolean(leagueId),
+  });
+  const tournaments = tournamentsData?.results || [];
 
   const isTournamentFinished = (tournament: Tournament) => {
     if (tournament.status === 'completed') return true;
     if (!tournament.end_date) return false;
     const endDate = new Date(tournament.end_date);
-    return !isNaN(endDate.getTime()) && endDate.getTime() < Date.now();
+    return !isNaN(endDate.getTime()) && endDate.getTime() < now;
   };
 
   const getStatusColor = (tournament: Tournament) => {

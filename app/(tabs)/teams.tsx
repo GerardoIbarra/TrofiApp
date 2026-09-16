@@ -8,7 +8,8 @@ import { Team, TeamsResponse } from "@/features/teams/types/team";
 import api from "@/services/api";
 import { router } from "expo-router";
 import { AlertCircle, Plus } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   RefreshControl,
@@ -35,31 +36,20 @@ export default function TeamsScreen() {
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  useEffect(() => {
-    fetchTeams();
-  }, []);
-
-  const fetchTeams = async (silent = false) => {
-    if (silent) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
-    }
-    try {
+  const {
+    data: teams = [],
+    isLoading,
+    isRefetching: isRefreshing,
+    refetch: fetchTeams,
+  } = useQuery({
+    queryKey: ['teams-list'],
+    queryFn: async () => {
       const response = await api.get<TeamsResponse>("/v1/teams/");
-      setTeams(response.results);
-    } catch (error) {
-      console.error("Error fetching teams:", error);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  };
+      return response.results || [];
+    },
+  });
 
   return (
     <View style={GlobalStyles.container}>

@@ -2,7 +2,7 @@ import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
 import { router } from "expo-router";
 import { ChevronRight, Users } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -12,8 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { EnrollTeamModal } from "@/components/tournaments/EnrollTeamModal";
-import { PrimaryButton } from "@/components/ui/buttons/PrimaryButton";
 
 interface TournamentTeam {
   id: string;
@@ -43,28 +43,21 @@ export function TournamentTeamsWidget({
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
-  const [teams, setTeams] = useState<TournamentTeam[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isEnrollModalVisible, setIsEnrollModalVisible] = useState(false);
 
-  useEffect(() => {
-    fetchTournamentTeams();
-  }, [tournamentId]);
-
-  const fetchTournamentTeams = async () => {
-    setIsLoading(true);
-    try {
-      // Endpoint provided by user
-      const response = await api.get<TournamentTeamsResponse>(
+  const {
+    data: teamsData,
+    isLoading,
+    refetch: fetchTournamentTeams,
+  } = useQuery({
+    queryKey: ["tournament-teams", tournamentId],
+    queryFn: () =>
+      api.get<TournamentTeamsResponse>(
         `/v1/tournament-teams/?tournament=${tournamentId}`,
-      );
-      setTeams(response.results);
-    } catch (error) {
-      console.error("Error fetching tournament teams:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      ),
+    enabled: Boolean(tournamentId),
+  });
+  const teams = teamsData?.results || [];
 
   const FALLBACK_LOGOS = [
     "https://images.pexels.com/photos/209637/pexels-photo-209637.jpeg?auto=compress&cs=tinysrgb&w=150",

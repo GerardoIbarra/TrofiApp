@@ -7,7 +7,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { PaginatedPlayers, Player } from "@/features/players/types/player";
 import api from "@/services/api";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   RefreshControl,
@@ -16,6 +16,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { useGetHomeFeed } from "@/features/matches/services/homeFeedApi";
 import { HomeFeaturedCarousel } from "@/components/home/HomeFeaturedCarousel";
 import { HomeStatsSummary } from "@/components/home/HomeStatsSummary";
@@ -28,12 +29,9 @@ export default function HomeScreen() {
   const styles = createStyles(theme, isDark);
   const router = useRouter();
 
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [isPlayersLoading, setIsPlayersLoading] = useState(true);
   const [isPlayerModalVisible, setIsPlayerModalVisible] = useState(false);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
-  const [stats, setStats] = useState<any>(null);
   const user = useAuthStore(state => state.user);
 
   const {
@@ -42,44 +40,44 @@ export default function HomeScreen() {
     refetch: refetchHomeFeed,
   } = useGetHomeFeed();
 
-  const loadPlayers = useCallback(async () => {
-    try {
-      const res = await api.get<PaginatedPlayers>("/v1/players/");
-      setPlayers(res.results);
-    } catch (err) {
-      console.error("Error loading players:", err);
-    } finally {
-      setIsPlayersLoading(false);
-    }
-  }, []);
+  const {
+    data: playersData,
+    isLoading: isPlayersLoading,
+    refetch: refetchPlayers,
+  } = useQuery({
+    queryKey: ["players"],
+    queryFn: () => api.get<PaginatedPlayers>("/v1/players/"),
+  });
+  const players = playersData?.results || [];
 
-  const loadStats = useCallback(async () => {
-    if (!user?.id) return;
-    try {
-      const statsRes = await api.get<any>(
-        `/v1/player-stats/?player=${user.id}`,
-        { silent: true },
-      );
-      const statData = Array.isArray(statsRes)
-        ? statsRes[0]
-        : statsRes.results?.[0] || statsRes;
-      setStats(statData || null);
-    } catch (err: any) {
-      if (err?.status !== 404) console.warn("Player stats fetch issue:", err);
-      setStats(null);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    loadPlayers();
-    loadStats();
-  }, [loadPlayers, loadStats]);
+  const {
+    data: stats = null,
+    refetch: refetchStats,
+  } = useQuery({
+    queryKey: ["player-stats", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      try {
+        const statsRes = await api.get<any>(
+          `/v1/player-stats/?player=${user.id}`,
+          { silent: true },
+        );
+        return Array.isArray(statsRes)
+          ? statsRes[0]
+          : statsRes.results?.[0] || statsRes || null;
+      } catch (err: any) {
+        if (err?.status !== 404) console.warn("Player stats fetch issue:", err);
+        return null;
+      }
+    },
+    enabled: Boolean(user?.id),
+  });
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refetchHomeFeed(), loadPlayers(), loadStats()]);
+    await Promise.all([refetchHomeFeed(), refetchPlayers(), refetchStats()]);
     setRefreshing(false);
-  }, [refetchHomeFeed, loadPlayers, loadStats]);
+  }, [refetchHomeFeed, refetchPlayers, refetchStats]);
 
   return (
     <View style={GlobalStyles.container}>
@@ -148,7 +146,7 @@ export default function HomeScreen() {
       <CreatePlayerModal
         visible={isPlayerModalVisible}
         onClose={() => setIsPlayerModalVisible(false)}
-        onSuccess={loadPlayers}
+        onSuccess={refetchPlayers}
       />
     </View>
   );

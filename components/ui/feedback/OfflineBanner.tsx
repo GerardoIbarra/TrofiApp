@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { onlineManager } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import { WifiOff } from 'lucide-react-native';
 export function OfflineBanner() {
   const insets = useSafeAreaInsets();
   const [isOnline, setIsOnline] = useState(onlineManager.isOnline());
-  const slideAnim = useRef(new Animated.Value(-80)).current;
+  const [slideAnim] = useState(() => new Animated.Value(-80));
 
   useEffect(() => {
     return onlineManager.subscribe((online) => {
@@ -21,7 +21,7 @@ export function OfflineBanner() {
       duration: 250,
       useNativeDriver: true,
     }).start();
-  }, [isOnline]);
+  }, [isOnline, slideAnim]);
 
   return (
     <Animated.View

@@ -48,7 +48,7 @@ export function MatchDisputeBanner({
         </View>
 
         <Text style={styles.pendingReason} numberOfLines={2}>
-          "{pendingDispute.reason}"
+          &quot;{pendingDispute.reason}&quot;
         </Text>
         <Text style={styles.filedBySub}>
           Presentada por {pendingDispute.filed_by_name || 'Capitán / Admin'}

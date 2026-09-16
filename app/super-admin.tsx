@@ -359,7 +359,7 @@ export default function SuperAdminScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.overdueNoticeTitle}>Control de Cobranza</Text>
                   <Text style={styles.overdueNoticeDesc}>
-                    Las ligas marcadas como "overdue" tienen bloqueada la creación de nuevos torneos y generación de fixtures.
+                    Las ligas marcadas como &quot;overdue&quot; tienen bloqueada la creación de nuevos torneos y generación de fixtures.
                   </Text>
                 </View>
               </View>

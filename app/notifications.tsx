@@ -66,8 +66,8 @@ export default function NotificationsScreen() {
 
   const displayNotifications =
     serverNotifications.length > 0
-      ? serverNotifications.map((n: any) => ({
-          id: String(n.id || Math.random()),
+      ? serverNotifications.map((n: any, idx: number) => ({
+          id: String(n.id ?? `notification-${idx}`),
           rawId: n.id,
           type: n.notification_type || 'announcement',
           title: n.title || 'Aviso Oficial',

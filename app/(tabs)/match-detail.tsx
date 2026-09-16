@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { 
   View, 
   Text, 
@@ -59,22 +60,59 @@ export default function MatchDetailScreen() {
   const styles = createStyles(theme, isDark);
   
   const [activeTab, setActiveTab] = useState<'RESUMEN' | 'TIMELINE' | 'ALINEACION' | 'ESTADISTICAS'>('RESUMEN');
-  const [match, setMatch] = useState<Match | null>(null);
-  const [lineup, setLineup] = useState<MatchLineupResponse | null>(null);
-  const [h2h, setH2h] = useState<MatchHeadToHeadResponse | null>(null);
-  const [timeline, setTimeline] = useState<MatchTimelineResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isRateModalVisible, setIsRateModalVisible] = useState(false);
   const [isFanCheckInVisible, setIsFanCheckInVisible] = useState(false);
   const [isFileDisputeVisible, setIsFileDisputeVisible] = useState(false);
   const [selectedDisputeToResolve, setSelectedDisputeToResolve] = useState<MatchDispute | null>(null);
+  const [now] = useState(() => Date.now());
 
   const matchIdStr = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
   const { data: disputes = [], refetch: refetchDisputes } = useGetMatchDisputes(matchIdStr);
 
+  const {
+    data: matchDetails,
+    isLoading,
+    refetch: fetchMatchData,
+  } = useQuery({
+    queryKey: ['match-details', id],
+    queryFn: async () => {
+      if (!id) return null;
+      const matchData = await api.get<Match>(`/v1/matches/${id}/`);
+      metrics.trackMatchView(matchData.id, matchData.status);
+
+      let lineupData: MatchLineupResponse | null = null;
+      try {
+        lineupData = await api.get<MatchLineupResponse>(`/v1/matches/${id}/lineup/`);
+      } catch {}
+
+      let h2hData: MatchHeadToHeadResponse | null = null;
+      try {
+        h2hData = await api.get<MatchHeadToHeadResponse>(`/v1/matches/${id}/head-to-head/`);
+      } catch {}
+
+      let timelineData: MatchTimelineResponse | null = null;
+      try {
+        timelineData = await api.get<MatchTimelineResponse>(`/v1/matches/${id}/timeline/`);
+      } catch {}
+
+      return {
+        match: matchData,
+        lineup: lineupData,
+        h2h: h2hData,
+        timeline: timelineData,
+      };
+    },
+    enabled: !!id,
+  });
+
+  const match = matchDetails?.match || null;
+  const lineup = matchDetails?.lineup || null;
+  const h2h = matchDetails?.h2h || null;
+  const timeline = matchDetails?.timeline || null;
+
   const isResultLocked = Boolean(match?.result?.locked_at);
   const isWithin48Hours = match?.result?.locked_at
-    ? Date.now() - new Date(match.result.locked_at).getTime() <= 48 * 3600 * 1000
+    ? now - new Date(match.result.locked_at).getTime() <= 48 * 3600 * 1000
     : false;
   const hasPendingDispute = disputes.some((d) => d.status === 'pending');
   const canFileDispute = isResultLocked && isWithin48Hours && !hasPendingDispute;
@@ -82,46 +120,7 @@ export default function MatchDetailScreen() {
   // TODO: Implement proper admin check based on tournament role or match referee
   const isAdmin = true;
 
-  useEffect(() => {
-    if (id) {
-      fetchMatchData();
-    }
-  }, [id]);
-
-  const fetchMatchData = async () => {
-    setIsLoading(true);
-    try {
-      // 1. Cargar datos básicos del partido
-      const matchData = await api.get<Match>(`/v1/matches/${id}/`);
-      setMatch(matchData);
-      metrics.trackMatchView(matchData.id, matchData.status);
-
-      // 2. Cargar Alineación
-      try {
-        const lineupData = await api.get<MatchLineupResponse>(`/v1/matches/${id}/lineup/`);
-        setLineup(lineupData);
-      } catch (e) { /* Alineación opcional */ }
-
-      // 3. Cargar Head to Head
-      try {
-        const h2hData = await api.get<MatchHeadToHeadResponse>(`/v1/matches/${id}/head-to-head/`);
-        setH2h(h2hData);
-      } catch (e) { /* Estadísticas opcionales */ }
-
-      // 4. Cargar Timeline
-      try {
-        const timelineData = await api.get<MatchTimelineResponse>(`/v1/matches/${id}/timeline/`);
-        setTimeline(timelineData);
-      } catch (e) { /* Timeline opcional */ }
-
-    } catch (error) {
-      console.error('Error fetching match data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const SummaryTab = () => (
+  const renderSummaryTab = () => (
     <ScrollView style={styles.tabContent}>
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -263,7 +262,7 @@ export default function MatchDetailScreen() {
     </ScrollView>
   );
 
-  const TimelineTab = () => {
+  const renderTimelineTab = () => {
     const events = timeline?.results || [];
     if (events.length === 0) return (
       <View style={styles.emptyContainer}>
@@ -297,7 +296,7 @@ export default function MatchDetailScreen() {
 
                 <View style={styles.minuteBadgeContainer}>
                   <View style={styles.minuteBadge}>
-                    <Text style={styles.minuteText}>{event.minute}'</Text>
+                    <Text style={styles.minuteText}>{event.minute}&apos;</Text>
                   </View>
                   <View style={styles.eventIconCircle}>
                     {event.event_type === 'goal' && <Shield size={14} color={theme.primary} />}
@@ -317,7 +316,7 @@ export default function MatchDetailScreen() {
     );
   };
 
-  const LineupTab = () => {
+  const renderLineupTab = () => {
     if (!lineup) return (
       <View style={styles.emptyContainer}>
         <Users size={48} color={theme.textSecondary} opacity={0.3} />
@@ -400,7 +399,7 @@ export default function MatchDetailScreen() {
     );
   };
 
-  const StatsTab = () => {
+  const renderStatsTab = () => {
     if (!h2h) return (
       <View style={styles.emptyContainer}>
         <BarChart3 size={48} color={theme.textSecondary} opacity={0.3} />
@@ -408,14 +407,14 @@ export default function MatchDetailScreen() {
       </View>
     );
 
-    const StatRow = ({ label, home, away, isHigherBetter = true }: any) => {
+    const renderStatRow = (label: string, home: any, away: any, isHigherBetter = true) => {
       const homeVal = parseFloat(home);
       const awayVal = parseFloat(away);
       const isHomeBetter = isHigherBetter ? homeVal > awayVal : homeVal < awayVal;
       const isAwayBetter = isHigherBetter ? awayVal > homeVal : awayVal < homeVal;
 
       return (
-        <View style={styles.statRow}>
+        <View key={label} style={styles.statRow}>
           <Text style={[styles.statValueSmall, isHomeBetter && { color: theme.primary, fontWeight: '800' }]}>{home}</Text>
           <Text style={styles.statLabelSmall}>{label}</Text>
           <Text style={[styles.statValueSmall, isAwayBetter && { color: theme.primary, fontWeight: '800' }]}>{away}</Text>
@@ -441,11 +440,11 @@ export default function MatchDetailScreen() {
 
         <View style={styles.section}>
           <Text style={styles.subTitle}>{t("match_detail.current_season")}</Text>
-          <StatRow label={t("match_detail.stat_position")} home={h2h.home_season_stats.position} away={h2h.away_season_stats.position} isHigherBetter={false} />
-          <StatRow label={t("match_detail.stat_goals_pg")} home={h2h.home_season_stats.goals_per_game} away={h2h.away_season_stats.goals_per_game} />
-          <StatRow label={t("match_detail.stat_goals_conceded")} home={h2h.home_season_stats.goals_conceded_per_game} away={h2h.away_season_stats.goals_conceded_per_game} isHigherBetter={false} />
-          <StatRow label={t("match_detail.stat_clean_sheets")} home={h2h.home_season_stats.clean_sheets} away={h2h.away_season_stats.clean_sheets} />
-          <StatRow label={t("match_detail.stat_wins")} home={h2h.home_season_stats.wins} away={h2h.away_season_stats.wins} />
+          {renderStatRow(t("match_detail.stat_position"), h2h.home_season_stats.position, h2h.away_season_stats.position, false)}
+          {renderStatRow(t("match_detail.stat_goals_pg"), h2h.home_season_stats.goals_per_game, h2h.away_season_stats.goals_per_game)}
+          {renderStatRow(t("match_detail.stat_goals_conceded"), h2h.home_season_stats.goals_conceded_per_game, h2h.away_season_stats.goals_conceded_per_game, false)}
+          {renderStatRow(t("match_detail.stat_clean_sheets"), h2h.home_season_stats.clean_sheets, h2h.away_season_stats.clean_sheets)}
+          {renderStatRow(t("match_detail.stat_wins"), h2h.home_season_stats.wins, h2h.away_season_stats.wins)}
         </View>
       </ScrollView>
     );
@@ -529,7 +528,7 @@ export default function MatchDetailScreen() {
               </Text>
               {match?.status === "live" && (
                 <View style={styles.liveIndicator}>
-                  <Text style={styles.liveText}>{match.current_minute}'</Text>
+                  <Text style={styles.liveText}>{match.current_minute}&apos;</Text>
                 </View>
               )}
             </View>
@@ -585,10 +584,10 @@ export default function MatchDetailScreen() {
 
       {/* Tab Content */}
       <View style={{ flex: 1 }}>
-        {activeTab === 'RESUMEN' && <SummaryTab />}
-        {activeTab === 'TIMELINE' && <TimelineTab />}
-        {activeTab === 'ALINEACION' && <LineupTab />}
-        {activeTab === 'ESTADISTICAS' && <StatsTab />}
+        {activeTab === 'RESUMEN' && renderSummaryTab()}
+        {activeTab === 'TIMELINE' && renderTimelineTab()}
+        {activeTab === 'ALINEACION' && renderLineupTab()}
+        {activeTab === 'ESTADISTICAS' && renderStatsTab()}
       </View>
 
       {match && (

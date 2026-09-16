@@ -359,7 +359,7 @@ export default function PickupSpotDetailScreen() {
                       <CheckCircle2 size={12} color="#4ADE80" />
                     )}
                   </View>
-                  {chk.note && <Text style={styles.chkNote}>"{chk.note}"</Text>}
+                  {chk.note && <Text style={styles.chkNote}>&quot;{chk.note}&quot;</Text>}
                   {chk.additional_headcount ? (
                     <Text style={styles.chkHeadcount}>+ {chk.additional_headcount} personas con él</Text>
                   ) : null}

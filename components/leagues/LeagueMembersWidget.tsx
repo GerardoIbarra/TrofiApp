@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { Users, Shield, User, ChevronRight } from "lucide-react-native";
+import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/context/ThemeContext";
 import api from "@/services/api";
 import { LeagueMembership } from "@/features/leagues/types/league";
@@ -24,27 +25,14 @@ export function LeagueMembersWidget({ leagueId }: LeagueMembersWidgetProps) {
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
-  const [members, setMembers] = useState<LeagueMembership[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchMembers();
-  }, [leagueId]);
-
-  const fetchMembers = async () => {
-    setIsLoading(true);
-    try {
-      // Usar la ruta dinámica proporcionada por el usuario
-      const response = await api.get<LeagueMembership[]>(
-        `/v1/leagues/${leagueId}/memberships/`
-      );
-      setMembers(response);
-    } catch (error) {
-      console.error("Error fetching league members:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data: members = [],
+    isLoading,
+  } = useQuery({
+    queryKey: ["league-members", leagueId],
+    queryFn: () => api.get<LeagueMembership[]>(`/v1/leagues/${leagueId}/memberships/`),
+    enabled: Boolean(leagueId),
+  });
 
   if (isLoading) {
     return (

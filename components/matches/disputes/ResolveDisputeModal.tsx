@@ -126,7 +126,7 @@ export function ResolveDisputeModal({
                 {dispute.filed_by_team_name ? ` (${dispute.filed_by_team_name})` : ''}
               </Text>
             </Text>
-            <Text style={styles.reasonText}>"{dispute.reason}"</Text>
+            <Text style={styles.reasonText}>&quot;{dispute.reason}&quot;</Text>
           </View>
 
           {/* Notes Input */}

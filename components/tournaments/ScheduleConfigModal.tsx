@@ -41,30 +41,32 @@ export function ScheduleConfigModal({ visible, onClose, tournamentId }: Props) {
 
   const updateMutation = useUpdateScheduleConfig();
 
-  const [selectedDays, setSelectedDays] = useState<number[]>([]);
-  const [selectedFields, setSelectedFields] = useState<string[]>([]);
+  const [prevVisibleConfig, setPrevVisibleConfig] = useState({ visible, config });
+  const [selectedDays, setSelectedDays] = useState<number[]>(config?.days_of_week || []);
+  const [selectedFields, setSelectedFields] = useState<string[]>(config?.fields || []);
 
-  const { control, handleSubmit, reset } = useForm<ScheduleConfigSchema>({
+  if (prevVisibleConfig.visible !== visible || prevVisibleConfig.config !== config) {
+    setPrevVisibleConfig({ visible, config });
+    if (visible && config) {
+      setSelectedDays(config.days_of_week || []);
+      setSelectedFields(config.fields || []);
+    }
+  }
+
+  const { control, handleSubmit } = useForm<ScheduleConfigSchema>({
     defaultValues: {
       window_start: "18:00",
       window_end: "23:00",
       match_duration_minutes: 60,
       break_minutes: 10,
-    }
+    },
+    values: visible && config ? {
+      window_start: config.window_start || "18:00",
+      window_end: config.window_end || "23:00",
+      match_duration_minutes: config.match_duration_minutes || 60,
+      break_minutes: config.break_minutes || 10,
+    } : undefined,
   });
-
-  useEffect(() => {
-    if (visible && config) {
-      reset({
-        window_start: config.window_start || "18:00",
-        window_end: config.window_end || "23:00",
-        match_duration_minutes: config.match_duration_minutes || 60,
-        break_minutes: config.break_minutes || 10,
-      });
-      setSelectedDays(config.days_of_week || []);
-      setSelectedFields(config.fields || []);
-    }
-  }, [visible, config]);
 
   const toggleDay = (day: number) => {
     if (selectedDays.includes(day)) {

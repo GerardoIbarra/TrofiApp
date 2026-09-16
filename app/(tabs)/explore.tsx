@@ -126,7 +126,7 @@ export default function ExploreScreen() {
               </View>
               <View style={styles.playerInfo}>
                 <Text style={styles.playerCardTitle}>{t('explore.player_of_month')}</Text>
-                <Text style={styles.playerName}>Marcus "Viper" Chen</Text>
+                <Text style={styles.playerName}>{'Marcus "Viper" Chen'}</Text>
                 <TouchableOpacity style={styles.viewProfileRow}>
                    <Text style={styles.viewProfileText}>{t('explore.view_profile')}</Text>
                    <ChevronRight size={14} color={theme.primary} />
@@ -166,11 +166,11 @@ export default function ExploreScreen() {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sportsScroll}>
               <SportCard 
                 title={t('explore.soccer')} 
-                image="https://images.pexels.com/photos/46734/pexels-photo-46734.jpeg?auto=compress&cs=tinysrgb&w=800"
+                image={"https://images.pexels.com/photos/46734/pexels-photo-46734.jpeg?auto=compress&cs=tinysrgb&w=800"}
               />
               <SportCard 
                 title={t('explore.basketball')} 
-                image="https://images.pexels.com/photos/1752757/pexels-photo-1752757.jpeg?auto=compress&cs=tinysrgb&w=800"
+                image={"https://images.pexels.com/photos/1752757/pexels-photo-1752757.jpeg?auto=compress&cs=tinysrgb&w=800"}
               />
             </ScrollView>
 

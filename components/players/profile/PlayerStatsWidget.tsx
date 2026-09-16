@@ -8,10 +8,16 @@ interface PlayerStatsWidgetProps {
   stats: PlayerStats;
 }
 
-export function PlayerStatsWidget({ stats }: PlayerStatsWidgetProps) {
-  const { theme, isDark } = useTheme();
+interface StatItemProps {
+  label: string;
+  value: any;
+  icon: any;
+  theme: any;
+  isDark: boolean;
+}
 
-  const StatItem = ({ label, value, icon: Icon }: any) => (
+function StatItem({ label, value, icon: Icon, theme, isDark }: StatItemProps) {
+  return (
     <View style={[styles.statBox, { backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
       <View style={styles.statHeader}>
         <Icon size={14} color={theme.primary} />
@@ -20,6 +26,10 @@ export function PlayerStatsWidget({ stats }: PlayerStatsWidgetProps) {
       <Text style={[styles.statValue, { color: theme.text }]}>{value}</Text>
     </View>
   );
+}
+
+export function PlayerStatsWidget({ stats }: PlayerStatsWidgetProps) {
+  const { theme, isDark } = useTheme();
 
   return (
     <View style={styles.container}>
@@ -37,14 +47,14 @@ export function PlayerStatsWidget({ stats }: PlayerStatsWidgetProps) {
       )}
 
       <View style={styles.grid}>
-        <StatItem label="Partidos" value={stats.matches_played ?? '-'} icon={Activity} />
-        <StatItem label="Goles" value={stats.goals ?? '-'} icon={Target} />
-        <StatItem label="Asistencias" value={stats.assists ?? '-'} icon={Target} />
-        <StatItem label="Rating Prom." value={stats.avg_match_rating != null ? stats.avg_match_rating.toFixed(2) : '-'} icon={Activity} />
-        <StatItem label="MVP" value={stats.mvp_count ?? '-'} icon={Trophy} />
-        <StatItem label="Vallas Invictas" value={stats.clean_sheets ?? '-'} icon={Shield} />
-        <StatItem label="T. Amarillas" value={stats.yellow_cards ?? '-'} icon={AlertCircle} />
-        <StatItem label="T. Rojas" value={stats.red_cards ?? '-'} icon={AlertCircle} />
+        <StatItem label="Partidos" value={stats.matches_played ?? '-'} icon={Activity} theme={theme} isDark={isDark} />
+        <StatItem label="Goles" value={stats.goals ?? '-'} icon={Target} theme={theme} isDark={isDark} />
+        <StatItem label="Asistencias" value={stats.assists ?? '-'} icon={Target} theme={theme} isDark={isDark} />
+        <StatItem label="Rating Prom." value={stats.avg_match_rating != null ? stats.avg_match_rating.toFixed(2) : '-'} icon={Activity} theme={theme} isDark={isDark} />
+        <StatItem label="MVP" value={stats.mvp_count ?? '-'} icon={Trophy} theme={theme} isDark={isDark} />
+        <StatItem label="Vallas Invictas" value={stats.clean_sheets ?? '-'} icon={Shield} theme={theme} isDark={isDark} />
+        <StatItem label="T. Amarillas" value={stats.yellow_cards ?? '-'} icon={AlertCircle} theme={theme} isDark={isDark} />
+        <StatItem label="T. Rojas" value={stats.red_cards ?? '-'} icon={AlertCircle} theme={theme} isDark={isDark} />
       </View>
 
       <View style={styles.recordBox}>

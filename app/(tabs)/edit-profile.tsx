@@ -33,7 +33,7 @@ export default function EditProfileScreen() {
   const styles = createStyles(theme, isDark);
   const { showToast } = useToast();
   const user = useAuthStore((state) => state.user);
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isEn = i18n.language === 'en';
 
   const handleBack = () => {
@@ -49,7 +49,8 @@ export default function EditProfileScreen() {
     return () => sub.remove();
   }, []);
 
-  const [previewUri, setPreviewUri] = useState<string | null>(user?.photo || null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const previewUri = selectedPhoto ?? user?.photo ?? null;
 
   const {
     control,
@@ -58,7 +59,7 @@ export default function EditProfileScreen() {
     formState: { isSubmitting },
   } = useForm<EditProfileSchema>({
     resolver: zodResolver(editProfileSchema),
-    defaultValues: {
+    values: {
       first_name: user?.first_name || '',
       last_name: user?.last_name || '',
       email: user?.email || '',
@@ -66,19 +67,6 @@ export default function EditProfileScreen() {
       photo: user?.photo || '',
     },
   });
-
-  useEffect(() => {
-    if (user) {
-      setValue('first_name', user.first_name || '');
-      setValue('last_name', user.last_name || '');
-      setValue('email', user.email || '');
-      setValue('phone', user.phone || '');
-      if (user.photo) {
-        setValue('photo', user.photo);
-        setPreviewUri(user.photo);
-      }
-    }
-  }, [user, setValue]);
 
   const pickImage = async () => {
     try {
@@ -98,7 +86,7 @@ export default function EditProfileScreen() {
 
       if (!result.canceled && result.assets && result.assets[0]) {
         const asset = result.assets[0];
-        setPreviewUri(asset.uri);
+        setSelectedPhoto(asset.uri);
         setValue('photo', asset.uri);
       }
     } catch (error) {

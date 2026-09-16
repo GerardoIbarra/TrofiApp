@@ -258,7 +258,7 @@ export default function RegisterScreen() {
   const [registeredAuth, setRegisteredAuth] = useState<RegisterResponse | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
 
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [fadeAnim] = useState(() => new Animated.Value(1));
 
   const transitionTo = (nextStep: number) => {
     Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => {

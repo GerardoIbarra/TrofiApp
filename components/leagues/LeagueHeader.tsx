@@ -88,6 +88,7 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
               style={styles.editButton} 
               onPress={onEditPress}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Settings size={16} color={theme.primary} />
             </TouchableOpacity>

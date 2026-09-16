@@ -152,7 +152,7 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
                  </View>
                  {rec.minute && (
                    <View style={styles.minuteBox}>
-                      <Text style={styles.minuteText}>{rec.minute}'</Text>
+                      <Text style={styles.minuteText}>{rec.minute}&apos;</Text>
                    </View>
                  )}
               </View>

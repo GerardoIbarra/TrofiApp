@@ -28,7 +28,7 @@ import { ProfileSettingsMenu } from "@/components/profile/ProfileSettingsMenu";
 import { ProfileLanguageModal } from "@/components/profile/ProfileLanguageModal";
 import { PrivacySecurityModal } from "@/components/profile/PrivacySecurityModal";
 import { AppSettingsModal } from "@/components/profile/AppSettingsModal";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useWindowDimensions,
@@ -94,13 +94,7 @@ export default function ProfileScreen() {
   const isOwnProfile = !id || id === user?.id || id === user?.player_profile?.id;
   const activePhoto = profile?.player_profile?.photo || profile?.photo || (isOwnProfile ? user?.photo : undefined);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      fetchData();
-    }, [id])
-  );
-
-  const fetchData = async (isRefresh = false) => {
+  const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
       setIsRefreshing(true);
     } else {
@@ -189,7 +183,13 @@ export default function ProfileScreen() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [id, userId]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
 
   const getInitials = () => {
     if (!profile) return "??";

@@ -16,27 +16,24 @@ export function BracketWidget({ tournamentId, isAdmin }: Props) {
   const styles = createStyles(theme, isDark);
 
   const { data: bracket, isLoading } = useGetBracket(tournamentId);
-  const [stages, setStages] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (bracket && bracket.slots) {
-      // Group slots by stage
-      const grouped = bracket.slots.reduce((acc: any, slot: any) => {
-        if (!acc[slot.stage]) acc[slot.stage] = [];
-        acc[slot.stage].push(slot);
-        return acc;
-      }, {});
+  const stages = React.useMemo(() => {
+    if (!bracket?.slots) return [];
+    // Group slots by stage
+    const grouped = bracket.slots.reduce((acc: any, slot: any) => {
+      if (!acc[slot.stage]) acc[slot.stage] = [];
+      acc[slot.stage].push(slot);
+      return acc;
+    }, {});
 
-      // Convert to array for rendering (usually order is qf -> sf -> f)
-      const stageOrder = ['r16', 'qf', 'sf', '3rd', 'f'];
-      const sortedStages = Object.keys(grouped)
-        .sort((a, b) => stageOrder.indexOf(a) - stageOrder.indexOf(b))
-        .map(key => ({
-          name: key.toUpperCase(),
-          slots: grouped[key]
-        }));
-      setStages(sortedStages);
-    }
+    // Convert to array for rendering (usually order is qf -> sf -> f)
+    const stageOrder = ['r16', 'qf', 'sf', '3rd', 'f'];
+    return Object.keys(grouped)
+      .sort((a, b) => stageOrder.indexOf(a) - stageOrder.indexOf(b))
+      .map(key => ({
+        name: key.toUpperCase(),
+        slots: grouped[key]
+      }));
   }, [bracket]);
 
   if (isLoading) {

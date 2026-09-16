@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
@@ -24,44 +25,38 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
   const [position, setPosition] = useState<'GK' | 'DEF' | 'MED' | 'DEL' | 'SUB' | ''>('');
   const [availabilityNote, setAvailabilityNote] = useState('');
   const [notes, setNotes] = useState('');
-  
-  const [myLeagues, setMyLeagues] = useState<any[]>([]);
-  const [myTeams, setMyTeams] = useState<any[]>([]);
-  const [loadingContext, setLoadingContext] = useState(true);
 
   const createMutation = useCreateMarketListing();
 
-  useEffect(() => {
-    fetchContext();
-  }, []);
-
-  const fetchContext = async () => {
-    setLoadingContext(true);
-    try {
+  const { data: contextData, isLoading: loadingContext } = useQuery({
+    queryKey: ['market-listing-context'],
+    queryFn: async () => {
       const [leaguesRes, teamsRes] = await Promise.all([
         api.get<any>('/v1/leagues/my_leagues/'),
-        api.get<any>('/v1/teams/?is_owner=true') 
+        api.get<any>('/v1/teams/?is_owner=true')
       ]);
-      setMyLeagues(leaguesRes.results || leaguesRes || []);
-      
-      setMyTeams(teamsRes.results || teamsRes || []);
-      
-      if (leaguesRes?.length > 0) setLeague(leaguesRes[0].id);
-      if (teamsRes?.length > 0) setTeam(teamsRes[0].id);
-    } catch (e) {
-      console.error('Error fetching context', e);
-    } finally {
-      setLoadingContext(false);
-    }
-  };
+      const leagues = leaguesRes.results || leaguesRes || [];
+      const teams = teamsRes.results || teamsRes || [];
+      return { leagues, teams };
+    },
+  });
+
+  const myLeagues = contextData?.leagues || [];
+  const myTeams = contextData?.teams || [];
+
+  const selectedLeague = league || (myLeagues[0]?.id || '');
+  const selectedTeam = team || (myTeams[0]?.id || '');
 
   const handleCreate = () => {
-    if (!league) {
+    const targetLeague = league || selectedLeague;
+    const targetTeam = team || selectedTeam;
+
+    if (!targetLeague) {
       showToast({ type: 'error', title: t('common.error', 'Error'), message: t('market.error_no_league') });
       return;
     }
 
-    if (listingType === 'team_seeking_player' && !team) {
+    if (listingType === 'team_seeking_player' && !targetTeam) {
       showToast({ type: 'error', title: t('common.error', 'Error'), message: t('market.error_no_team') });
       return;
     }
@@ -73,9 +68,9 @@ export function CreateListingModal({ onClose }: CreateListingModalProps) {
 
     createMutation.mutate(
       {
-        league,
+        league: targetLeague,
         listing_type: listingType,
-        team: listingType === 'team_seeking_player' ? team : undefined,
+        team: listingType === 'team_seeking_player' ? targetTeam : undefined,
         position: position || undefined,
         availability_note: availabilityNote || undefined,
         notes: notes || undefined,

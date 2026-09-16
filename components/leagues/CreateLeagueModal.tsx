@@ -59,6 +59,20 @@ const COUNTRIES = [
   { label: "Otro", value: "Otro" },
 ];
 
+const slugify = (text: string) => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+};
+
+const computeSlug = (name: string, isEditing: boolean, initialSlug?: string) => {
+  if (isEditing && initialSlug) return initialSlug;
+  return `${slugify(name)}-${Math.floor(Math.random() * 1000)}`;
+};
+
 export function CreateLeagueModal({
   visible,
   onClose,
@@ -152,14 +166,7 @@ export function CreateLeagueModal({
     }
   }, [initialData, visible, reset]);
 
-  const slugify = (text: string) => {
-    return text
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/[\s_-]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-  };
+
 
   const onSubmit = async (data: LeagueSchema) => {
     if (!user?.id) {
@@ -169,9 +176,7 @@ export function CreateLeagueModal({
 
     try {
       const formData = new FormData();
-      const slug = isEditing
-        ? initialData.slug
-        : slugify(data.name) + "-" + Math.floor(Math.random() * 1000);
+      const slug = computeSlug(data.name, isEditing, initialData?.slug);
 
       formData.append("name", String(data.name));
       formData.append("slug", String(slug));

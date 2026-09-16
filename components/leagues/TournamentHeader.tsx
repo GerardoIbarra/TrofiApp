@@ -53,7 +53,7 @@ export function TournamentHeader({ tournament, onEditPress, onAddPress }: Tourna
     <View style={styles.container}>
       {/* Background Fallback for Tournaments */}
       <Image
-        source="https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=1600"
+        source={{ uri: "https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=1600" }}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
         transition={600}
@@ -97,6 +97,7 @@ export function TournamentHeader({ tournament, onEditPress, onAddPress }: Tourna
                 style={styles.editButton} 
                 onPress={onAddPress}
                 activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Plus size={16} color={theme.primary} />
               </TouchableOpacity>
@@ -107,6 +108,7 @@ export function TournamentHeader({ tournament, onEditPress, onAddPress }: Tourna
                 style={styles.editButton} 
                 onPress={onEditPress}
                 activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
                 <Settings size={16} color={theme.primary} />
               </TouchableOpacity>
