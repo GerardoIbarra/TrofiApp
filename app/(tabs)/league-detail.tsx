@@ -45,8 +45,6 @@ import { useTranslation } from "react-i18next";
 export default function LeagueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("STANDINGS");
-  const [league, setLeague] = useState<League | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isTournamentModalVisible, setIsTournamentModalVisible] =
     useState(false);
