@@ -181,7 +181,7 @@ export function TournamentMatchesWidget({
     );
   };
 
-  if (isLoading && !refreshing) {
+  if (isLoading) {
     return (
       <View style={styles.container}>
         <MatchCardSkeleton />

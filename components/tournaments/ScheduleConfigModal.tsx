@@ -27,6 +27,13 @@ const DAYS = [
   { value: 7, label: "Domingo" }, // Sometimes 0 is Sunday, depends on backend ISO parsing, using ISO 1-7.
 ];
 
+type ScheduleFormValues = {
+  window_start: string;
+  window_end: string;
+  match_duration_minutes: number;
+  break_minutes?: number;
+};
+
 export function ScheduleConfigModal({ visible, onClose, tournamentId }: Props) {
   const { theme, isDark } = useTheme();
   const styles = createStyles(theme, isDark);
@@ -53,7 +60,7 @@ export function ScheduleConfigModal({ visible, onClose, tournamentId }: Props) {
     }
   }
 
-  const { control, handleSubmit } = useForm<ScheduleConfigSchema>({
+  const { control, handleSubmit } = useForm<ScheduleFormValues>({
     defaultValues: {
       window_start: "18:00",
       window_end: "23:00",
@@ -84,7 +91,7 @@ export function ScheduleConfigModal({ visible, onClose, tournamentId }: Props) {
     }
   };
 
-  const onSubmit = (data: ScheduleConfigSchema) => {
+  const onSubmit = (data: ScheduleFormValues) => {
     if (selectedDays.length === 0) {
       showToast({ type: 'error', title: "Error", message: "Selecciona al menos un día" });
       return;
