@@ -75,9 +75,11 @@ No hay framework de testing configurado (sin Jest/Testing Library en `package.js
 
 Detalle completo en el README, sección "Actualizaciones y Despliegues". Resumen: `eas update --branch preview` publica JS/assets; el cliente aplica un "update gate" en el arranque (`useUpdateGate` en `app/_layout.tsx`) que fuerza descargar y aplicar la última versión antes de mostrar la app (con timeout de 5s), en vez de esperar a que el usuario toque un botón.
 
-## Skills de agentes
+## Skills de agentes y UX
 
 `.agents/skills/` contiene skills instaladas (ver `skills-lock.json`), varias con foco en diseño/mobile que se solapan: `mobile-design`, `mobile-ios-design`, `react-native-design`, `expo-design-system`, `expo-ui`, `expo-native-ui`. Sin un criterio único documentado todavía sobre cuál preferir — ante la duda, usar la más específica al contexto (ej. `mobile-ios-design` para pantallas puramente iOS/HIG) y evitar aplicar dos skills de diseño en simultáneo sobre el mismo componente.
+
+Para decisiones de psicología visual, ergonomía y carga cognitiva en componentes y pantallas, consultar la guía obligatoria en [.agents/rules/laws-of-ux.md](.agents/rules/laws-of-ux.md) (basada en *Laws of UX* adaptada al dominio de ligas y retas).
 
 ## Convenciones generales
 
