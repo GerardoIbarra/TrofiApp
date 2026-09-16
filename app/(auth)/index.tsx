@@ -22,6 +22,7 @@ import { TrofiLogo } from '@/components/ui/branding/TrofiLogo';
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@/features/auth/store/authStore';
 
 const { width } = Layout.window;
 
@@ -30,6 +31,15 @@ export default function WelcomeScreen() {
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const logoScale = useSharedValue(1);
+
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isAuthLoading = useAuthStore((state) => state.isLoading);
+
+  useEffect(() => {
+    if (!isAuthLoading && isAuthenticated) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthLoading, isAuthenticated]);
 
   useEffect(() => {
     // 1. Ocultar el Splash Nativo una vez que JS toma el control

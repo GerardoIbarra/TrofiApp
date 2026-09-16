@@ -155,7 +155,7 @@ function useUpdateGate() {
 }
 
 export const unstable_settings = {
-  anchor: "(auth)",
+  anchor: "(tabs)",
 };
 
 function InitialNavigation() {
@@ -213,16 +213,16 @@ function InitialNavigation() {
       // se lee AsyncStorage (evita el flash reportado con sesión ya iniciada).
       try {
         if (!isAuthenticated) {
-          router.replace("/(auth)");
+          const hasSeenOnboarding = await AsyncStorage.getItem("has_seen_onboarding");
+          if (hasSeenOnboarding === "true") {
+            router.replace("/(auth)");
+          } else {
+            router.replace("/onboarding" as any);
+          }
           return;
         }
 
-        const hasSeenOnboarding = await AsyncStorage.getItem("has_seen_onboarding");
-        if (hasSeenOnboarding === "true") {
-          router.replace("/(tabs)");
-        } else {
-          router.replace("/onboarding" as any);
-        }
+        router.replace("/(tabs)");
       } catch (e) {
         router.replace("/(tabs)");
       } finally {
