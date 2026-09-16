@@ -15,3 +15,10 @@ export interface Field {
   created_at?: string;
   updated_at?: string;
 }
+
+export interface VenuesResponse {
+  results: Venue[];
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+}
