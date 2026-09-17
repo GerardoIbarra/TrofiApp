@@ -11,6 +11,8 @@ import { useTheme } from "@/context/ThemeContext";
 import { Match } from "@/features/tournaments/types/match";
 import { Clock, Pause, CheckCircle2 } from "lucide-react-native";
 
+import { ConfirmEndMatchModal } from "@/components/matches/admin/modals/ConfirmEndMatchModal";
+
 export type MatchPeriod =
   | "not_started"
   | "1T"
@@ -51,6 +53,9 @@ export function MatchPeriodTracker({
 
   // Local clock ticking (seconds within current period)
   const [seconds, setSeconds] = useState(0);
+
+  // Explicit confirmation modal for finishing match
+  const [isConfirmEndModalVisible, setIsConfirmEndModalVisible] = useState(false);
 
   useEffect(() => {
     // Pulse animation when live
@@ -101,6 +106,11 @@ export function MatchPeriodTracker({
   const handleSelectStep = (targetPeriod: MatchPeriod) => {
     if (targetPeriod === currentPeriod) return;
 
+    if (targetPeriod === "finished") {
+      setIsConfirmEndModalVisible(true);
+      return;
+    }
+
     const targetStep = PERIOD_STEPS.find((s) => s.key === targetPeriod);
     const targetLabel = targetStep?.label || targetPeriod;
 
@@ -111,7 +121,7 @@ export function MatchPeriodTracker({
         { text: "Cancelar", style: "cancel" },
         {
           text: "Confirmar",
-          style: targetPeriod === "finished" ? "destructive" : "default",
+          style: "default",
           onPress: () => {
             onPeriodChange(targetPeriod);
             if (targetStep && onMinuteChange) {
@@ -122,6 +132,16 @@ export function MatchPeriodTracker({
         },
       ]
     );
+  };
+
+  const handleConfirmFinish = () => {
+    const finishedStep = PERIOD_STEPS.find((s) => s.key === "finished");
+    onPeriodChange("finished");
+    if (finishedStep && onMinuteChange) {
+      onMinuteChange(finishedStep.defaultMinute);
+    }
+    setSeconds(0);
+    setIsConfirmEndModalVisible(false);
   };
 
   const formatSeconds = (totalSec: number) => {
@@ -249,6 +269,16 @@ export function MatchPeriodTracker({
           })}
         </View>
       </View>
+
+      <ConfirmEndMatchModal
+        visible={isConfirmEndModalVisible}
+        onClose={() => setIsConfirmEndModalVisible(false)}
+        onConfirm={handleConfirmFinish}
+        homeTeamName={match.home_team_name}
+        awayTeamName={match.away_team_name}
+        homeScore={match.result?.home_score ?? 0}
+        awayScore={match.result?.away_score ?? 0}
+      />
     </View>
   );
 }

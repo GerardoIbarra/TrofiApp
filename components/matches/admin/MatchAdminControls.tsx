@@ -12,6 +12,7 @@ import { SubstituteModal } from './modals/SubstituteModal';
 import { MatchStatusModal } from './modals/MatchStatusModal';
 import { AssignRefereeModal } from './modals/AssignRefereeModal';
 import { PenaltyShootoutModal } from './modals/PenaltyShootoutModal';
+import { ConfirmEndMatchModal } from './modals/ConfirmEndMatchModal';
 
 interface MatchAdminControlsProps {
   match: Match;
@@ -35,6 +36,7 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
   const [isStatusModalVisible, setStatusModalVisible] = useState(false);
   const [isRefereeModalVisible, setRefereeModalVisible] = useState(false);
   const [isPenaltyModalVisible, setPenaltyModalVisible] = useState(false);
+  const [isConfirmEndModalVisible, setConfirmEndModalVisible] = useState(false);
 
   const handleStart = () => {
     Alert.alert('Comenzar Partido', '¿Estás seguro que deseas iniciar el partido?', [
@@ -44,10 +46,7 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
   };
 
   const handleEnd = () => {
-    Alert.alert('Finalizar Partido', '¿Estás seguro que deseas terminar el partido?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Terminar', style: 'destructive', onPress: () => endMatch.mutate(match.id) },
-    ]);
+    setConfirmEndModalVisible(true);
   };
 
   return (
@@ -95,7 +94,7 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
 
             <TouchableOpacity style={[styles.btnSecondary, { borderColor: '#F44336' }]} onPress={handleEnd}>
               <Square size={16} color="#F44336" />
-              <Text style={[styles.btnTextSecondary, { color: '#F44336' }]}>Terminar</Text>
+              <Text style={[styles.btnTextSecondary, { color: '#F44336' }]}>Finalizar Partido</Text>
             </TouchableOpacity>
           </>
         )}
@@ -139,6 +138,23 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
       <MatchStatusModal visible={isStatusModalVisible} onClose={() => setStatusModalVisible(false)} match={match} />
       <AssignRefereeModal visible={isRefereeModalVisible} onClose={() => setRefereeModalVisible(false)} match={match} />
       <PenaltyShootoutModal visible={isPenaltyModalVisible} onClose={() => setPenaltyModalVisible(false)} match={match} />
+      <ConfirmEndMatchModal
+        visible={isConfirmEndModalVisible}
+        onClose={() => setConfirmEndModalVisible(false)}
+        onConfirm={async () => {
+          try {
+            await endMatch.mutateAsync(match.id);
+            setConfirmEndModalVisible(false);
+          } catch (e) {
+            console.error('Error finishing match:', e);
+          }
+        }}
+        homeTeamName={match.home_team_name}
+        awayTeamName={match.away_team_name}
+        homeScore={match.result?.home_score ?? 0}
+        awayScore={match.result?.away_score ?? 0}
+        isLoading={endMatch.isPending}
+      />
     </View>
   );
 }

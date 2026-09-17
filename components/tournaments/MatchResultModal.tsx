@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -17,6 +17,8 @@ import { useToast } from '@/context/ToastContext';
 import { Match } from '@/features/tournaments/types/match';
 import api from '@/services/api';
 
+import { ConfirmEndMatchModal } from '@/components/matches/admin/modals/ConfirmEndMatchModal';
+
 interface MatchResultModalProps {
   visible: boolean;
   match: Match | null;
@@ -33,6 +35,7 @@ export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchRe
   const [homeScore, setHomeScore] = useState(match?.result?.home_score?.toString() || '0');
   const [awayScore, setAwayScore] = useState(match?.result?.away_score?.toString() || '0');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
   if (match?.id !== prevMatchId) {
     setPrevMatchId(match?.id);
@@ -40,14 +43,19 @@ export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchRe
     setAwayScore(match?.result?.away_score?.toString() || '0');
   }
 
-  const handleSubmit = async () => {
+  const handleRequestSave = () => {
+    if (!match) return;
+    setIsConfirmModalVisible(true);
+  };
+
+  const handleConfirmSave = async () => {
     if (!match) return;
 
     setIsSubmitting(true);
     try {
       await api.post(`/v1/matches/${match.id}/result/`, {
-        home_score: parseInt(homeScore),
-        away_score: parseInt(awayScore),
+        home_score: parseInt(homeScore || '0', 10),
+        away_score: parseInt(awayScore || '0', 10),
         result_type: 'normal',
       });
       
@@ -55,6 +63,7 @@ export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchRe
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
       showToast({ type: 'success', title: "¡Resultado Guardado!", message: "El marcador ha sido actualizado correctamente." });
+      setIsConfirmModalVisible(false);
       onSuccess();
       onClose();
     } catch (error: any) {
@@ -119,7 +128,7 @@ export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchRe
 
             <TouchableOpacity 
               style={[styles.saveButton, isSubmitting && { opacity: 0.7 }]}
-              onPress={handleSubmit}
+              onPress={handleRequestSave}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
@@ -141,6 +150,17 @@ export function MatchResultModal({ visible, match, onClose, onSuccess }: MatchRe
           </View>
         </KeyboardAvoidingView>
       </View>
+
+      <ConfirmEndMatchModal
+        visible={isConfirmModalVisible}
+        onClose={() => setIsConfirmModalVisible(false)}
+        onConfirm={handleConfirmSave}
+        homeTeamName={match.home_team_name}
+        awayTeamName={match.away_team_name}
+        homeScore={homeScore || '0'}
+        awayScore={awayScore || '0'}
+        isLoading={isSubmitting}
+      />
     </Modal>
   );
 }
