@@ -8,6 +8,7 @@ import {
   Platform,
   ScrollView,
   BackHandler,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Camera } from 'lucide-react-native';
@@ -15,7 +16,6 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { editProfileSchema, EditProfileSchema } from '@/features/auth/schemas/authSchemas';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
@@ -27,6 +27,7 @@ import api from '@/services/api';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { AuthStorage } from '@/features/auth/services/authStorage';
 import { useToast } from '@/context/ToastContext';
+import { pickAndOptimizeImage } from '@/services/imageOptimizer';
 
 export default function EditProfileScreen() {
   const { theme, isDark } = useTheme();
@@ -50,6 +51,7 @@ export default function EditProfileScreen() {
   }, []);
 
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const previewUri = selectedPhoto ?? user?.photo ?? null;
 
   const {
@@ -69,29 +71,28 @@ export default function EditProfileScreen() {
   });
 
   const pickImage = async () => {
+    setIsProcessingPhoto(true);
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        showToast({ type: 'info', title: 'Permiso denegado', message: 'Se requiere acceso a la galería para cambiar tu foto de perfil.' });
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
+      const result = await pickAndOptimizeImage({
         aspect: [1, 1],
-        quality: 0.8,
-        base64: true,
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.78, // JPEG 0.75 - 0.80 range, <= 250 KB
       });
 
-      if (!result.canceled && result.assets && result.assets[0]) {
-        const asset = result.assets[0];
-        setSelectedPhoto(asset.uri);
-        setValue('photo', asset.uri);
+      if (result) {
+        setSelectedPhoto(result.uri);
+        setValue('photo', result.uri);
       }
-    } catch (error) {
-      console.error('Error al seleccionar imagen:', error);
-      showToast({ type: 'error', title: 'Error', message: 'No se pudo abrir la galería de imágenes.' });
+    } catch (error: any) {
+      if (error?.message === 'MEDIA_LIBRARY_PERMISSION_DENIED') {
+        showToast({ type: 'info', title: 'Permiso denegado', message: 'Se requiere acceso a la galería para cambiar tu foto de perfil.' });
+      } else {
+        console.error('Error al seleccionar imagen:', error);
+        showToast({ type: 'error', title: 'Error', message: 'No se pudo procesar u optimizar la imagen.' });
+      }
+    } finally {
+      setIsProcessingPhoto(false);
     }
   };
 
@@ -204,6 +205,7 @@ export default function EditProfileScreen() {
               style={styles.photoContainer}
               activeOpacity={0.8}
               onPress={pickImage}
+              disabled={isProcessingPhoto || isSubmitting}
             >
               <View style={styles.photoCircle}>
                 {previewUri ? (
@@ -211,11 +213,27 @@ export default function EditProfileScreen() {
                 ) : (
                   <Camera size={32} color={theme.textSecondary} />
                 )}
+                {isProcessingPhoto && (
+                  <View style={styles.photoOverlay}>
+                    <ActivityIndicator size="small" color="#001A2C" />
+                  </View>
+                )}
               </View>
               <Text style={{ color: theme.primary, marginTop: 8, fontWeight: '600' }}>
-                {isEn ? 'Change photo' : 'Cambiar foto'}
+                {isProcessingPhoto
+                  ? (isEn ? 'Optimizing photo...' : 'Optimizando foto...')
+                  : (isEn ? 'Change photo' : 'Cambiar foto')}
               </Text>
             </TouchableOpacity>
+
+            {isSubmitting && (
+              <View style={styles.uploadProgressBox}>
+                <ActivityIndicator size="small" color={theme.primary} />
+                <Text style={styles.uploadProgressText}>
+                  {isEn ? 'Uploading profile photo...' : 'Subiendo foto de perfil...'}
+                </Text>
+              </View>
+            )}
 
             <FormInput
               control={control}
@@ -248,7 +266,7 @@ export default function EditProfileScreen() {
               <PrimaryButton
                 label={isEn ? 'Save Changes' : 'Guardar Cambios'}
                 onPress={handleSubmit(onSubmit)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isProcessingPhoto}
                 isLoading={isSubmitting}
               />
             </View>
@@ -287,7 +305,7 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   },
   photoContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   photoCircle: {
     width: 100,
@@ -303,6 +321,30 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   photoImage: {
     width: '100%',
     height: '100%',
+  },
+  photoOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0, 240, 255, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uploadProgressBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: theme.primary + '15',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: theme.primary + '30',
+  },
+  uploadProgressText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: theme.primary,
   },
   buttonContainer: {
     marginTop: 24,

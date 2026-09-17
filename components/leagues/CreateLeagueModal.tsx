@@ -13,7 +13,7 @@ import { metrics } from "@/services/metrics";
 import api from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
+import { pickAndOptimizeImage } from "@/services/imageOptimizer";
 import { router } from "expo-router";
 import {
   Camera,
@@ -130,21 +130,24 @@ export function CreateLeagueModal({
 
   const pickImage = async (field: "logo" | "background_image") => {
     const isLogo = field === "logo";
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: isLogo ? [1, 1] : [16, 9],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      reset({
-        ...control._formValues,
-        [field]: result.assets[0].uri,
+    try {
+      const optimized = await pickAndOptimizeImage({
+        aspect: isLogo ? [1, 1] : [16, 9],
+        maxWidth: isLogo ? 800 : 1280,
+        maxHeight: isLogo ? 800 : 720,
+        quality: 0.78, // JPEG 0.75 - 0.80, <= 250 KB
       });
-      // A safer way to update specific field in react-hook-form
-      // but setValue is more standard:
-      // setValue(field, result.assets[0].uri);
+
+      if (optimized) {
+        reset({
+          ...control._formValues,
+          [field]: optimized.uri,
+        });
+      }
+    } catch (err: any) {
+      if (err?.message !== "MEDIA_LIBRARY_PERMISSION_DENIED") {
+        console.error("Error optimizing league image:", err);
+      }
     }
   };
 

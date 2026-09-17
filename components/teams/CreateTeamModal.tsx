@@ -9,10 +9,11 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { League, LeaguesResponse } from "@/features/leagues/types/league";
 import { Team } from "@/features/teams/types/team";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Trophy, X, Trash2 } from "lucide-react-native";
+import { CheckCircle2, Trophy, X, Trash2, Shield } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Image } from "expo-image";
 import {
   ActivityIndicator,
   Alert,
@@ -27,6 +28,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useToast } from "@/context/ToastContext";
+import { pickAndOptimizeImage } from "@/services/imageOptimizer";
 
 interface CreateTeamModalProps {
   visible: boolean;
@@ -51,6 +53,8 @@ export function CreateTeamModal({
 
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoadingLeagues, setIsLoadingLeagues] = useState(false);
+  const [logoUri, setLogoUri] = useState<string | null>(initialData?.logo || null);
+  const [isOptimizingLogo, setIsOptimizingLogo] = useState(false);
 
   const {
     control,
@@ -69,10 +73,14 @@ export function CreateTeamModal({
   });
 
   const selectedLeagueId = watch("league");
+  const isNewLogo = Boolean(
+    logoUri && (logoUri.startsWith("file:") || logoUri.startsWith("content:"))
+  );
 
   useEffect(() => {
     if (visible) {
       fetchLeagues();
+      setLogoUri(initialData?.logo || null);
       reset({
         name: initialData?.name || "",
         city: initialData?.city || "",
@@ -93,6 +101,33 @@ export function CreateTeamModal({
     }
   };
 
+  const handlePickLogo = async () => {
+    setIsOptimizingLogo(true);
+    try {
+      const result = await pickAndOptimizeImage({
+        aspect: [1, 1],
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.78, // JPEG, 0.75 - 0.80 range, <= 250 KB
+      });
+
+      if (result) {
+        setLogoUri(result.uri);
+      }
+    } catch (err: any) {
+      if (err?.message !== "MEDIA_LIBRARY_PERMISSION_DENIED") {
+        console.error("Error picking team logo:", err);
+        showToast({
+          type: "error",
+          title: "Error",
+          message: "No se pudo optimizar el escudo del equipo.",
+        });
+      }
+    } finally {
+      setIsOptimizingLogo(false);
+    }
+  };
+
   const onSubmit = async (data: TeamSchema) => {
     if (!user?.id) {
       showToast({ type: "error", title: "Error", message: "No se pudo identificar al usuario." });
@@ -100,12 +135,37 @@ export function CreateTeamModal({
     }
 
     try {
-      const payload = {
-        name: data.name,
-        city: data.city,
-        league: data.league,
-        owner: user.id,
-      };
+      const isNewLogo =
+        logoUri &&
+        (logoUri.startsWith("file:") || logoUri.startsWith("content:"));
+
+      let payload: any;
+      if (isNewLogo) {
+        const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("city", data.city);
+        formData.append("league", data.league);
+        formData.append("owner", user.id);
+
+        const uri = logoUri;
+        const name = uri.split("/").pop() || "team_logo.jpg";
+        const match = /\.(\w+)$/.exec(name);
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
+
+        formData.append("logo", {
+          uri: Platform.OS === "ios" ? uri.replace("file://", "") : uri,
+          name,
+          type,
+        } as any);
+        payload = formData;
+      } else {
+        payload = {
+          name: data.name,
+          city: data.city,
+          league: data.league,
+          owner: user.id,
+        };
+      }
 
       if (isEditing && initialData) {
         await api.patch(`/v1/teams/${initialData.id}/`, payload);
@@ -194,6 +254,58 @@ export function CreateTeamModal({
                   : t('teams_form.team_subtitle_new')
                 }
               </Text>
+
+              {/* Escudo del equipo (optimizado con expo-image-manipulator) */}
+              <View style={styles.logoPickerSection}>
+                <TouchableOpacity
+                  style={styles.logoCircle}
+                  onPress={handlePickLogo}
+                  disabled={isOptimizingLogo || isSubmitting}
+                  activeOpacity={0.8}
+                >
+                  {logoUri ? (
+                    <Image
+                      source={{ uri: logoUri }}
+                      style={styles.logoImage}
+                      contentFit="cover"
+                    />
+                  ) : (
+                    <Shield size={32} color={theme.textSecondary} />
+                  )}
+                  {isOptimizingLogo && (
+                    <View style={styles.logoOverlay}>
+                      <ActivityIndicator size="small" color="#001A2C" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                <View style={styles.logoInfo}>
+                  <Text style={styles.logoTitle}>Escudo del equipo</Text>
+                  <Text style={styles.logoSubtext}>
+                    {isOptimizingLogo
+                      ? "Optimizando imagen (máx 800px, <250 KB)..."
+                      : "Foto optimizada para datos móviles"}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={handlePickLogo}
+                    disabled={isOptimizingLogo || isSubmitting}
+                    style={styles.pickLogoBtn}
+                  >
+                    <Text style={styles.pickLogoBtnText}>
+                      {logoUri ? "Cambiar escudo" : "Subir escudo"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {isSubmitting && isNewLogo && (
+                <View style={styles.uploadProgressBox}>
+                  <ActivityIndicator size="small" color={theme.primary} />
+                  <Text style={styles.uploadProgressText}>
+                    Subiendo datos y escudo optimizado...
+                  </Text>
+                </View>
+              )}
 
               <FormInput
                 control={control}
@@ -413,5 +525,82 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 14,
       fontWeight: '700',
       letterSpacing: 0.5,
+    },
+    logoPickerSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+      padding: 16,
+      borderRadius: 16,
+      marginBottom: 20,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+    },
+    logoCircle: {
+      width: 68,
+      height: 68,
+      borderRadius: 34,
+      backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+      justifyContent: "center",
+      alignItems: "center",
+      overflow: "hidden",
+      borderWidth: 2,
+      borderColor: theme.primary,
+    },
+    logoImage: {
+      width: "100%",
+      height: "100%",
+    },
+    logoOverlay: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: "rgba(0, 240, 255, 0.75)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    logoInfo: {
+      flex: 1,
+    },
+    logoTitle: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: theme.text,
+      marginBottom: 2,
+    },
+    logoSubtext: {
+      fontSize: 11,
+      color: theme.textSecondary,
+      marginBottom: 8,
+      lineHeight: 15,
+    },
+    pickLogoBtn: {
+      alignSelf: "flex-start",
+      backgroundColor: theme.primary + "18",
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+    },
+    pickLogoBtnText: {
+      fontSize: 11,
+      fontWeight: "800",
+      color: theme.primary,
+    },
+    uploadProgressBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: theme.primary + "15",
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 10,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: theme.primary + "30",
+    },
+    uploadProgressText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: theme.primary,
     },
   });

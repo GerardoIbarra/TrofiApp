@@ -10,7 +10,6 @@ import {
 import api from "@/services/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import {
   Activity,
   Camera,
@@ -22,9 +21,10 @@ import {
   X,
   Zap
 } from "lucide-react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -35,6 +35,10 @@ import {
   View,
 } from "react-native";
 import { useToast } from "@/context/ToastContext";
+import {
+  pickAndOptimizeImage,
+  captureAndOptimizePhoto,
+} from "@/services/imageOptimizer";
 
 interface CreatePlayerModalProps {
   visible: boolean;
@@ -95,38 +99,63 @@ export function CreatePlayerModal({
 
   const photo = useWatch({ control, name: "photo" });
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
+  const [isOptimizingPhoto, setIsOptimizingPhoto] = useState(false);
 
-    if (!result.canceled) {
-      setValue("photo", result.assets[0].uri, { shouldValidate: true });
+  const pickImage = async () => {
+    setIsOptimizingPhoto(true);
+    try {
+      const result = await pickAndOptimizeImage({
+        aspect: [1, 1],
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.78, // JPEG 0.75 - 0.80, <= 250 KB
+      });
+
+      if (result) {
+        setValue("photo", result.uri, { shouldValidate: true });
+      }
+    } catch (err: any) {
+      if (err?.message !== "MEDIA_LIBRARY_PERMISSION_DENIED") {
+        showToast({
+          type: "error",
+          title: "Error",
+          message: "No se pudo optimizar la foto.",
+        });
+      }
+    } finally {
+      setIsOptimizingPhoto(false);
     }
   };
 
   const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== "granted") {
-      showToast({
-        type: "error",
-        title: "Permiso denegado",
-        message: "Necesitamos permiso para usar la cámara.",
+    setIsOptimizingPhoto(true);
+    try {
+      const result = await captureAndOptimizePhoto({
+        aspect: [1, 1],
+        maxWidth: 800,
+        maxHeight: 800,
+        quality: 0.78, // JPEG 0.75 - 0.80, <= 250 KB
       });
-      return;
-    }
 
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setValue("photo", result.assets[0].uri, { shouldValidate: true });
+      if (result) {
+        setValue("photo", result.uri, { shouldValidate: true });
+      }
+    } catch (err: any) {
+      if (err?.message === "CAMERA_PERMISSION_DENIED") {
+        showToast({
+          type: "error",
+          title: "Permiso denegado",
+          message: "Necesitamos permiso para usar la cámara.",
+        });
+      } else {
+        showToast({
+          type: "error",
+          title: "Error",
+          message: "No se pudo capturar y optimizar la foto.",
+        });
+      }
+    } finally {
+      setIsOptimizingPhoto(false);
     }
   };
 
@@ -224,6 +253,7 @@ export function CreatePlayerModal({
                 <TouchableOpacity
                   style={styles.photoContainer}
                   onPress={pickImage}
+                  disabled={isOptimizingPhoto || isSubmitting}
                   activeOpacity={0.8}
                 >
                   {photo ? (
@@ -239,9 +269,15 @@ export function CreatePlayerModal({
                       </Text>
                     </View>
                   )}
+                  {isOptimizingPhoto && (
+                    <View style={styles.photoOverlay}>
+                      <ActivityIndicator size="small" color="#001A2C" />
+                    </View>
+                  )}
                   <TouchableOpacity
                     style={styles.cameraButton}
                     onPress={takePhoto}
+                    disabled={isOptimizingPhoto || isSubmitting}
                   >
                     <Camera size={18} color="#FFF" />
                   </TouchableOpacity>
@@ -249,10 +285,21 @@ export function CreatePlayerModal({
                 <View style={styles.heroTextContent}>
                   <Text style={styles.sectionTitle}>Ficha Técnica</Text>
                   <Text style={styles.sectionSubtitle}>
-                    La foto es obligatoria para el carnet oficial.
+                    {isOptimizingPhoto
+                      ? "Optimizando foto (<250 KB)..."
+                      : "La foto es obligatoria para el carnet oficial."}
                   </Text>
                 </View>
               </View>
+
+              {isSubmitting && photo && (photo.startsWith("file:") || photo.startsWith("content:")) && (
+                <View style={styles.uploadProgressBox}>
+                  <ActivityIndicator size="small" color={theme.primary} />
+                  <Text style={styles.uploadProgressText}>
+                    Subiendo ficha y foto oficial...
+                  </Text>
+                </View>
+              )}
 
               <View style={styles.heroBox}>
                 <View style={styles.ratingBadge}>
@@ -581,5 +628,30 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 18,
       fontWeight: "900",
       height: 40,
+    },
+    photoOverlay: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: "rgba(0, 240, 255, 0.75)",
+      borderRadius: 16,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    uploadProgressBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      backgroundColor: theme.primary + "15",
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 10,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: theme.primary + "30",
+    },
+    uploadProgressText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: theme.primary,
     },
   });
