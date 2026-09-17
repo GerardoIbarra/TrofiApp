@@ -15,9 +15,10 @@ import { PenaltyShootoutModal } from './modals/PenaltyShootoutModal';
 
 interface MatchAdminControlsProps {
   match: Match;
+  currentMinute?: number;
 }
 
-export function MatchAdminControls({ match }: MatchAdminControlsProps) {
+export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
@@ -133,7 +134,7 @@ export function MatchAdminControls({ match }: MatchAdminControlsProps) {
       </ScrollView>
 
       {/* Modals */}
-      <AddEventModal visible={isEventModalVisible} onClose={() => setEventModalVisible(false)} match={match} />
+      <AddEventModal visible={isEventModalVisible} onClose={() => setEventModalVisible(false)} match={match} currentMinute={currentMinute} />
       <SubstituteModal visible={isSubModalVisible} onClose={() => setSubModalVisible(false)} match={match} />
       <MatchStatusModal visible={isStatusModalVisible} onClose={() => setStatusModalVisible(false)} match={match} />
       <AssignRefereeModal visible={isRefereeModalVisible} onClose={() => setRefereeModalVisible(false)} match={match} />

@@ -31,6 +31,14 @@ import { MatchDisputeBanner } from '@/components/matches/disputes/MatchDisputeBa
 import { metrics } from '@/services/metrics';
 import { shareMatch } from '@/features/share/services/shareService';
 import { ShareMatchModal } from '@/components/matches/ShareMatchModal';
+import { MatchPeriodTracker, MatchPeriod } from '@/components/matches/live/MatchPeriodTracker';
+import { 
+  useStartMatch, 
+  usePauseMatch, 
+  useResumeMatch, 
+  useEndMatch, 
+  useChangeMatchStatus 
+} from '@/features/matches/services/liveMatchApi';
 import {
   ChevronLeft, 
   ChevronRight,
@@ -70,6 +78,15 @@ export default function MatchDetailScreen() {
 
   const matchIdStr = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
   const { data: disputes = [], refetch: refetchDisputes } = useGetMatchDisputes(matchIdStr);
+
+  const startMatch = useStartMatch();
+  const pauseMatch = usePauseMatch();
+  const resumeMatch = useResumeMatch();
+  const endMatch = useEndMatch();
+  const changeStatus = useChangeMatchStatus(matchIdStr || '');
+
+  const [periodOverride, setPeriodOverride] = useState<MatchPeriod | null>(null);
+  const [minuteOverride, setMinuteOverride] = useState<number | null>(null);
 
   const {
     data: matchDetails,
@@ -223,6 +240,56 @@ export default function MatchDetailScreen() {
 
   // TODO: Implement proper admin check based on tournament role or match referee
   const isAdmin = true;
+
+  const derivedPeriod: MatchPeriod = (() => {
+    if (!match) return 'not_started';
+    if (match.status === 'scheduled') return 'not_started';
+    if (match.status === 'played' || match.status === 'canceled' || match.status === 'forfeit') return 'finished';
+    if (match.status === 'paused') return 'halftime';
+    if (match.status === 'live') {
+      return (match.current_minute || 0) > 45 ? '2T' : '1T';
+    }
+    return 'not_started';
+  })();
+
+  const matchPeriod: MatchPeriod = periodOverride ?? derivedPeriod;
+  const liveMinute: number =
+    minuteOverride ??
+    (match?.current_minute ||
+      (matchPeriod === 'halftime' ? 45 : matchPeriod === '2T' ? 46 : matchPeriod === 'finished' ? 90 : 0));
+
+  const handlePeriodChange = async (newPeriod: MatchPeriod) => {
+    setPeriodOverride(newPeriod);
+    const targetMinute =
+      newPeriod === 'not_started'
+        ? 0
+        : newPeriod === '1T'
+        ? 1
+        : newPeriod === 'halftime'
+        ? 45
+        : newPeriod === '2T'
+        ? 46
+        : 90;
+    setMinuteOverride(targetMinute);
+
+    if (id === 'demo' || !match) return;
+
+    try {
+      if (newPeriod === '1T') {
+        await startMatch.mutateAsync(match.id);
+      } else if (newPeriod === 'halftime') {
+        await pauseMatch.mutateAsync(match.id);
+      } else if (newPeriod === '2T') {
+        await resumeMatch.mutateAsync(match.id);
+      } else if (newPeriod === 'finished') {
+        await endMatch.mutateAsync(match.id);
+      } else if (newPeriod === 'not_started') {
+        await changeStatus.mutateAsync({ status: 'scheduled' });
+      }
+    } catch (error) {
+      console.warn('Could not sync status with backend:', error);
+    }
+  };
 
   const renderSummaryTab = () => (
     <ScrollView style={styles.tabContent}>
@@ -614,7 +681,7 @@ export default function MatchDetailScreen() {
         </View>
 
         <View style={styles.scoreResult}>
-          {match?.status === "scheduled" ? (
+          {matchPeriod === "not_started" ? (
             <View style={styles.scheduledInfo}>
               <Text style={styles.scheduledTime}>
                 {new Date(match.start_datetime).toLocaleTimeString("es-ES", {
@@ -630,9 +697,9 @@ export default function MatchDetailScreen() {
                 {match?.result?.home_score ?? 0} -{" "}
                 {match?.result?.away_score ?? 0}
               </Text>
-              {match?.status === "live" && (
+              {(match?.status === "live" || matchPeriod === "1T" || matchPeriod === "2T") && (
                 <View style={styles.liveIndicator}>
-                  <Text style={styles.liveText}>{match.current_minute}&apos;</Text>
+                  <Text style={styles.liveText}>{liveMinute}&apos;</Text>
                 </View>
               )}
             </View>
@@ -654,8 +721,20 @@ export default function MatchDetailScreen() {
         </View>
       </View>
 
+      {/* Live Match Period Tracker & State Selector: Por iniciar ➔ 1T ➔ Descanso ➔ 2T ➔ Terminado */}
+      {match && (
+        <MatchPeriodTracker
+          match={match}
+          isAdmin={isAdmin}
+          currentPeriod={matchPeriod}
+          currentMinute={liveMinute}
+          onPeriodChange={handlePeriodChange}
+          onMinuteChange={setMinuteOverride}
+        />
+      )}
+
       {/* Share Banner for finished matches */}
-      {(match?.status === "played" || Boolean(match?.result)) && (
+      {(match?.status === "played" || matchPeriod === "finished" || Boolean(match?.result)) && (
         <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
           <TouchableOpacity
             style={styles.shareBannerBtn}
@@ -670,7 +749,12 @@ export default function MatchDetailScreen() {
       )}
 
       {/* Admin Controls */}
-      {isAdmin && match && <MatchAdminControls match={match} />}
+      {isAdmin && match && (
+        <MatchAdminControls
+          match={match}
+          currentMinute={liveMinute}
+        />
+      )}
 
       {/* Dispute Banner */}
       <View style={{ paddingHorizontal: 16 }}>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Modal, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { Match } from '@/features/tournaments/types/match';
 import { useTheme } from '@/context/ThemeContext';
-import { X, Check } from 'lucide-react-native';
+import { X, Check, Clock } from 'lucide-react-native';
 import { useAddMatchEvent } from '@/features/matches/services/liveMatchApi';
 import { MatchEventSchema } from '@/features/matches/schemas/liveMatchSchema';
 import { useToast } from '@/context/ToastContext';
@@ -11,6 +11,7 @@ interface AddEventModalProps {
   visible: boolean;
   onClose: () => void;
   match: Match;
+  currentMinute?: number;
 }
 
 const EVENT_TYPES = [
@@ -21,14 +22,25 @@ const EVENT_TYPES = [
   { label: '⭐ MVP', value: 'mvp' },
 ];
 
-export function AddEventModal({ visible, onClose, match }: AddEventModalProps) {
+export function AddEventModal({ visible, onClose, match, currentMinute }: AddEventModalProps) {
   const { theme, isDark } = useTheme();
   const { showToast } = useToast();
   const addEvent = useAddMatchEvent();
 
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<string>('goal');
-  const [minute, setMinute] = useState<string>('');
+  const [manualMinute, setManualMinute] = useState<string | null>(null);
+
+  const minute =
+    manualMinute ??
+    (currentMinute != null && currentMinute > 0 ? currentMinute.toString() : '');
+
+  const handleClose = () => {
+    setSelectedTeam(null);
+    setManualMinute(null);
+    setSelectedEvent('goal');
+    onClose();
+  };
 
   const handleSubmit = () => {
     if (!selectedTeam || !minute) {
@@ -45,10 +57,7 @@ export function AddEventModal({ visible, onClose, match }: AddEventModalProps) {
 
     addEvent.mutate(payload, {
       onSuccess: () => {
-        onClose();
-        setSelectedTeam(null);
-        setMinute('');
-        setSelectedEvent('goal');
+        handleClose();
       },
       onError: (err: any) => {
         showToast({ type: 'error', title: 'Error', message: err.message || 'No se pudo registrar el evento' });
@@ -57,12 +66,12 @@ export function AddEventModal({ visible, onClose, match }: AddEventModalProps) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <View style={styles.overlay}>
         <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: theme.text }]}>Registrar Evento</Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity onPress={handleClose}>
               <X size={24} color={theme.text} />
             </TouchableOpacity>
           </View>
@@ -100,14 +109,22 @@ export function AddEventModal({ visible, onClose, match }: AddEventModalProps) {
             ))}
           </View>
 
-          <Text style={[styles.label, { color: theme.textSecondary }]}>Minuto del Partido</Text>
+          <View style={styles.minuteHeaderRow}>
+            <Text style={[styles.label, { color: theme.textSecondary, marginBottom: 0 }]}>Minuto del Partido</Text>
+            {currentMinute != null && currentMinute > 0 && (
+              <View style={[styles.autoMinuteBadge, { backgroundColor: theme.primary + '20' }]}>
+                <Clock size={10} color={theme.primary} />
+                <Text style={[styles.autoMinuteText, { color: theme.primary }]}>Precargado: {currentMinute}&apos;</Text>
+              </View>
+            )}
+          </View>
           <TextInput
             style={[styles.input, { color: theme.text, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
             placeholder="Ej: 45"
             placeholderTextColor={theme.textSecondary}
             keyboardType="numeric"
             value={minute}
-            onChangeText={setMinute}
+            onChangeText={setManualMinute}
           />
 
           <TouchableOpacity style={[styles.submitBtn, { backgroundColor: theme.primary }]} onPress={handleSubmit} disabled={addEvent.isPending}>
@@ -205,5 +222,23 @@ const styles = StyleSheet.create({
     color: '#001A2C',
     fontWeight: '800',
     fontSize: 16,
+  },
+  minuteHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  autoMinuteBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  autoMinuteText: {
+    fontSize: 10,
+    fontWeight: '800',
   },
 });
