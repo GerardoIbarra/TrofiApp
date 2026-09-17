@@ -13,7 +13,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
 import { FormInput } from '@/components/ui/forms/FormInput';
 import { FormDatePicker } from '@/components/ui/forms/FormDatePicker';
-import { X, MapPin } from 'lucide-react-native';
+import { X, Users } from 'lucide-react-native';
 import api from '@/services/api';
 import { Match, MatchStatus } from '@/features/tournaments/types/match';
 
@@ -38,6 +38,13 @@ interface CreateMatchModalProps {
   tournamentId: string;
   initialData?: Match | null;
 }
+
+const STATUS_OPTIONS: { value: MatchStatus; label: string }[] = [
+  { value: 'scheduled', label: 'PROGRAMADO' },
+  { value: 'live', label: 'EN VIVO' },
+  { value: 'played', label: 'FINALIZADO' },
+  { value: 'canceled', label: 'CANCELADO' },
+];
 
 export function CreateMatchModal({ 
   visible, 
@@ -67,6 +74,7 @@ export function CreateMatchModal({
 
   const selectedHomeTeam = watch('home_team');
   const selectedAwayTeam = watch('away_team');
+  const currentStatus = watch('status');
 
   useEffect(() => {
     if (visible) {
@@ -97,14 +105,32 @@ export function CreateMatchModal({
   const fetchTournamentTeams = async () => {
     setIsLoadingTeams(true);
     try {
+      // 1. Intentar obtener equipos inscritos al torneo
+      const teamsRes = await api.get<{ results?: any[] } | any[]>(`/v1/tournament-teams/?tournament=${tournamentId}`);
+      const rawList = Array.isArray(teamsRes) ? teamsRes : (teamsRes as any)?.results || [];
+      if (rawList.length > 0) {
+        const mapped = rawList.map((item: any) => ({
+          id: item.team || item.id,
+          name: item.team_name || item.name || 'Equipo'
+        }));
+        setTeams(mapped);
+        return;
+      }
+
+      // 2. Fallback: buscar en standings
       const response = await api.get<any[]>(`/v1/standings/by_tournament/?tournament_id=${tournamentId}`);
-      const mappedTeams = response.map(item => ({
-        id: item.team_id || item.tournament_team,
-        name: item.team_name
-      }));
-      setTeams(mappedTeams);
+      if (Array.isArray(response) && response.length > 0) {
+        const mappedTeams = response.map(item => ({
+          id: item.team_id || item.tournament_team,
+          name: item.team_name
+        }));
+        setTeams(mappedTeams);
+      } else {
+        setTeams([]);
+      }
     } catch (error) {
       console.error('Error fetching tournament teams:', error);
+      setTeams([]);
     } finally {
       setIsLoadingTeams(false);
     }
@@ -118,7 +144,6 @@ export function CreateMatchModal({
 
     setIsSubmitting(true);
     try {
-      // Intentar formatear la fecha correctamente para el backend
       const start_datetime = `${data.date}T${data.time}:00Z`;
       const payload = {
         tournament: tournamentId,
@@ -139,8 +164,8 @@ export function CreateMatchModal({
       onSuccess();
       onClose();
     } catch (error) {
-        console.error('Error saving match:', error);
-        showToast({ type: 'error', title: 'Error', message: 'No se pudo guardar el partido.' });
+      console.error('Error saving match:', error);
+      showToast({ type: 'error', title: 'Error', message: 'No se pudo guardar el partido.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -169,6 +194,13 @@ export function CreateMatchModal({
             <View style={styles.selectContainer}>
               {isLoadingTeams ? (
                 <ActivityIndicator color={theme.primary} />
+              ) : teams.length === 0 ? (
+                <View style={styles.noTeamsBox}>
+                  <Users size={16} color={theme.textSecondary} />
+                  <Text style={styles.noTeamsText}>
+                    No hay equipos inscritos en este torneo. Inscribe equipos en la pestaña &quot;Equipos&quot; primero.
+                  </Text>
+                </View>
               ) : (
                 <View style={styles.teamGrid}>
                   {teams.map(team => (
@@ -196,6 +228,13 @@ export function CreateMatchModal({
             <View style={styles.selectContainer}>
               {isLoadingTeams ? (
                 <ActivityIndicator color={theme.primary} />
+              ) : teams.length === 0 ? (
+                <View style={styles.noTeamsBox}>
+                  <Users size={16} color={theme.textSecondary} />
+                  <Text style={styles.noTeamsText}>
+                    Inscribe al menos dos equipos en la pestaña &quot;Equipos&quot;.
+                  </Text>
+                </View>
               ) : (
                 <View style={styles.teamGrid}>
                   {teams.map(team => (
@@ -220,23 +259,23 @@ export function CreateMatchModal({
             </View>
 
             <View style={styles.row}>
-                <View style={{ flex: 1 }}>
-                    <FormDatePicker
-                        label="FECHA"
-                        name="date"
-                        control={control}
-                        required
-                    />
-                </View>
-                <View style={{ flex: 1, marginLeft: 15 }}>
-                     <FormInput
-                        label="HORA (HH:MM)"
-                        name="time"
-                        control={control}
-                        placeholder="20:00"
-                        required
-                    />
-                </View>
+              <View style={{ flex: 1 }}>
+                <FormDatePicker
+                  label="FECHA"
+                  name="date"
+                  control={control}
+                  required
+                />
+              </View>
+              <View style={{ flex: 1, marginLeft: 15 }}>
+                <FormInput
+                  label="HORA (HH:MM)"
+                  name="time"
+                  control={control}
+                  placeholder="20:00"
+                  required
+                />
+              </View>
             </View>
 
             <FormInput
@@ -247,23 +286,25 @@ export function CreateMatchModal({
             />
 
             {initialData && (
-                 <View style={styles.statusSection}>
-                    <Text style={styles.label}>ESTADO</Text>
-                    <View style={styles.statusGrid}>
-                        {['scheduled', 'ongoing', 'finished', 'canceled'].map((s) => (
-                             <TouchableOpacity
-                                key={s}
-                                style={[
-                                    styles.statusTag,
-                                    watch('status') === s && { backgroundColor: theme.primary, borderColor: theme.primary }
-                                ]}
-                                onPress={() => setValue('status', s as MatchStatus)}
-                             >
-                                <Text style={[styles.statusTagText, watch('status') === s && { color: '#FFF' }]}>{s.toUpperCase()}</Text>
-                             </TouchableOpacity>
-                        ))}
-                    </View>
-                 </View>
+              <View style={styles.statusSection}>
+                <Text style={styles.label}>ESTADO</Text>
+                <View style={styles.statusGrid}>
+                  {STATUS_OPTIONS.map((item) => (
+                    <TouchableOpacity
+                      key={item.value}
+                      style={[
+                        styles.statusTag,
+                        currentStatus === item.value && { backgroundColor: theme.primary, borderColor: theme.primary }
+                      ]}
+                      onPress={() => setValue('status', item.value)}
+                    >
+                      <Text style={[styles.statusTagText, currentStatus === item.value && { color: '#001A2C' }]}>
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             )}
 
             <View style={{ height: 40 }} />
@@ -407,5 +448,21 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 1,
+  },
+  noTeamsBox: {
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  noTeamsText: {
+    flex: 1,
+    fontSize: 12,
+    color: theme.textSecondary,
+    lineHeight: 18,
   },
 });

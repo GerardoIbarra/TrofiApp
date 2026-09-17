@@ -30,6 +30,7 @@ import { ResolveDisputeModal } from '@/components/matches/disputes/ResolveDisput
 import { MatchDisputeBanner } from '@/components/matches/disputes/MatchDisputeBanner';
 import { metrics } from '@/services/metrics';
 import { shareMatch } from '@/features/share/services/shareService';
+import { ShareMatchModal } from '@/components/matches/ShareMatchModal';
 import {
   ChevronLeft, 
   ChevronRight,
@@ -64,6 +65,7 @@ export default function MatchDetailScreen() {
   const [isFanCheckInVisible, setIsFanCheckInVisible] = useState(false);
   const [isFileDisputeVisible, setIsFileDisputeVisible] = useState(false);
   const [selectedDisputeToResolve, setSelectedDisputeToResolve] = useState<MatchDispute | null>(null);
+  const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [now] = useState(() => Date.now());
 
   const matchIdStr = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
@@ -77,6 +79,108 @@ export default function MatchDetailScreen() {
     queryKey: ['match-details', id],
     queryFn: async () => {
       if (!id) return null;
+
+      if (id === 'demo') {
+        const demoMatch: Match = {
+          id: 'demo',
+          tournament: 'torneo-demo',
+          tournament_name: 'Liga Premier Trofi',
+          home_team: 'team-1',
+          home_team_name: 'Galácticos FC',
+          away_team: 'team-2',
+          away_team_name: 'Tigres del Norte',
+          venue_name: 'Cancha Central Sintética',
+          start_datetime: new Date().toISOString(),
+          status: 'played',
+          result: {
+            id: 'res-demo',
+            match: 'demo',
+            home_score: 3,
+            away_score: 2,
+            result_type: 'normal',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const demoTimeline: MatchTimelineResponse = {
+          count: 5,
+          next: null,
+          previous: null,
+          results: [
+            {
+              id: '1',
+              match: 'demo',
+              team: 'team-1',
+              team_name: 'Galácticos FC',
+              roster_membership: 'm-1',
+              player_name: 'Carlos Ruiz',
+              event_type: 'goal',
+              minute: 14,
+              metadata: null,
+              created_at: new Date().toISOString(),
+            },
+            {
+              id: '2',
+              match: 'demo',
+              team: 'team-2',
+              team_name: 'Tigres del Norte',
+              roster_membership: 'm-2',
+              player_name: 'Mateo Valdés',
+              event_type: 'goal',
+              minute: 32,
+              metadata: null,
+              created_at: new Date().toISOString(),
+            },
+            {
+              id: '3',
+              match: 'demo',
+              team: 'team-1',
+              team_name: 'Galácticos FC',
+              roster_membership: 'm-3',
+              player_name: 'Luis Ibarra',
+              event_type: 'goal',
+              minute: 58,
+              metadata: null,
+              created_at: new Date().toISOString(),
+            },
+            {
+              id: '4',
+              match: 'demo',
+              team: 'team-1',
+              team_name: 'Galácticos FC',
+              roster_membership: 'm-4',
+              player_name: 'Álvaro Peña',
+              event_type: 'goal',
+              minute: 73,
+              metadata: null,
+              created_at: new Date().toISOString(),
+            },
+            {
+              id: '5',
+              match: 'demo',
+              team: 'team-2',
+              team_name: 'Tigres del Norte',
+              roster_membership: 'm-5',
+              player_name: 'Javier Ramos',
+              event_type: 'goal',
+              minute: 86,
+              metadata: null,
+              created_at: new Date().toISOString(),
+            },
+          ],
+        };
+
+        return {
+          match: demoMatch,
+          lineup: null,
+          h2h: null,
+          timeline: demoTimeline,
+        };
+      }
+
       const matchData = await api.get<Match>(`/v1/matches/${id}/`);
       metrics.trackMatchView(matchData.id, matchData.status);
 
@@ -482,7 +586,7 @@ export default function MatchDetailScreen() {
         <Text style={styles.headerTitle} numberOfLines={1}>{match?.tournament_name}</Text>
         {match ? (
           <TouchableOpacity
-            onPress={() => shareMatch(match.id)}
+            onPress={() => setIsShareModalVisible(true)}
             style={styles.backButton}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
@@ -549,6 +653,21 @@ export default function MatchDetailScreen() {
           <Text style={styles.teamNameMain}>{match?.away_team_name}</Text>
         </View>
       </View>
+
+      {/* Share Banner for finished matches */}
+      {(match?.status === "played" || Boolean(match?.result)) && (
+        <View style={{ paddingHorizontal: 16, marginBottom: 12 }}>
+          <TouchableOpacity
+            style={styles.shareBannerBtn}
+            onPress={() => setIsShareModalVisible(true)}
+            activeOpacity={0.8}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <Share2 size={16} color="#001A2C" />
+            <Text style={styles.shareBannerText}>COMPARTIR RESULTADO EN WHATSAPP / INSTAGRAM</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Admin Controls */}
       {isAdmin && match && <MatchAdminControls match={match} />}
@@ -634,11 +753,36 @@ export default function MatchDetailScreen() {
           }}
         />
       )}
+
+      {match && (
+        <ShareMatchModal
+          visible={isShareModalVisible}
+          onClose={() => setIsShareModalVisible(false)}
+          match={match}
+          events={timeline?.results || []}
+        />
+      )}
     </View>
   );
 }
 
 const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
+  shareBannerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: theme.primary,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  shareBannerText: {
+    color: '#001A2C',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
   fanCheckInBanner: {
     flexDirection: 'row',
     alignItems: 'center',

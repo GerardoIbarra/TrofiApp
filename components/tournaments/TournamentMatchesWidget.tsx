@@ -2,7 +2,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { Match, PaginatedMatches } from "@/features/tournaments/types/match";
 import api from "@/services/api";
 import { useRouter } from "expo-router";
-import { Calendar, MapPin, Trophy, Settings, CalendarPlus } from "lucide-react-native";
+import { Calendar, MapPin, Trophy, Settings, CalendarPlus, Plus, Sparkles } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,6 +15,7 @@ import {
 import { MatchResultModal } from "./MatchResultModal";
 import { ScheduleConfigModal } from "./ScheduleConfigModal";
 import { GenerateScheduleModal } from "./GenerateScheduleModal";
+import { CreateMatchModal } from "./CreateMatchModal";
 import { MatchCardSkeleton } from "@/components/matches/MatchCardSkeleton";
 import { useQuery } from "@tanstack/react-query";
 
@@ -34,9 +35,11 @@ export function TournamentMatchesWidget({
   const router = useRouter();
 
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [isResultModalVisible, setIsResultModalVisible] = useState(false);
   const [isConfigModalVisible, setIsConfigModalVisible] = useState(false);
   const [isGenerateModalVisible, setIsGenerateModalVisible] = useState(false);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
 
   const {
     data: matches = [],
@@ -103,14 +106,26 @@ export function TournamentMatchesWidget({
             </Text>
           </View>
           {isAdmin && (
-            <TouchableOpacity
-              style={styles.editBtn}
-              onPress={() => handleEditResult(item)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Trophy size={14} color={theme.primary} />
-              <Text style={styles.editBtnText}>{t("match_list.scoreboard")}</Text>
-            </TouchableOpacity>
+            <View style={styles.headerBtnGroup}>
+              <TouchableOpacity
+                style={styles.iconBtn}
+                onPress={() => {
+                  setEditingMatch(item);
+                  setIsCreateModalVisible(true);
+                }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Settings size={12} color={theme.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => handleEditResult(item)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Trophy size={13} color={theme.primary} />
+                <Text style={styles.editBtnText}>{t("match_list.scoreboard")}</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -138,7 +153,7 @@ export function TournamentMatchesWidget({
                 >
                   {homeScore}
                 </Text>
-                <Text style={styles.scoreDash}>-</Text>
+                <Text style={styles.scoreDivider}>-</Text>
                 <Text
                   style={[
                     styles.scoreText,
@@ -149,7 +164,9 @@ export function TournamentMatchesWidget({
                 </Text>
               </View>
             ) : (
-              <Text style={styles.vsText}>VS</Text>
+              <View style={styles.vsBox}>
+                <Text style={styles.vsText}>{t("match_list.vs")}</Text>
+              </View>
             )}
           </View>
 
@@ -196,6 +213,17 @@ export function TournamentMatchesWidget({
       {isAdmin && (
         <View style={styles.adminActionRow}>
           <TouchableOpacity 
+            style={[styles.adminBtn, { backgroundColor: theme.primary }]} 
+            onPress={() => {
+              setEditingMatch(null);
+              setIsCreateModalVisible(true);
+            }}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Plus size={14} color="#001A2C" />
+            <Text style={[styles.adminBtnText, { color: "#001A2C" }]}>Crear Partido</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
             style={styles.adminBtn} 
             onPress={() => setIsConfigModalVisible(true)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -204,12 +232,12 @@ export function TournamentMatchesWidget({
             <Text style={styles.adminBtnText}>{t('tournament.config_schedule')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.adminBtn, { backgroundColor: theme.primary }]} 
+            style={styles.adminBtn} 
             onPress={() => setIsGenerateModalVisible(true)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <CalendarPlus size={14} color="#001A2C" />
-            <Text style={[styles.adminBtnText, { color: "#001A2C" }]}>{t('tournament.generate_fixture')}</Text>
+            <CalendarPlus size={14} color={theme.primary} />
+            <Text style={styles.adminBtnText}>{t('tournament.generate_fixture')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -223,10 +251,46 @@ export function TournamentMatchesWidget({
         scrollEnabled={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Calendar size={40} color={theme.textSecondary} opacity={0.3} />
+            <Calendar size={42} color={theme.textSecondary} opacity={0.35} />
+            <Text style={styles.emptyTitle}>Sin partidos registrados</Text>
             <Text style={styles.emptyText}>
-              {t("match_list.empty")}
+              {isAdmin 
+                ? "Programa un partido individual manualmente o genera el rol completo de jornadas."
+                : t("match_list.empty")}
             </Text>
+
+            {isAdmin && (
+              <View style={styles.emptyActions}>
+                <TouchableOpacity
+                  style={[styles.emptyActionBtn, { backgroundColor: theme.primary }]}
+                  onPress={() => {
+                    setEditingMatch(null);
+                    setIsCreateModalVisible(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Plus size={15} color="#001A2C" />
+                  <Text style={[styles.emptyActionBtnText, { color: '#001A2C' }]}>Crear Partido Manual</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.emptyActionBtn, styles.emptyActionBtnSecondary]}
+                  onPress={() => setIsGenerateModalVisible(true)}
+                  activeOpacity={0.8}
+                >
+                  <CalendarPlus size={15} color={theme.primary} />
+                  <Text style={[styles.emptyActionBtnText, { color: theme.primary }]}>Generar Rol Automático</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.demoMatchLink}
+              onPress={() => router.push({ pathname: '/match-detail', params: { id: 'demo' } })}
+              activeOpacity={0.7}
+            >
+              <Sparkles size={14} color="#00F0FF" />
+              <Text style={styles.demoMatchText}>Probar con Partido Demo (WhatsApp / Historias)</Text>
+            </TouchableOpacity>
           </View>
         }
       />
@@ -248,6 +312,17 @@ export function TournamentMatchesWidget({
         visible={isGenerateModalVisible}
         onClose={() => setIsGenerateModalVisible(false)}
         tournamentId={tournamentId}
+      />
+
+      <CreateMatchModal
+        visible={isCreateModalVisible}
+        onClose={() => {
+          setIsCreateModalVisible(false);
+          setEditingMatch(null);
+        }}
+        onSuccess={fetchMatches}
+        tournamentId={tournamentId}
+        initialData={editingMatch}
       />
     </View>
   );
@@ -328,6 +403,18 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.textSecondary,
       letterSpacing: 0.5,
     },
+    headerBtnGroup: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    iconBtn: {
+      padding: 6,
+      backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+      borderRadius: 6,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     editBtn: {
       flexDirection: "row",
       alignItems: "center",
@@ -378,17 +465,29 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "900",
       color: theme.textSecondary,
     },
+    scoreDivider: {
+      fontSize: 18,
+      fontWeight: "900",
+      color: theme.textSecondary,
+      opacity: 0.3,
+    },
     scoreDash: {
       fontSize: 18,
       fontWeight: "900",
       color: theme.textSecondary,
       opacity: 0.3,
     },
+    vsBox: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+      backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
+    },
     vsText: {
-      fontSize: 14,
+      fontSize: 12,
       fontWeight: "900",
       color: theme.textSecondary,
-      opacity: 0.5,
+      opacity: 0.6,
     },
     cardFooter: {
       flexDirection: "row",
@@ -414,14 +513,62 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.primary,
     },
     emptyContainer: {
-      padding: 60,
+      padding: 36,
       alignItems: "center",
-      gap: 15,
+      gap: 12,
+    },
+    emptyTitle: {
+      fontSize: 16,
+      fontWeight: "800",
+      color: theme.text,
     },
     emptyText: {
-      fontSize: 13,
+      fontSize: 12,
       color: theme.textSecondary,
       textAlign: "center",
-      lineHeight: 20,
+      lineHeight: 18,
+      maxWidth: 280,
+    },
+    emptyActions: {
+      flexDirection: "column",
+      gap: 10,
+      width: "100%",
+      marginTop: 8,
+    },
+    emptyActionBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 12,
+      borderRadius: 12,
+      width: "100%",
+    },
+    emptyActionBtnSecondary: {
+      backgroundColor: theme.primary + "15",
+      borderWidth: 1,
+      borderColor: theme.primary + "30",
+    },
+    emptyActionBtnText: {
+      fontSize: 13,
+      fontWeight: "800",
+      letterSpacing: 0.3,
+    },
+    demoMatchLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginTop: 14,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 8,
+      backgroundColor: "rgba(0, 240, 255, 0.08)",
+      borderWidth: 1,
+      borderColor: "rgba(0, 240, 255, 0.2)",
+    },
+    demoMatchText: {
+      fontSize: 11,
+      fontWeight: "800",
+      color: "#00F0FF",
     },
   });
