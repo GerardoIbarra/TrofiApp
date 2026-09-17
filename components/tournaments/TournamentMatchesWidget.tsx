@@ -251,34 +251,39 @@ export function TournamentMatchesWidget({
         scrollEnabled={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Calendar size={42} color={theme.textSecondary} opacity={0.35} />
-            <Text style={styles.emptyTitle}>Sin partidos registrados</Text>
+            <View style={styles.emptyIllustrationBox}>
+              <Calendar size={38} color={theme.primary} />
+            </View>
+            <Text style={styles.emptyTitle}>
+              {isAdmin ? "Sin partidos programados" : "Rol de Juegos"}
+            </Text>
             <Text style={styles.emptyText}>
               {isAdmin 
-                ? "Programa un partido individual manualmente o genera el rol completo de jornadas."
-                : t("match_list.empty")}
+                ? "Genera el fixture de jornadas o programa partidos individuales para tu torneo."
+                : "El rol de juegos estará disponible pronto."}
             </Text>
 
             {isAdmin && (
               <View style={styles.emptyActions}>
                 <TouchableOpacity
                   style={[styles.emptyActionBtn, { backgroundColor: theme.primary }]}
+                  onPress={() => setIsGenerateModalVisible(true)}
+                  activeOpacity={0.8}
+                >
+                  <CalendarPlus size={16} color="#001A2C" />
+                  <Text style={[styles.emptyActionBtnText, { color: '#001A2C' }]}>Generar Fixture</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.emptyActionBtn, styles.emptyActionBtnSecondary]}
                   onPress={() => {
                     setEditingMatch(null);
                     setIsCreateModalVisible(true);
                   }}
                   activeOpacity={0.8}
                 >
-                  <Plus size={15} color="#001A2C" />
-                  <Text style={[styles.emptyActionBtnText, { color: '#001A2C' }]}>Crear Partido Manual</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.emptyActionBtn, styles.emptyActionBtnSecondary]}
-                  onPress={() => setIsGenerateModalVisible(true)}
-                  activeOpacity={0.8}
-                >
-                  <CalendarPlus size={15} color={theme.primary} />
-                  <Text style={[styles.emptyActionBtnText, { color: theme.primary }]}>Generar Rol Automático</Text>
+                  <Plus size={16} color={theme.primary} />
+                  <Text style={[styles.emptyActionBtnText, { color: theme.primary }]}>Crear Partido</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -518,6 +523,17 @@ const createStyles = (theme: any, isDark: boolean) =>
       padding: 36,
       alignItems: "center",
       gap: 12,
+    },
+    emptyIllustrationBox: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: theme.primary + "15",
+      borderWidth: 1,
+      borderColor: theme.primary + "30",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 4,
     },
     emptyTitle: {
       fontSize: 16,

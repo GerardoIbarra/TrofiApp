@@ -1,7 +1,7 @@
 import { useTheme } from "@/context/ThemeContext";
 import { StandingItem } from "@/features/leagues/types/standings";
 import api from "@/services/api";
-import { AlertCircle, Trophy, Settings2, Share2 } from "lucide-react-native";
+import { AlertCircle, Trophy, Settings2, Share2, Flame, Info } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,6 +18,13 @@ import { TiebreakerConfigModal } from "./modals/TiebreakerConfigModal";
 import { SponsorBanner } from "@/components/sponsors/SponsorBanner";
 import { shareStandings } from "@/features/share/services/shareService";
 
+interface TopScorerItem {
+  id: string;
+  player_name: string;
+  team_name: string;
+  goals: number;
+}
+
 interface TournamentStandingsWidgetProps {
   tournamentId: string;
   isAdmin?: boolean;
@@ -33,12 +40,12 @@ export function TournamentStandingsWidget({
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
 
+  const [subTab, setSubTab] = useState<'STANDINGS' | 'SCORERS'>('STANDINGS');
   const [isConfigVisible, setIsConfigVisible] = useState(false);
 
   const {
     data: standings = [],
-    isLoading,
-    refetch: fetchStandings,
+    isLoading: isLoadingStandings,
   } = useQuery({
     queryKey: ["standings", tournamentId],
     queryFn: async () => {
@@ -50,6 +57,25 @@ export function TournamentStandingsWidget({
     enabled: Boolean(tournamentId),
   });
 
+  const {
+    data: scorers = [],
+    isLoading: isLoadingScorers,
+  } = useQuery({
+    queryKey: ["top-scorers", tournamentId],
+    queryFn: async () => {
+      try {
+        const response = await api.get<TopScorerItem[] | { results: TopScorerItem[] }>(
+          `/v1/tournaments/${tournamentId}/top-scorers/`,
+          { silent: true },
+        );
+        return Array.isArray(response) ? response : (response as any)?.results || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: Boolean(tournamentId),
+  });
+
   const getPositionStyle = (pos: number) => {
     if (pos === 1) return styles.posFirst;
     if (pos === 2) return styles.posSecond;
@@ -57,20 +83,13 @@ export function TournamentStandingsWidget({
     return null;
   };
 
-  if (isLoading) {
+  const hasPlayedMatches = standings.some((item) => (item.played || 0) > 0);
+
+  if (isLoadingStandings && isLoadingScorers) {
     return (
       <View style={styles.loadingBox}>
         <ActivityIndicator color={theme.primary} />
         <Text style={styles.loadingText}>{t("standings.loading")}</Text>
-      </View>
-    );
-  }
-
-  if (standings.length === 0) {
-    return (
-      <View style={styles.emptyBox}>
-        <Trophy size={40} color={theme.textSecondary} opacity={0.2} />
-        <Text style={styles.emptyText}>{t("standings.empty")}</Text>
       </View>
     );
   }
@@ -84,35 +103,82 @@ export function TournamentStandingsWidget({
         style={{ marginHorizontal: 12, marginTop: 10, marginBottom: 4 }}
       />
 
-      <View style={styles.actionRow}>
-        <TouchableOpacity 
-          style={styles.shareBtn} 
-          onPress={() => shareStandings(tournamentId)}
+      {/* Sub-tab Switch: Posiciones vs Goleo */}
+      <View style={styles.subTabRow}>
+        <TouchableOpacity
+          style={[styles.subTabBtn, subTab === 'STANDINGS' && styles.subTabBtnActive]}
+          onPress={() => setSubTab('STANDINGS')}
           activeOpacity={0.8}
         >
-          <Share2 size={14} color="#001A2C" />
-          <Text style={styles.shareBtnText}>{t('tournament.share_standings')}</Text>
+          <Trophy size={14} color={subTab === 'STANDINGS' ? '#001A2C' : theme.textSecondary} />
+          <Text style={[styles.subTabText, subTab === 'STANDINGS' && styles.subTabTextActive]}>
+            TABLA GENERAL
+          </Text>
         </TouchableOpacity>
 
-        {isAdmin && tournament && (
-          <TouchableOpacity 
-            style={styles.adminBtn} 
-            onPress={() => setIsConfigVisible(true)}
-            activeOpacity={0.8}
-          >
-            <Settings2 size={14} color={theme.primary} />
-            <Text style={styles.adminBtnText}>{t('tournament.config_tiebreaker')}</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={[styles.subTabBtn, subTab === 'SCORERS' && styles.subTabBtnActive]}
+          onPress={() => setSubTab('SCORERS')}
+          activeOpacity={0.8}
+        >
+          <Flame size={14} color={subTab === 'SCORERS' ? '#001A2C' : theme.textSecondary} />
+          <Text style={[styles.subTabText, subTab === 'SCORERS' && styles.subTabTextActive]}>
+            TABLA DE GOLEO
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        bounces={false}
-      >
-        <View>
-          {/* Table Header */}
+      {subTab === 'STANDINGS' ? (
+        standings.length === 0 ? (
+          <View style={styles.emptyBox}>
+            <View style={styles.emptyIconCircle}>
+              <Trophy size={36} color={theme.primary} />
+            </View>
+            <Text style={styles.emptyTitle}>Tabla de Posiciones</Text>
+            <Text style={styles.emptyText}>
+              La tabla se actualizará automáticamente tras disputarse la Jornada 1.
+            </Text>
+          </View>
+        ) : (
+          <>
+            <View style={styles.actionRow}>
+              <TouchableOpacity 
+                style={styles.shareBtn} 
+                onPress={() => shareStandings(tournamentId)}
+                activeOpacity={0.8}
+              >
+                <Share2 size={14} color="#001A2C" />
+                <Text style={styles.shareBtnText}>{t('tournament.share_standings')}</Text>
+              </TouchableOpacity>
+
+              {isAdmin && tournament && (
+                <TouchableOpacity 
+                  style={styles.adminBtn} 
+                  onPress={() => setIsConfigVisible(true)}
+                  activeOpacity={0.8}
+                >
+                  <Settings2 size={14} color={theme.primary} />
+                  <Text style={styles.adminBtnText}>{t('tournament.config_tiebreaker')}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {!hasPlayedMatches && (
+              <View style={styles.infoBanner}>
+                <Info size={15} color={theme.primary} />
+                <Text style={styles.infoBannerText}>
+                  La tabla se actualizará automáticamente tras disputarse la Jornada 1.
+                </Text>
+              </View>
+            )}
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              bounces={false}
+            >
+              <View>
+                {/* Table Header */}
           <View style={styles.tableHeader}>
             <Text style={[styles.headerCell, styles.cellPos]}>#</Text>
             <Text style={[styles.headerCell, styles.cellTeam]}>
@@ -216,6 +282,58 @@ export function TournamentStandingsWidget({
         <AlertCircle size={12} color={theme.textSecondary} />
         <Text style={styles.footerText}>{t("standings.footer_scroll")}</Text>
       </View>
+          </>
+        )
+      ) : (
+        scorers.length === 0 ? (
+          <View style={styles.emptyBox}>
+            <View style={[styles.emptyIconCircle, { backgroundColor: "#FF572218" }]}>
+              <Flame size={36} color="#FF5722" />
+            </View>
+            <Text style={styles.emptyTitle}>Tabla de Goleo</Text>
+            <Text style={styles.emptyMotivationalText}>
+              ¡Anota el primer gol de la temporada para aparecer aquí!
+            </Text>
+            <Text style={styles.emptySubtext}>
+              Los líderes de goleo se registrarán automáticamente al capturar los resultados de cada partido.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.scorersContainer}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.headerCell, styles.cellPos]}>#</Text>
+              <Text style={[styles.headerCell, styles.cellScorerPlayer]}>JUGADOR</Text>
+              <Text style={[styles.headerCell, styles.cellScorerTeam]}>EQUIPO</Text>
+              <Text style={[styles.headerCell, styles.cellScorerGoals]}>GOLES</Text>
+            </View>
+
+            {scorers.map((item: TopScorerItem, index: number) => (
+              <View
+                key={item.id || `${item.player_name}-${index}`}
+                style={[
+                  styles.tableRow,
+                  index % 2 !== 0 && styles.rowAlternate,
+                  index < 3 && styles.rowElite,
+                ]}
+              >
+                <View style={[styles.posBadge, getPositionStyle(index + 1)]}>
+                  <Text style={styles.posText}>{index + 1}</Text>
+                </View>
+                <Text style={styles.scorerPlayerName} numberOfLines={1}>
+                  {item.player_name}
+                </Text>
+                <Text style={styles.scorerTeamName} numberOfLines={1}>
+                  {item.team_name}
+                </Text>
+                <View style={styles.scorerGoalsBox}>
+                  <Flame size={12} color="#FF5722" />
+                  <Text style={styles.scorerGoalsText}>{item.goals}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )
+      )}
 
       {tournament && (
         <TiebreakerConfigModal 
@@ -237,6 +355,37 @@ const createStyles = (theme: any, isDark: boolean) =>
       marginTop: 15,
       borderWidth: 1,
       borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+    },
+    subTabRow: {
+      flexDirection: "row",
+      padding: 8,
+      gap: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      backgroundColor: isDark ? "rgba(0,0,0,0.15)" : "rgba(0,0,0,0.02)",
+    },
+    subTabBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 10,
+      borderRadius: 12,
+      backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+    },
+    subTabBtnActive: {
+      backgroundColor: theme.primary,
+    },
+    subTabText: {
+      fontSize: 11,
+      fontWeight: "800",
+      color: theme.textSecondary,
+      letterSpacing: 0.5,
+    },
+    subTabTextActive: {
+      color: "#001A2C",
+      fontWeight: "900",
     },
     actionRow: {
       flexDirection: "row",
@@ -286,21 +435,76 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "600",
     },
     emptyBox: {
-      padding: 60,
+      padding: 40,
       alignItems: "center",
+      justifyContent: "center",
       backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)",
       borderRadius: 20,
       borderWidth: 1,
       borderStyle: "dashed",
       borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-      marginTop: 20,
+      margin: 16,
+    },
+    emptyIconCircle: {
+      width: 68,
+      height: 68,
+      borderRadius: 34,
+      backgroundColor: theme.primary + "15",
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: 14,
+    },
+    emptyTitle: {
+      fontSize: 16,
+      fontWeight: "900",
+      color: theme.text,
+      textAlign: "center",
+      marginBottom: 6,
+    },
+    emptyMotivationalText: {
+      fontSize: 14,
+      fontWeight: "800",
+      color: theme.text,
+      textAlign: "center",
+      marginTop: 4,
+      marginBottom: 6,
+      paddingHorizontal: 16,
+      lineHeight: 20,
+    },
+    emptySubtext: {
+      fontSize: 12,
+      color: theme.textSecondary,
+      textAlign: "center",
+      paddingHorizontal: 20,
+      lineHeight: 18,
     },
     emptyText: {
       color: theme.textSecondary,
       fontSize: 13,
       textAlign: "center",
-      marginTop: 15,
+      marginTop: 4,
       lineHeight: 20,
+      paddingHorizontal: 16,
+    },
+    infoBanner: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      backgroundColor: theme.primary + "12",
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginHorizontal: 12,
+      marginTop: 10,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.primary + "30",
+    },
+    infoBannerText: {
+      flex: 1,
+      fontSize: 12,
+      color: theme.text,
+      fontWeight: "600",
+      lineHeight: 16,
     },
     tableHeader: {
       flexDirection: "row",
@@ -334,6 +538,50 @@ const createStyles = (theme: any, isDark: boolean) =>
     cellGroup: { width: 35 },
     cellStat: { width: 40 },
     cellPoints: { width: 50 },
+
+    cellScorerPlayer: {
+      flex: 1.2,
+      textAlign: "left",
+      paddingLeft: 10,
+    },
+    cellScorerTeam: {
+      flex: 1,
+      textAlign: "left",
+      paddingLeft: 6,
+    },
+    cellScorerGoals: {
+      width: 60,
+      textAlign: "center",
+    },
+    scorerPlayerName: {
+      flex: 1.2,
+      fontSize: 13,
+      fontWeight: "800",
+      color: theme.text,
+      paddingLeft: 10,
+    },
+    scorerTeamName: {
+      flex: 1,
+      fontSize: 12,
+      color: theme.textSecondary,
+      fontWeight: "600",
+      paddingLeft: 6,
+    },
+    scorerGoalsBox: {
+      width: 60,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
+    },
+    scorerGoalsText: {
+      fontSize: 14,
+      fontWeight: "900",
+      color: "#FF5722",
+    },
+    scorersContainer: {
+      width: "100%",
+    },
 
     posBadge: {
       width: 24,
