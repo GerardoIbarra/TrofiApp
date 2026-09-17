@@ -74,43 +74,49 @@ export function TournamentHeader({ tournament, onEditPress, onAddPress }: Tourna
           <LayoutHeader showBackButton={true} />
         </View>
 
-        {/* Info Tag */}
+        {/* Info Tag & Actions */}
         <View style={styles.tagContainer}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(tournament.status) }]}>
-            <Text style={styles.statusText}>{tournament.status.toUpperCase()}</Text>
-          </View>
-          <Text style={styles.seasonText}>
-            {tournament.season_label.toUpperCase()}
-          </Text>
-          
-          {daysRemaining > 0 && tournament.status === 'draft' && (
-            <View style={styles.countdownBadge}>
-              <Text style={styles.countdownText}>
-                {t("tournament.starts_in", { count: daysRemaining })}
-              </Text>
+          <View style={styles.badgeRow}>
+            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(tournament.status) }]}>
+              <Text style={styles.statusText}>{tournament.status.toUpperCase()}</Text>
             </View>
-          )}
+            <Text style={styles.seasonText}>
+              {tournament.season_label.toUpperCase()}
+            </Text>
+            
+            {daysRemaining > 0 && tournament.status === 'draft' && (
+              <View style={styles.countdownBadge}>
+                <Text style={styles.countdownText}>
+                  {t("tournament.starts_in", { count: daysRemaining })}
+                </Text>
+              </View>
+            )}
+          </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={styles.actionBtnGroup}>
             {onAddPress && (
               <TouchableOpacity 
-                style={styles.editButton} 
+                style={styles.actionBtn} 
                 onPress={onAddPress}
                 activeOpacity={0.7}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Agregar"
               >
-                <Plus size={16} color={theme.primary} />
+                <Plus size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.6} />
               </TouchableOpacity>
             )}
 
             {onEditPress && (
               <TouchableOpacity 
-                style={styles.editButton} 
+                style={styles.actionBtn} 
                 onPress={onEditPress}
                 activeOpacity={0.7}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Configuración"
               >
-                <Settings size={16} color={theme.primary} />
+                <Settings size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.2} />
               </TouchableOpacity>
             )}
           </View>
@@ -174,13 +180,20 @@ const createStyles = (theme: any, isDark: boolean) =>
     tagContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 5,
+      justifyContent: "space-between",
+      marginBottom: 10,
+    },
+    badgeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: 8,
+      flex: 1,
     },
     statusBadge: {
       paddingHorizontal: 8,
-      paddingVertical: 3,
-      borderRadius: 4,
-      marginRight: 10,
+      paddingVertical: 4,
+      borderRadius: 6,
     },
     statusText: {
       color: isDark ? "#000" : "#FFF",
@@ -192,19 +205,24 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 10,
       fontWeight: "900",
       color: theme.primary,
-      backgroundColor: theme.primary + "15",
+      backgroundColor: isDark ? theme.primary + "20" : "#FFFFFF",
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 6,
       letterSpacing: 0.5,
-      marginRight: 10,
+      borderWidth: 1,
+      borderColor: isDark ? theme.primary + "40" : "rgba(0,0,0,0.08)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: isDark ? 0.2 : 0.08,
+      shadowRadius: 2,
+      elevation: 2,
     },
     countdownBadge: {
       backgroundColor: "#FF4444",
       paddingHorizontal: 8,
       paddingVertical: 4,
       borderRadius: 6,
-      flex: 1,
       alignSelf: 'flex-start',
     },
     countdownText: {
@@ -214,16 +232,41 @@ const createStyles = (theme: any, isDark: boolean) =>
       letterSpacing: 0.5,
       textAlign: 'center',
     },
-    editButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+    actionBtnGroup: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginLeft: 10,
+    },
+    actionBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: isDark ? "rgba(8, 30, 61, 0.95)" : "#FFFFFF",
       justifyContent: "center",
       alignItems: "center",
-      marginLeft: 10,
-      borderWidth: 1,
-      borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.03)",
+      borderWidth: 1.5,
+      borderColor: isDark ? "rgba(0, 240, 255, 0.4)" : "rgba(0, 0, 0, 0.12)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.4 : 0.18,
+      shadowRadius: 5,
+      elevation: 4,
+    },
+    editButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: isDark ? "rgba(8, 30, 61, 0.95)" : "#FFFFFF",
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1.5,
+      borderColor: isDark ? "rgba(0, 240, 255, 0.4)" : "rgba(0, 0, 0, 0.12)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.4 : 0.18,
+      shadowRadius: 5,
+      elevation: 4,
     },
     titleContainer: {
       marginBottom: 20,

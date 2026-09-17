@@ -70,8 +70,11 @@ export function TeamHeader({ team, onEditPress }: TeamHeaderProps) {
               style={styles.editButton} 
               onPress={onEditPress}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Configuración de Equipo"
             >
-              <Settings size={16} color={theme.primary} />
+              <Settings size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.2} />
             </TouchableOpacity>
           )}
         </View>
@@ -149,15 +152,20 @@ const createStyles = (theme: any, isDark: boolean) =>
       flex: 1,
     },
     editButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: isDark ? "rgba(8, 30, 61, 0.95)" : "#FFFFFF",
       justifyContent: "center",
       alignItems: "center",
       marginLeft: 10,
-      borderWidth: 1,
-      borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.03)",
+      borderWidth: 1.5,
+      borderColor: isDark ? "rgba(0, 240, 255, 0.4)" : "rgba(0, 0, 0, 0.12)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.4 : 0.18,
+      shadowRadius: 5,
+      elevation: 4,
     },
     titleContainer: {
       marginBottom: 20,
