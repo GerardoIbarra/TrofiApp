@@ -36,6 +36,11 @@
               "scheme": "https",
               "host": "api.trofi.club",
               "pathPrefix": "/reset-password"
+            },
+            {
+              "scheme": "https",
+              "host": "api.trofi.club",
+              "pathPrefix": "/join"
             }
           ],
           "category": [

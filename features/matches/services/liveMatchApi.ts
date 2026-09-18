@@ -98,7 +98,29 @@ export const useEndMatch = () => {
     onSuccess: (_, matchId) => {
       metrics.trackMatchLiveAction('ended', matchId);
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["match-details", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches"] });
+      queryClient.invalidateQueries({ queryKey: ["standings"] });
+      queryClient.invalidateQueries({ queryKey: ["top-scorers"] });
+    },
+  });
+};
+
+// 5.1. Reabrir el partido (Solo IsPlatformAdmin | IsLeagueAdmin)
+export const useReopenMatch = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (matchId: string) => {
+      const response = await api.post(`/v1/matches/${matchId}/reopen/`);
+      return response;
+    },
+    onSuccess: (_, matchId) => {
+      metrics.trackMatchLiveAction('reopened', matchId);
+      queryClient.invalidateQueries({ queryKey: ["match", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["match-details", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["matches"] });
+      queryClient.invalidateQueries({ queryKey: ["standings"] });
+      queryClient.invalidateQueries({ queryKey: ["top-scorers"] });
     },
   });
 };
@@ -113,7 +135,10 @@ export const useChangeMatchStatus = (matchId: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["match", matchId] });
+      queryClient.invalidateQueries({ queryKey: ["match-details", matchId] });
       queryClient.invalidateQueries({ queryKey: ["matches"] });
+      queryClient.invalidateQueries({ queryKey: ["standings"] });
+      queryClient.invalidateQueries({ queryKey: ["top-scorers"] });
     },
   });
 };

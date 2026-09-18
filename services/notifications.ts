@@ -149,7 +149,7 @@ export function setupNotifications(
     }
   );
 
-  // 2. Notificación tocada por el usuario (Background o cerrada)
+  // 2. Notificación tocada por el usuario (Background)
   const responseSubscription = Notifications.addNotificationResponseReceivedListener(
     (response) => {
       const data = response.notification.request.content.data;
@@ -157,6 +157,14 @@ export function setupNotifications(
       handleNotificationData(data, navigate);
     }
   );
+
+  // 3. Notificación que abrió la app si estaba completamente cerrada (Cold boot)
+  Notifications.getLastNotificationResponseAsync().then((response) => {
+    if (response) {
+      const data = response.notification.request.content.data;
+      handleNotificationData(data, navigate);
+    }
+  }).catch(() => {});
 
   return () => {
     receivedSubscription.remove();
@@ -172,15 +180,18 @@ function handleNotificationData(
   navigate: (screen: string, params: any) => void
 ) {
   if (!data) return;
-  const { screen, match_id, tournament_id, league_id, team_id } = data;
+  const matchId = data.match_id || data.matchId;
+  const tournamentId = data.tournament_id || data.tournamentId;
+  const leagueId = data.league_id || data.leagueId;
+  const teamId = data.team_id || data.teamId;
 
-  if (screen === "MatchDetail" || match_id) {
-    navigate("/match-detail", { id: match_id });
-  } else if (screen === "TournamentDetail" || tournament_id) {
-    navigate("/tournament-detail", { id: tournament_id });
-  } else if (screen === "LeagueDetail" || league_id) {
-    navigate("/league-detail", { id: league_id });
-  } else if (screen === "TeamDetail" || team_id) {
-    navigate("/team-detail", { id: team_id });
+  if (data.screen === "MatchDetail" || matchId) {
+    navigate("/match-detail", { id: matchId });
+  } else if (data.screen === "TournamentDetail" || tournamentId) {
+    navigate("/tournament-detail", { id: tournamentId });
+  } else if (data.screen === "LeagueDetail" || leagueId) {
+    navigate("/league-detail", { id: leagueId });
+  } else if (data.screen === "TeamDetail" || teamId) {
+    navigate("/team-detail", { id: teamId });
   }
 }

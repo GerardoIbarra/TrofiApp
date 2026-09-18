@@ -1,10 +1,15 @@
 import { MatchStatus, MatchResult } from './match';
 
 export interface PlayerLineup {
+  player_id?: string;
   player_name: string;
+  nickname?: string;
   shirt_number: number;
   position: string;
   photo: string | null;
+  status?: 'active' | 'suspended';
+  is_suspended?: boolean;
+  medical_clearance?: boolean;
 }
 
 export interface UnavailablePlayer extends PlayerLineup {

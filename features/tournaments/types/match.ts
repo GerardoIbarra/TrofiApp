@@ -1,4 +1,4 @@
-export type MatchStatus = 'scheduled' | 'live' | 'paused' | 'played' | 'postponed' | 'canceled' | 'forfeit';
+export type MatchStatus = 'scheduled' | 'live' | 'paused' | 'played' | 'finished' | 'postponed' | 'canceled' | 'forfeit';
 
 export interface MatchResult {
   id: string;

@@ -55,11 +55,14 @@ import {
   ArrowRightLeft,
   AlertCircle,
   Video,
-  Share2
+  Share2,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
+import { PlayerCredentialModal, CredentialPlayerData } from '@/components/players/PlayerCredentialModal';
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -73,6 +76,8 @@ export default function MatchDetailScreen() {
   const [isFanCheckInVisible, setIsFanCheckInVisible] = useState(false);
   const [isFileDisputeVisible, setIsFileDisputeVisible] = useState(false);
   const [selectedDisputeToResolve, setSelectedDisputeToResolve] = useState<MatchDispute | null>(null);
+  const [selectedCredentialPlayer, setSelectedCredentialPlayer] = useState<CredentialPlayerData | null>(null);
+  const [selectedLineupSide, setSelectedLineupSide] = useState<'home' | 'away'>('home');
   const [isShareModalVisible, setIsShareModalVisible] = useState(false);
   const [now] = useState(() => Date.now());
 
@@ -244,7 +249,7 @@ export default function MatchDetailScreen() {
   const derivedPeriod: MatchPeriod = (() => {
     if (!match) return 'not_started';
     if (match.status === 'scheduled') return 'not_started';
-    if (match.status === 'played' || match.status === 'canceled' || match.status === 'forfeit') return 'finished';
+    if (match.status === 'played' || match.status === 'finished' || match.status === 'canceled' || match.status === 'forfeit') return 'finished';
     if (match.status === 'paused') return 'halftime';
     if (match.status === 'live') {
       return (match.current_minute || 0) > 45 ? '2T' : '1T';
@@ -495,74 +500,130 @@ export default function MatchDetailScreen() {
       </View>
     );
 
+    const currentTeamLineup = selectedLineupSide === 'home' ? lineup.home : lineup.away;
+
     return (
       <ScrollView style={styles.tabContent}>
-        <View style={styles.lineupHeader}>
-           <Text style={styles.formationLabel}>{lineup.home.team_name} ({lineup.home.formation_name})</Text>
+        {/* Selector de Equipo (Local / Visitante) para revisión de árbitro y capitán */}
+        <View style={styles.lineupTeamToggle}>
+          <TouchableOpacity
+            style={[styles.lineupTeamBtn, selectedLineupSide === 'home' && styles.lineupTeamBtnActive]}
+            onPress={() => setSelectedLineupSide('home')}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.lineupTeamBtnText, selectedLineupSide === 'home' && styles.lineupTeamBtnTextActive]}>
+              {lineup.home.team_name} (Local)
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.lineupTeamBtn, selectedLineupSide === 'away' && styles.lineupTeamBtnActive]}
+            onPress={() => setSelectedLineupSide('away')}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.lineupTeamBtnText, selectedLineupSide === 'away' && styles.lineupTeamBtnTextActive]}>
+              {lineup.away.team_name} (Visita)
+            </Text>
+          </TouchableOpacity>
         </View>
-        
-        {/* Pitch visualization placeholder */}
-        <View style={styles.pitchContainer}>
-          <LinearGradient colors={['#2E7D32', '#1B5E20']} style={styles.pitch}>
-             {/* Simple visualization of starting XI */}
-             <View style={styles.pitchArea}>
-                {lineup.home.starting_xi.slice(0, 1).map((p, i) => (
-                    <View key={i} style={styles.playerNode}>
-                      <View style={styles.playerAvatarSmall}>
-                        {p.photo ? (
-                          <Image
-                            source={{ uri: p.photo.replace(/\s/g, "") }}
-                            style={styles.fullImage}
-                          />
-                        ) : (
-                          <User size={20} color="#FFF" />
-                        )}
-                      </View>
-                      <Text style={styles.playerNodeName}>{p.player_name.split(' ')[0]}</Text>
-                      <View style={styles.shirtNumberBadge}><Text style={styles.shirtNumberText}>{p.shirt_number}</Text></View>
-                   </View>
-                ))}
-             </View>
-          </LinearGradient>
+
+        <View style={styles.lineupHeader}>
+          <Text style={styles.formationLabel}>
+            {currentTeamLineup.team_name} ({currentTeamLineup.formation_name || '4-3-3'})
+          </Text>
+          <Text style={styles.lineupHint}>Toca a un jugador para ver su Ficha Digital</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.subTitle}>{t("match_detail.players_list")}</Text>
-          {lineup.home.starting_xi.map((p, i) => (
-            <View key={i} style={styles.playerListItem}>
-              <View style={styles.playerListItemInfo}>
-                <View style={styles.playerAvatarSmall}>
-                  {p.photo ? (
-                    <Image
-                      source={{ uri: p.photo.replace(/\s/g, "") }}
-                      style={styles.fullImage}
-                    />
-                  ) : (
-                    <User size={16} color="#FFF" />
-                  )}
+          <Text style={styles.subTitle}>TITULARES REGISTRADOS</Text>
+          {currentTeamLineup.starting_xi.map((p, i) => {
+            const isSuspended = p.status === 'suspended' || p.is_suspended;
+            return (
+              <TouchableOpacity
+                key={i}
+                style={[styles.playerListItem, isSuspended && styles.playerListItemSuspended]}
+                activeOpacity={0.7}
+                onPress={() =>
+                  setSelectedCredentialPlayer({
+                    player_name: p.player_name,
+                    nickname: p.nickname,
+                    shirt_number: p.shirt_number,
+                    position: p.position,
+                    photo: p.photo,
+                    team_name: currentTeamLineup.team_name,
+                    status: p.status,
+                    is_suspended: isSuspended,
+                    suspension_reason: isSuspended ? 'Inhabilitado por sanción disciplinaria' : undefined,
+                  })
+                }
+              >
+                <View style={styles.playerListItemInfo}>
+                  <View style={[styles.playerAvatarSmall, isSuspended && { borderColor: '#EF4444', borderWidth: 2 }]}>
+                    {p.photo ? (
+                      <Image
+                        source={{ uri: p.photo.replace(/\s/g, "") }}
+                        style={styles.fullImage}
+                      />
+                    ) : (
+                      <User size={16} color="#FFF" />
+                    )}
+                  </View>
+                  <View>
+                    <Text style={styles.playerListItemName}>{p.player_name}</Text>
+                    {isSuspended ? (
+                      <View style={styles.warningPillRow}>
+                        <AlertTriangle size={11} color="#EF4444" />
+                        <Text style={styles.warningPillText}>INHABILITADO POR SANCIÓN</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.activePillRow}>
+                        <CheckCircle2 size={11} color="#10B981" />
+                        <Text style={styles.activePillText}>Habilitado</Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
-                <Text style={styles.playerListItemName}>{p.player_name}</Text>
-              </View>
-              <Text style={styles.playerListItemNumber}>#{p.shirt_number}</Text>
-            </View>
-          ))}
+
+                <View style={styles.playerRightCol}>
+                  <Text style={styles.playerListItemNumber}>#{p.shirt_number}</Text>
+                  <Text style={styles.viewIdHint}>Ver Ficha</Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
-        {lineup.home.unavailable.length > 0 && (
+        {currentTeamLineup.unavailable.length > 0 && (
           <View style={styles.section}>
             <Text style={[styles.subTitle, { color: '#FF4444' }]}>{t("match_detail.unavailable_players")}</Text>
-            {lineup.home.unavailable.map((p, i) => (
-              <View key={i} style={styles.playerListItem}>
+            {currentTeamLineup.unavailable.map((p, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[styles.playerListItem, styles.playerListItemSuspended]}
+                activeOpacity={0.7}
+                onPress={() =>
+                  setSelectedCredentialPlayer({
+                    player_name: p.player_name,
+                    shirt_number: p.shirt_number,
+                    position: p.position,
+                    photo: p.photo,
+                    team_name: currentTeamLineup.team_name,
+                    status: 'suspended',
+                    is_suspended: true,
+                    suspension_reason: p.reason,
+                  })
+                }
+              >
                 <View style={styles.playerListItemInfo}>
                   <View style={[styles.playerAvatarSmall, { backgroundColor: '#FF4444' }]}>
-                     <Shield size={14} color="#FFF" />
+                    <Shield size={14} color="#FFF" />
                   </View>
                   <View>
                     <Text style={styles.playerListItemName}>{p.player_name}</Text>
                     <Text style={styles.unavailableReason}>{p.reason}</Text>
                   </View>
                 </View>
-              </View>
+                <Text style={styles.viewIdHint}>Ver Ficha</Text>
+              </TouchableOpacity>
             ))}
           </View>
         )}
@@ -846,6 +907,12 @@ export default function MatchDetailScreen() {
           events={timeline?.results || []}
         />
       )}
+
+      <PlayerCredentialModal
+        visible={!!selectedCredentialPlayer}
+        player={selectedCredentialPlayer}
+        onClose={() => setSelectedCredentialPlayer(null)}
+      />
     </View>
   );
 }
@@ -1211,20 +1278,90 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     borderWidth: 1,
     borderColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
   },
+  playerListItemSuspended: {
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    borderWidth: 1.5,
+  },
   playerListItemInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
   },
   playerListItemName: {
     fontSize: 13,
     fontWeight: '700',
     color: theme.text,
   },
+  playerRightCol: {
+    alignItems: 'flex-end',
+    gap: 2,
+  },
   playerListItemNumber: {
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '900',
+    color: theme.primary,
+  },
+  viewIdHint: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: theme.primary,
+  },
+  warningPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  warningPillText: {
+    fontSize: 10,
     fontWeight: '800',
+    color: '#EF4444',
+    letterSpacing: 0.3,
+  },
+  activePillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
+  },
+  activePillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#10B981',
+  },
+  lineupTeamToggle: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  lineupTeamBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  lineupTeamBtnActive: {
+    backgroundColor: isDark ? 'rgba(0,245,255,0.12)' : 'rgba(0,245,255,0.2)',
+    borderColor: theme.primary,
+  },
+  lineupTeamBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
     color: theme.textSecondary,
+  },
+  lineupTeamBtnTextActive: {
+    color: theme.text,
+    fontWeight: '900',
+  },
+  lineupHint: {
+    fontSize: 11,
+    color: theme.textSecondary,
+    marginTop: 2,
   },
   unavailableReason: {
     fontSize: 10,

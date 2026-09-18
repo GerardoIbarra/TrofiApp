@@ -43,6 +43,7 @@ export function AddEventModal({ visible, onClose, match, currentMinute }: AddEve
   };
 
   const handleSubmit = () => {
+    if (addEvent.isPending) return;
     if (!selectedTeam || !minute) {
       showToast({ type: 'error', title: 'Error', message: 'Debes seleccionar un equipo y el minuto del evento.' });
       return;

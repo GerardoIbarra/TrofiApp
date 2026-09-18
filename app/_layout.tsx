@@ -222,6 +222,17 @@ function InitialNavigation() {
           return;
         }
 
+        const pendingInvite = await AsyncStorage.getItem("@pending_team_invite");
+        if (pendingInvite) {
+          try {
+            const parsed = JSON.parse(pendingInvite);
+            if (parsed?.teamId && parsed?.token) {
+              router.replace(`/join/${parsed.teamId}?token=${parsed.token}` as any);
+              return;
+            }
+          } catch (_) {}
+        }
+
         router.replace("/(tabs)");
       } catch (e) {
         router.replace("/(tabs)");
@@ -239,6 +250,7 @@ function InitialNavigation() {
       <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
       <Stack.Screen name="(auth)" options={{ gestureEnabled: false }} />
       <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="join/[teamId]" options={{ presentation: 'card' }} />
     </Stack>
   );
 }

@@ -5,7 +5,10 @@ import { logger, isCancellationError } from './logger';
 // Configure online manager for React Native
 onlineManager.setEventListener((setOnline) => {
   return NetInfo.addEventListener((state) => {
-    setOnline(!!state.isConnected);
+    const isOnline = Boolean(
+      state.isConnected && (state.isInternetReachable === null || state.isInternetReachable)
+    );
+    setOnline(isOnline);
   });
 });
 
@@ -43,8 +46,12 @@ export const queryClient = new QueryClient({
         if (error?.status === 401 || error?.status === 403 || error?.status === 404) {
           return false;
         }
+        if (!onlineManager.isOnline()) {
+          return false;
+        }
         return failureCount < 2;
       },
+      refetchOnReconnect: true, // Dispara revalidación silenciosa al recuperar señal
       refetchOnWindowFocus: false,
     },
   },

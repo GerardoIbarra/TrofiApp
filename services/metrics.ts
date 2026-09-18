@@ -186,7 +186,7 @@ class MetricsService {
   }
 
   public trackMatchLiveAction(
-    action: 'started' | 'paused' | 'resumed' | 'ended' | 'locked',
+    action: 'started' | 'paused' | 'resumed' | 'ended' | 'locked' | 'reopened',
     matchId?: string
   ) {
     this.count(`match.${action}`, 1, {

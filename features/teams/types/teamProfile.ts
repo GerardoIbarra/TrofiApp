@@ -28,10 +28,14 @@ export interface CurrentStreak {
 export interface TeamRosterItem {
   player_id?: string;
   player_name: string;
+  nickname?: string;
   shirt_number?: number | string | null;
   position?: string | null;
   photo?: string | null;
   is_captain?: boolean;
+  status?: 'active' | 'suspended';
+  is_suspended?: boolean;
+  medical_clearance?: boolean;
 }
 
 export interface CurrentLineup {

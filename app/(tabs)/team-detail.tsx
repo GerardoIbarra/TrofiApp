@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   useWindowDimensions,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -20,7 +21,16 @@ import {
   Calendar,
   Layers,
   Star,
+  UserPlus,
+  CheckCircle2,
+  AlertTriangle,
+  MessageCircle,
 } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import { useToast } from '@/context/ToastContext';
+import { useCreateTeamInvitation } from '@/features/teams/services/teamInvitationApi';
+import { InviteTeamModal } from '@/components/teams/InviteTeamModal';
+import { PlayerCredentialModal, CredentialPlayerData } from '@/components/players/PlayerCredentialModal';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient';
@@ -56,6 +66,11 @@ export default function TeamDetailScreen() {
     tournamentId
   );
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isInviteModalVisible, setIsInviteModalVisible] = useState(false);
+  const [selectedCredentialPlayer, setSelectedCredentialPlayer] = useState<CredentialPlayerData | null>(null);
+
+  const { showToast } = useToast();
+  const inviteMutation = useCreateTeamInvitation(id);
 
   const {
     data: profile,
@@ -88,6 +103,42 @@ export default function TeamDetailScreen() {
     
     return false;
   }, [user, team, roster]);
+
+  const canInvite = React.useMemo(() => {
+    if (!user || !team) return false;
+    if (team.owner === user.id || user.is_staff) return true;
+    const playerProfileId = user.player_profile_id || user.player_profile?.id;
+    if (playerProfileId && roster.some(p => p.player_id === playerProfileId && p.is_captain)) return true;
+    if (user.memberships?.some(m => m.league === team.league && (m.role === 'admin' || m.role === 'owner'))) return true;
+    return false;
+  }, [user, team, roster]);
+
+  const handleInviteWhatsAppDirect = async () => {
+    if (!team) return;
+    try {
+      const res = await inviteMutation.mutateAsync(
+        selectedTourneyId ? { tournament: selectedTourneyId } : undefined
+      );
+      const text = `¡Únete a nuestro equipo ${team.name} en Trofi para ver el rol de juegos y estadísticas!\n\n${res.invite_url}`;
+      await Clipboard.setStringAsync(text);
+      showToast({
+        type: 'success',
+        title: 'Enlace copiado',
+        message: '¡Texto copiado al portapapeles! Abriendo WhatsApp...',
+      });
+
+      const url = `whatsapp://send?text=${encodeURIComponent(text)}`;
+      const webUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+      const canOpen = await Linking.canOpenURL(url).catch(() => false);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        await Linking.openURL(webUrl).catch(() => {});
+      }
+    } catch (_) {
+      setIsInviteModalVisible(true);
+    }
+  };
 
   if (isLoadingProfile && !profile) {
     return (
@@ -232,6 +283,27 @@ export default function TeamDetailScreen() {
               </View>
             )}
           </View>
+
+          {/* CAPTAIN / ADMIN WHATSAPP INVITATION BUTTON */}
+          {canInvite && (
+            <TouchableOpacity
+              style={styles.whatsAppInviteBannerBtn}
+              onPress={handleInviteWhatsAppDirect}
+              disabled={inviteMutation.isPending}
+              activeOpacity={0.8}
+            >
+              {inviteMutation.isPending ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <>
+                  <MessageCircle size={18} color="#FFFFFF" />
+                  <Text style={styles.whatsAppInviteBannerText}>
+                    Invitar amigos por WhatsApp
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
           {/* TABS */}
           <View
@@ -431,46 +503,89 @@ export default function TeamDetailScreen() {
             {/* 2. ROSTER TAB */}
             {activeTab === 'ROSTER' && (
               <View>
+                {canInvite && (
+                  <TouchableOpacity
+                    style={styles.whatsAppInviteBannerBtn}
+                    onPress={handleInviteWhatsAppDirect}
+                    disabled={inviteMutation.isPending}
+                    activeOpacity={0.8}
+                  >
+                    {inviteMutation.isPending ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <>
+                        <MessageCircle size={18} color="#FFFFFF" />
+                        <Text style={styles.whatsAppInviteBannerText}>
+                          Invitar amigos por WhatsApp
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
                 {roster.length > 0 ? (
-                  roster.map((player, idx) => (
-                    <TouchableOpacity
-                      key={idx}
-                      style={styles.rosterCard}
-                      disabled={!player.player_id}
-                      onPress={() => {
-                        if (player.player_id) {
-                          router.push({
-                            pathname: '/player-detail',
-                            params: {
-                              playerId: player.player_id,
-                              playerName: player.player_name,
-                            },
-                          });
+                  roster.map((player, idx) => {
+                    const isSuspended = player.status === 'suspended' || player.is_suspended;
+                    return (
+                      <TouchableOpacity
+                        key={idx}
+                        style={[styles.rosterCard, isSuspended && styles.rosterCardSuspended]}
+                        onPress={() =>
+                          setSelectedCredentialPlayer({
+                            player_id: player.player_id,
+                            player_name: player.player_name,
+                            nickname: player.nickname,
+                            shirt_number: player.shirt_number,
+                            position: player.position,
+                            photo: player.photo,
+                            team_name: team.name,
+                            status: player.status,
+                            is_suspended: isSuspended,
+                            suspension_reason: isSuspended ? 'Inhabilitado por sanción' : undefined,
+                          })
                         }
-                      }}
-                      activeOpacity={0.8}
-                    >
-                      <View style={styles.rosterNumberBox}>
-                        <Text style={styles.rosterNumberText}>
-                          {player.shirt_number ?? '#'}
-                        </Text>
-                      </View>
-                      <View style={styles.rosterInfo}>
-                        <View style={styles.rosterNameRow}>
-                          <Text style={styles.rosterName}>{player.player_name}</Text>
-                          {player.is_captain && (
-                            <View style={styles.captainBadge}>
-                              <Text style={styles.captainText}>C</Text>
-                            </View>
-                          )}
+                        activeOpacity={0.8}
+                      >
+                        <View style={[styles.rosterNumberBox, isSuspended && { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+                          <Text style={[styles.rosterNumberText, isSuspended && { color: '#EF4444' }]}>
+                            {player.shirt_number ?? '#'}
+                          </Text>
                         </View>
-                        <Text style={styles.rosterPosition}>
-                          {player.position || t('team_detail.default_position', 'Jugador')}
-                        </Text>
-                      </View>
-                      {!!player.player_id && <ChevronRight size={16} color={theme.textSecondary} />}
-                    </TouchableOpacity>
-                  ))
+                        <View style={styles.rosterInfo}>
+                          <View style={styles.rosterNameRow}>
+                            <Text style={styles.rosterName}>{player.player_name}</Text>
+                            {player.is_captain && (
+                              <View style={styles.captainBadge}>
+                                <Text style={styles.captainText}>C</Text>
+                              </View>
+                            )}
+                          </View>
+                          <View style={styles.rosterSubtitleRow}>
+                            <Text style={styles.rosterPosition}>
+                              {player.position || t('team_detail.default_position', 'Jugador')}
+                            </Text>
+                            {isSuspended ? (
+                              <View style={styles.rosterSuspendedBadge}>
+                                <AlertTriangle size={10} color="#EF4444" />
+                                <Text style={styles.rosterSuspendedText}>Suspendido</Text>
+                              </View>
+                            ) : (
+                              <View style={styles.rosterActiveBadge}>
+                                <CheckCircle2 size={10} color="#10B981" />
+                                <Text style={styles.rosterActiveText}>Activo</Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+
+                        <View style={styles.rosterFichaBtn}>
+                          <Shield size={14} color={isSuspended ? '#EF4444' : theme.primary} />
+                          <Text style={[styles.rosterFichaBtnText, { color: isSuspended ? '#EF4444' : theme.primary }]}>
+                            Ficha
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })
                 ) : (
                   <View style={styles.emptyCard}>
                     <Users size={32} color={theme.textSecondary} opacity={0.4} />
@@ -673,6 +788,20 @@ export default function TeamDetailScreen() {
         onClose={() => setIsEditModalVisible(false)}
         onSuccess={() => refetchProfile()}
         initialData={team}
+      />
+
+      <InviteTeamModal
+        visible={isInviteModalVisible}
+        onClose={() => setIsInviteModalVisible(false)}
+        teamId={team.id}
+        teamName={team.name}
+        tournamentId={selectedTourneyId}
+      />
+
+      <PlayerCredentialModal
+        visible={!!selectedCredentialPlayer}
+        player={selectedCredentialPlayer}
+        onClose={() => setSelectedCredentialPlayer(null)}
       />
     </View>
   );
@@ -939,6 +1068,50 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       color: theme.text,
       fontWeight: '700',
     },
+    whatsAppInviteBannerBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      backgroundColor: '#25D366',
+      paddingVertical: 13,
+      paddingHorizontal: 16,
+      borderRadius: 14,
+      marginBottom: 16,
+      shadowColor: '#25D366',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    whatsAppInviteBannerText: {
+      color: '#FFFFFF',
+      fontWeight: '800',
+      fontSize: 14,
+      letterSpacing: 0.3,
+    },
+    inviteBannerBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: theme.primary,
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      marginBottom: 16,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 3,
+    },
+    inviteBannerText: {
+      color: '#001A2C',
+      fontWeight: '800',
+      fontSize: 14,
+      letterSpacing: 0.3,
+    },
     rosterCard: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -948,6 +1121,58 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       marginBottom: 8,
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+    },
+    rosterCardSuspended: {
+      backgroundColor: 'rgba(239, 68, 68, 0.06)',
+      borderColor: 'rgba(239, 68, 68, 0.3)',
+      borderWidth: 1.5,
+    },
+    rosterSubtitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 2,
+    },
+    rosterActiveBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      backgroundColor: 'rgba(16, 185, 129, 0.12)',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 6,
+    },
+    rosterActiveText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: '#10B981',
+    },
+    rosterSuspendedBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 3,
+      backgroundColor: 'rgba(239, 68, 68, 0.15)',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 6,
+    },
+    rosterSuspendedText: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: '#EF4444',
+    },
+    rosterFichaBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
+    },
+    rosterFichaBtnText: {
+      fontSize: 11,
+      fontWeight: '800',
     },
     rosterNumberBox: {
       width: 32,

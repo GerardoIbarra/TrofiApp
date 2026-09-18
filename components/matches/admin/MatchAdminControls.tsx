@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { Match } from '@/features/tournaments/types/match';
-import { Play, Pause, Square, AlertCircle, Goal, Flag, Users, Edit3, UserPlus } from 'lucide-react-native';
-import { useStartMatch, usePauseMatch, useResumeMatch, useEndMatch } from '@/features/matches/services/liveMatchApi';
+import { Play, Pause, Square, AlertCircle, Goal, Flag, Users, Edit3, UserPlus, RotateCcw } from 'lucide-react-native';
+import { useStartMatch, usePauseMatch, useResumeMatch, useEndMatch, useReopenMatch } from '@/features/matches/services/liveMatchApi';
 import { useTranslation } from 'react-i18next';
 
 // Modals
@@ -29,6 +29,7 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
   const pauseMatch = usePauseMatch();
   const resumeMatch = useResumeMatch();
   const endMatch = useEndMatch();
+  const reopenMatch = useReopenMatch();
 
   // Modals state
   const [isEventModalVisible, setEventModalVisible] = useState(false);
@@ -47,6 +48,27 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
 
   const handleEnd = () => {
     setConfirmEndModalVisible(true);
+  };
+
+  const handleReopen = () => {
+    Alert.alert(
+      'Reabrir Partido',
+      '¿Deseas reabrir este partido finalizado? Esta acción solo está permitida para administradores de plataforma o dueños de la liga.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Reabrir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await reopenMatch.mutateAsync(match.id);
+            } catch (err: any) {
+              Alert.alert('Error', err?.message || 'No se pudo reabrir el partido');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -115,8 +137,19 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
         )}
 
         {/* PLAYED / FINISHED */}
-        {match.status === 'played' && (
+        {(match.status === 'played' || match.status === 'finished') && (
           <>
+            <TouchableOpacity
+              style={[styles.btn, { backgroundColor: '#E91E63' }]}
+              onPress={handleReopen}
+              disabled={reopenMatch.isPending}
+            >
+              <RotateCcw size={16} color="#FFF" />
+              <Text style={[styles.btnText, { color: '#FFF' }]}>
+                {reopenMatch.isPending ? 'Reabriendo...' : 'Reabrir Partido'}
+              </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={[styles.btn, { backgroundColor: '#9C27B0' }]}>
               <Edit3 size={16} color="#FFF" />
               <Text style={[styles.btnText, { color: '#FFF' }]}>Editar Resultado</Text>
