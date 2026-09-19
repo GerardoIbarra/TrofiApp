@@ -27,11 +27,34 @@ import {
   Sliders,
   Megaphone,
   CheckCheck,
+  Shield,
 } from "lucide-react-native";
 import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
 import { router } from "expo-router";
+import { handleNotificationData } from "@/services/notifications";
 
-// Removed MOCK_NOTIFICATIONS
+const getNotificationVisuals = (type: string) => {
+  const normalized = (type || "").toLowerCase();
+  if (normalized.includes("league")) {
+    return { icon: Trophy, color: "#FFB000" };
+  }
+  if (normalized.includes("match")) {
+    return { icon: Zap, color: "#00F5FF" };
+  }
+  if (normalized.includes("tournament")) {
+    return { icon: Trophy, color: "#FF8C00" };
+  }
+  if (normalized.includes("team")) {
+    return { icon: Shield, color: "#A855F7" };
+  }
+  if (normalized.includes("message") || normalized.includes("chat")) {
+    return { icon: MessageSquare, color: "#3B82F6" };
+  }
+  if (normalized.includes("announcement")) {
+    return { icon: Megaphone, color: "#00F5FF" };
+  }
+  return { icon: Activity, color: "#00F5FF" };
+};
 
 export default function NotificationsScreen() {
   const { theme, isDark } = useTheme();
@@ -48,37 +71,34 @@ export default function NotificationsScreen() {
       markAsRead(item.rawId);
     }
     
-    // Navigate based on data if provided
-    const data = item.data;
-    if (data) {
-      const { screen, match_id, tournament_id, league_id, team_id } = data;
-      if (screen === "MatchDetail" || match_id) {
-        router.push({ pathname: "/match-detail", params: { id: match_id } });
-      } else if (screen === "TournamentDetail" || tournament_id) {
-        router.push({ pathname: "/tournament-detail", params: { id: tournament_id } });
-      } else if (screen === "LeagueDetail" || league_id) {
-        router.push({ pathname: "/league-detail", params: { id: league_id } });
-      } else if (screen === "TeamDetail" || team_id) {
-        router.push({ pathname: "/team-detail", params: { id: team_id } });
-      }
+    // Navegar usando la misma lógica centralizada que las notificaciones push
+    if (item.data) {
+      handleNotificationData(item.data, (pathname, params) => {
+        router.push({ pathname: pathname as any, params });
+      });
     }
   };
 
   const displayNotifications =
     serverNotifications.length > 0
-      ? serverNotifications.map((n: any, idx: number) => ({
-          id: String(n.id ?? `notification-${idx}`),
-          rawId: n.id,
-          type: n.notification_type || 'announcement',
-          title: n.title || 'Aviso Oficial',
-          message: n.message || n.body || '',
-          time: n.created_at ? new Date(n.created_at).toLocaleDateString() : 'Reciente',
-          read: Boolean(n.is_read),
-          icon: n.notification_type === 'announcement' ? Megaphone : Trophy,
-          color: n.notification_type === 'announcement' ? '#00F5FF' : '#FFB000',
-          data: n.data || null,
-        }))
+      ? serverNotifications.map((n: any, idx: number) => {
+          const type = n.notification_type || "announcement";
+          const visuals = getNotificationVisuals(type);
+          return {
+            id: String(n.id ?? `notification-${idx}`),
+            rawId: n.id,
+            type,
+            title: n.title || "Aviso Oficial",
+            message: n.message || n.body || "",
+            time: n.created_at ? new Date(n.created_at).toLocaleDateString() : "Reciente",
+            read: Boolean(n.is_read),
+            icon: visuals.icon,
+            color: visuals.color,
+            data: n.data || null,
+          };
+        })
       : [];
+
 
   const renderItem = ({ item }: { item: (typeof displayNotifications)[0] }) => {
     const Icon = item.icon;

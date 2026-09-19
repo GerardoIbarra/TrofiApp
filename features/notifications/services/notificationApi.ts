@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
+import { AppNotification } from "../types/notification";
 
 export const notificationKeys = {
   all: ["notifications"] as const,
@@ -8,7 +9,7 @@ export const notificationKeys = {
 };
 
 export const useGetNotifications = () => {
-  return useQuery({
+  return useQuery<AppNotification[]>({
     queryKey: notificationKeys.lists(),
     queryFn: async () => {
       const res = await api.get<any>("/v1/notifications/");

@@ -172,26 +172,166 @@ export function setupNotifications(
   };
 }
 
-/**
- * Lógica de navegación basada en la data de la notificación
- */
-function handleNotificationData(
-  data: any,
-  navigate: (screen: string, params: any) => void
-) {
-  if (!data) return;
-  const matchId = data.match_id || data.matchId;
-  const tournamentId = data.tournament_id || data.tournamentId;
-  const leagueId = data.league_id || data.leagueId;
-  const teamId = data.team_id || data.teamId;
+export interface NotificationRouteTarget {
+  pathname: string;
+  params: Record<string, any>;
+}
 
-  if (data.screen === "MatchDetail" || matchId) {
-    navigate("/match-detail", { id: matchId });
-  } else if (data.screen === "TournamentDetail" || tournamentId) {
-    navigate("/tournament-detail", { id: tournamentId });
-  } else if (data.screen === "LeagueDetail" || leagueId) {
-    navigate("/league-detail", { id: leagueId });
-  } else if (data.screen === "TeamDetail" || teamId) {
-    navigate("/team-detail", { id: teamId });
+const SCREEN_ROUTE_MAP: Record<string, string> = {
+  leaguedetail: "/league-detail",
+  league: "/league-detail",
+  leagues: "/leagues",
+
+  matchdetail: "/match-detail",
+  match: "/match-detail",
+
+  tournamentdetail: "/tournament-detail",
+  tournament: "/tournament-detail",
+
+  teamdetail: "/team-detail",
+  team: "/team-detail",
+  teams: "/teams",
+
+  pickupspotdetail: "/pickup-spot-detail",
+  pickupspot: "/pickup-spot-detail",
+  pickupdetail: "/pickup-spot-detail",
+
+  playerdetail: "/player-detail",
+  player: "/player-detail",
+
+  tournamentteamdetail: "/tournament-team-detail",
+
+  directmessages: "/direct-messages",
+  chat: "/direct-messages",
+
+  refereemarketplace: "/referee-marketplace",
+  referees: "/referee-marketplace",
+
+  retas: "/retas",
+  explore: "/explore",
+  market: "/market",
+  profile: "/profile",
+  notifications: "/notifications",
+  nearbymap: "/nearby-map",
+  sponsorplacements: "/sponsor-placements",
+};
+
+/**
+ * Resuelve la ruta y parámetros de navegación a partir del campo `data`
+ * de una notificación (push de Expo o API /v1/notifications/).
+ *
+ * @param rawData Diccionario data de la notificación
+ * - data.screen: nombre de pantalla a la que navegar (ej: "LeagueDetail", "MatchDetail", etc.)
+ * - Resto de claves: diccionario libre pasado a params (ej: league_id, status, match_id, etc.)
+ */
+export function resolveNotificationRoute(rawData: any): NotificationRouteTarget | null {
+  if (!rawData) return null;
+
+  let payload = rawData;
+  if (typeof payload === "string") {
+    try {
+      payload = JSON.parse(payload);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  if (typeof payload !== "object" || payload === null) return null;
+
+  const rawScreen = typeof payload.screen === "string" ? payload.screen.trim() : "";
+  const params: Record<string, any> = {};
+
+  // Tratar todas las claves como un diccionario libre
+  for (const [key, value] of Object.entries(payload)) {
+    if (key === "screen") continue;
+    if (value !== undefined && value !== null) {
+      params[key] = typeof value === "object" ? JSON.stringify(value) : value;
+    }
+  }
+
+  const normalized = rawScreen.toLowerCase().replace(/[-_]/g, "");
+  let pathname = SCREEN_ROUTE_MAP[normalized] || "";
+
+  if (!pathname && rawScreen) {
+    if (rawScreen.startsWith("/")) {
+      pathname = rawScreen;
+    } else {
+      // Convertir camelCase o PascalCase a /kebab-case
+      const kebab = "/" + rawScreen.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase().replace(/_/g, "-");
+      pathname = kebab;
+    }
+  }
+
+  // Heurística de fallback si no se especificó screen
+  if (!pathname) {
+    if (payload.match_id || payload.matchId) {
+      pathname = "/match-detail";
+    } else if (payload.tournament_id || payload.tournamentId) {
+      pathname = "/tournament-detail";
+    } else if (payload.league_id || payload.leagueId) {
+      pathname = "/league-detail";
+    } else if (payload.team_id || payload.teamId) {
+      pathname = "/team-detail";
+    } else if (payload.spot_id || payload.pickup_spot_id || payload.pickupSpotId) {
+      pathname = "/pickup-spot-detail";
+    } else if (payload.player_id || payload.playerId) {
+      pathname = "/player-detail";
+    }
+  }
+
+  if (!pathname) {
+    logger.warn("notifications", "No se pudo resolver la pantalla para los datos de notificación:", payload);
+    return null;
+  }
+
+  // Garantizar que las pantallas que esperan 'id' como parámetro principal lo tengan disponible
+  if (!params.id) {
+    if (pathname === "/league-detail" && (payload.league_id || payload.leagueId)) {
+      params.id = String(payload.league_id || payload.leagueId);
+    } else if (pathname === "/match-detail" && (payload.match_id || payload.matchId)) {
+      params.id = String(payload.match_id || payload.matchId);
+    } else if (pathname === "/tournament-detail" && (payload.tournament_id || payload.tournamentId)) {
+      params.id = String(payload.tournament_id || payload.tournamentId);
+    } else if (pathname === "/team-detail" && (payload.team_id || payload.teamId)) {
+      params.id = String(payload.team_id || payload.teamId);
+    } else if (pathname === "/pickup-spot-detail" && (payload.spot_id || payload.pickup_spot_id || payload.pickupSpotId)) {
+      params.id = String(payload.spot_id || payload.pickup_spot_id || payload.pickupSpotId);
+    } else if (pathname === "/player-detail" && (payload.player_id || payload.playerId)) {
+      params.id = String(payload.player_id || payload.playerId);
+    }
+  }
+
+  if (pathname === "/player-detail" && !params.playerId && (payload.player_id || payload.playerId || params.id)) {
+    params.playerId = String(payload.player_id || payload.playerId || params.id);
+  }
+
+  if (pathname === "/direct-messages") {
+    if (!params.with && (payload.with || payload.with_user_id || payload.sender_id || payload.userId || payload.user_id)) {
+      params.with = String(payload.with || payload.with_user_id || payload.sender_id || payload.userId || payload.user_id);
+    }
+    if (!params.name && (payload.name || payload.user_name || payload.sender_name)) {
+      params.name = String(payload.name || payload.user_name || payload.sender_name);
+    }
+  }
+
+  return { pathname, params };
+}
+
+/**
+ * Lógica centralizada de navegación basada en la data de la notificación.
+ * Usada tanto por push notifications (Expo) como al tocar filas en NotificationsScreen.
+ */
+export function handleNotificationData(
+  data: any,
+  navigate: (screen: string, params: Record<string, any>) => void
+) {
+  const route = resolveNotificationRoute(data);
+  if (route) {
+    logger.info("notifications", "Navegando a pantalla desde notificación", {
+      pathname: route.pathname,
+      params: route.params,
+    });
+    navigate(route.pathname, route.params);
   }
 }
+
