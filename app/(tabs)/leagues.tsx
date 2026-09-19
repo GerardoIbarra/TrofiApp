@@ -4,7 +4,7 @@ import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { League, LeaguesResponse } from "@/features/leagues/types/league";
+import { League } from "@/features/leagues/types/league";
 import api from "@/services/api";
 import { openInExternalMaps } from "@/services/mapLinking";
 import { useQuery } from "@tanstack/react-query";
@@ -24,7 +24,7 @@ import {
   Search,
   Trophy,
   Venus,
-  X
+  X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -137,8 +137,9 @@ export default function LeaguesExplorerScreen() {
       const queryStr = params.toString();
       const endpoint = queryStr ? `/v1/leagues/?${queryStr}` : "/v1/leagues/";
       const response = await api.get<any>(endpoint);
-      const results: League[] = Array.isArray(response) ? response : (response?.results || []);
-      console.log("leagues endpoint:", endpoint, "total:", results.length, "results:", results);
+      const results: League[] = Array.isArray(response)
+        ? response
+        : response?.results || [];
       return results;
     },
   });
