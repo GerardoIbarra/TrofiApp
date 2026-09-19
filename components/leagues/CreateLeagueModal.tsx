@@ -5,6 +5,7 @@ import { FormSelect } from "@/components/ui/forms/FormSelect";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import {
+  LeagueInput,
   LeagueSchema,
   leagueSchema,
 } from "@/features/leagues/schemas/leagueSchema";
@@ -22,14 +23,18 @@ import {
   MapPin,
   Trash2,
   Trophy,
-  X
+  X,
+  Map as MapIcon,
+  Navigation,
 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { LocationService } from "@/services/locationService";
+import { LocationPickerModal } from "@/components/ui/maps/LocationPickerModal";
 import { useToast } from "@/context/ToastContext";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Modal,
@@ -93,7 +98,7 @@ export function CreateLeagueModal({
     reset,
     setValue,
     formState: { isSubmitting },
-  } = useForm<LeagueSchema>({
+  } = useForm<LeagueInput, any, LeagueSchema>({
     resolver: zodResolver(leagueSchema),
     defaultValues: {
       name: initialData?.name || "",
@@ -127,6 +132,17 @@ export function CreateLeagueModal({
 
   const logo = useWatch({ control, name: "logo" });
   const backgroundImage = useWatch({ control, name: "background_image" });
+  const latitude = useWatch({ control, name: "latitude" });
+  const longitude = useWatch({ control, name: "longitude" });
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+
+  const hasCoordinates =
+    latitude !== null &&
+    latitude !== undefined &&
+    latitude !== "" &&
+    longitude !== null &&
+    longitude !== undefined &&
+    longitude !== "";
 
   const pickImage = async (field: "logo" | "background_image") => {
     const isLogo = field === "logo";
@@ -380,42 +396,145 @@ export function CreateLeagueModal({
                 />
               </View>
 
-              {/* Coordinates Section */}
+              {/* Coordinates / Location Section */}
               <View style={styles.locationSection}>
                 <View style={styles.locationHeader}>
-                  <Text style={styles.locationTitle}>COORDENADAS (MAPA)</Text>
-                  <TouchableOpacity
-                    style={styles.gpsButton}
-                    onPress={handleUseCurrentLocation}
-                    disabled={isGettingLocation}
-                    activeOpacity={0.7}
-                  >
-                    <MapPin size={13} color={theme.primary} />
-                    <Text style={styles.gpsButtonText}>
-                      {isGettingLocation ? "Detectando..." : "Detectar GPS"}
-                    </Text>
-                  </TouchableOpacity>
+                  <Text style={styles.locationTitle}>UBICACIÓN (MAPA Y CERCANÍA)</Text>
+                  {hasCoordinates && (
+                    <TouchableOpacity
+                      style={styles.clearLocationBtn}
+                      onPress={() => {
+                        setValue("latitude", null);
+                        setValue("longitude", null);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Trash2 size={13} color="#EF4444" />
+                      <Text style={styles.clearLocationText}>Quitar</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
-                <View style={styles.row}>
-                  <FormInput
-                    control={control}
-                    name="latitude"
-                    label="LATITUD"
-                    placeholder="19.4326"
-                    keyboardType="numeric"
-                    containerStyle={{ flex: 1 }}
-                  />
-                  <View style={{ width: 15 }} />
-                  <FormInput
-                    control={control}
-                    name="longitude"
-                    label="LONGITUD"
-                    placeholder="-99.1332"
-                    keyboardType="numeric"
-                    containerStyle={{ flex: 1 }}
-                  />
-                </View>
+                {hasCoordinates ? (
+                  <View
+                    style={[
+                      styles.locationCardActive,
+                      {
+                        backgroundColor: isDark
+                          ? "rgba(0, 191, 165, 0.08)"
+                          : "rgba(0, 191, 165, 0.06)",
+                        borderColor: isDark
+                          ? "rgba(0, 191, 165, 0.3)"
+                          : "rgba(0, 191, 165, 0.25)",
+                      },
+                    ]}
+                  >
+                    <View style={styles.locationCardContent}>
+                      <View style={styles.locationIconBoxActive}>
+                        <MapPin size={20} color="#00BFA5" />
+                      </View>
+                      <View style={styles.locationTextBox}>
+                        <View style={styles.locationStatusPill}>
+                          <Text style={styles.locationStatusPillText}>
+                            UBICACIÓN CONFIGURADA
+                          </Text>
+                        </View>
+                        <Text
+                          style={[styles.locationCoordsText, { color: theme.text }]}
+                        >
+                          Punto marcado en el mapa
+                        </Text>
+                        <Text
+                          style={[styles.locationSubtitleText, { color: theme.textSecondary }]}
+                        >
+                          Visible en el explorador y mapa de ligas
+                        </Text>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      style={[styles.editMapBtn, { borderColor: theme.primary }]}
+                      onPress={() => setShowLocationPicker(true)}
+                      activeOpacity={0.8}
+                    >
+                      <MapIcon size={14} color={theme.primary} />
+                      <Text
+                        style={[styles.editMapBtnText, { color: theme.primary }]}
+                      >
+                        Cambiar en mapa
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.locationCardEmpty,
+                      {
+                        backgroundColor: isDark
+                          ? "rgba(255, 255, 255, 0.02)"
+                          : "rgba(0, 0, 0, 0.02)",
+                        borderColor: isDark
+                          ? "rgba(255, 255, 255, 0.06)"
+                          : "rgba(0, 0, 0, 0.06)",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[styles.emptyLocationDesc, { color: theme.textSecondary }]}
+                    >
+                      Las ligas con ubicación aparecen en el explorador cercano y en el mapa para los jugadores.
+                    </Text>
+
+                    <View style={styles.locationButtonsRow}>
+                      <TouchableOpacity
+                        style={[
+                          styles.gpsActionButton,
+                          {
+                            backgroundColor: theme.primary + "1A",
+                            borderColor: theme.primary + "33",
+                          },
+                        ]}
+                        onPress={handleUseCurrentLocation}
+                        disabled={isGettingLocation}
+                        activeOpacity={0.7}
+                      >
+                        {isGettingLocation ? (
+                          <ActivityIndicator size="small" color={theme.primary} />
+                        ) : (
+                          <Navigation size={15} color={theme.primary} />
+                        )}
+                        <Text
+                          style={[styles.gpsActionText, { color: theme.primary }]}
+                        >
+                          {isGettingLocation ? "Detectando..." : "Detectar GPS"}
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[
+                          styles.mapActionButton,
+                          {
+                            backgroundColor: isDark
+                              ? "rgba(255, 255, 255, 0.05)"
+                              : "rgba(0, 0, 0, 0.04)",
+                            borderColor: isDark
+                              ? "rgba(255, 255, 255, 0.1)"
+                              : "rgba(0, 0, 0, 0.08)",
+                          },
+                        ]}
+                        onPress={() => setShowLocationPicker(true)}
+                        activeOpacity={0.7}
+                      >
+                        <MapIcon size={15} color={theme.text} />
+                        <Text
+                          style={[styles.mapActionText, { color: theme.text }]}
+                        >
+                          Elegir en mapa
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
               </View>
 
               <View style={styles.infoBox}>
@@ -453,6 +572,18 @@ export function CreateLeagueModal({
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
+
+      {/* Interactive Location Picker Map Modal */}
+      <LocationPickerModal
+        visible={showLocationPicker}
+        initialLatitude={hasCoordinates ? Number(latitude) : undefined}
+        initialLongitude={hasCoordinates ? Number(longitude) : undefined}
+        onConfirm={(coords) => {
+          setValue("latitude", coords.latitude);
+          setValue("longitude", coords.longitude);
+        }}
+        onClose={() => setShowLocationPicker(false)}
+      />
     </Modal>
   );
 }
@@ -589,7 +720,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     locationSection: {
       marginBottom: 15,
       padding: 14,
-      borderRadius: 12,
+      borderRadius: 14,
       backgroundColor: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
       borderWidth: 1,
       borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
@@ -598,27 +729,132 @@ const createStyles = (theme: any, isDark: boolean) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 12,
+      marginBottom: 10,
     },
     locationTitle: {
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: "800",
       color: theme.textSecondary,
       letterSpacing: 1,
     },
-    gpsButton: {
+    clearLocationBtn: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      backgroundColor: isDark ? "rgba(0, 245, 255, 0.1)" : "rgba(0, 245, 255, 0.15)",
-      paddingHorizontal: 10,
-      paddingVertical: 5,
-      borderRadius: 20,
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 6,
+      backgroundColor: "rgba(239, 68, 68, 0.1)",
     },
-    gpsButtonText: {
+    clearLocationText: {
       fontSize: 11,
       fontWeight: "700",
-      color: theme.primary,
+      color: "#EF4444",
+    },
+    locationCardActive: {
+      borderRadius: 12,
+      borderWidth: 1,
+      padding: 14,
+      gap: 12,
+    },
+    locationCardContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    locationIconBoxActive: {
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      backgroundColor: "rgba(0, 191, 165, 0.15)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    locationTextBox: {
+      flex: 1,
+    },
+    locationStatusPill: {
+      alignSelf: "flex-start",
+      backgroundColor: "rgba(0, 191, 165, 0.15)",
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+      marginBottom: 3,
+    },
+    locationStatusPillText: {
+      fontSize: 9,
+      fontWeight: "800",
+      color: "#00BFA5",
+      letterSpacing: 0.5,
+    },
+    locationCoordsText: {
+      fontSize: 14,
+      fontWeight: "800",
+      letterSpacing: 0.5,
+    },
+    locationSubtitleText: {
+      fontSize: 11,
+      marginTop: 2,
+    },
+    editMapBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 10,
+      borderRadius: 10,
+      borderWidth: 1,
+      backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "rgba(0, 0, 0, 0.02)",
+      minHeight: 44, // Fitts's law 44pt touch target
+    },
+    editMapBtnText: {
+      fontSize: 12,
+      fontWeight: "800",
+    },
+    locationCardEmpty: {
+      borderRadius: 12,
+      borderWidth: 1,
+      borderStyle: "dashed",
+      padding: 14,
+      gap: 12,
+    },
+    emptyLocationDesc: {
+      fontSize: 12,
+      lineHeight: 16,
+    },
+    locationButtonsRow: {
+      flexDirection: "row",
+      gap: 10,
+    },
+    gpsActionButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 11,
+      borderRadius: 10,
+      borderWidth: 1,
+      minHeight: 44, // Fitts's law 44pt touch target
+    },
+    gpsActionText: {
+      fontSize: 12,
+      fontWeight: "800",
+    },
+    mapActionButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      paddingVertical: 11,
+      borderRadius: 10,
+      borderWidth: 1,
+      minHeight: 44, // Fitts's law 44pt touch target
+    },
+    mapActionText: {
+      fontSize: 12,
+      fontWeight: "800",
     },
     infoBox: {
       flexDirection: "row",

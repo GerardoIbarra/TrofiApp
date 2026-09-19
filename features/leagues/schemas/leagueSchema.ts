@@ -11,4 +11,5 @@ export const leagueSchema = z.object({
   longitude: z.union([z.number(), z.string().transform(val => val === "" ? null : Number(val))]).nullable().optional(),
 });
 
+export type LeagueInput = z.input<typeof leagueSchema>;
 export type LeagueSchema = z.infer<typeof leagueSchema>;

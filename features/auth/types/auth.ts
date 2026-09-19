@@ -66,7 +66,10 @@ export interface PlayerTeam {
   shirt_number: number | null;
   position: string | null;
   created_at: string;
+  updated_at?: string;
 }
+
+export type UserProfileRole = 'player' | 'referee' | 'sponsor' | 'spectator' | 'staff';
 
 export interface NotificationPreferences {
   id: string;

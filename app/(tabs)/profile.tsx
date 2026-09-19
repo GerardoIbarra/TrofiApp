@@ -28,6 +28,12 @@ import { ProfileSettingsMenu } from "@/components/profile/ProfileSettingsMenu";
 import { ProfileLanguageModal } from "@/components/profile/ProfileLanguageModal";
 import { PrivacySecurityModal } from "@/components/profile/PrivacySecurityModal";
 import { AppSettingsModal } from "@/components/profile/AppSettingsModal";
+import { ProfileRoleBadge } from "@/components/profile/ProfileRoleBadge";
+import { SponsorProfileView } from "@/components/profile/SponsorProfileView";
+import { RefereeProfileView } from "@/components/profile/RefereeProfileView";
+import { SpectatorProfileView } from "@/components/profile/SpectatorProfileView";
+import { UserProfileRole } from "@/features/auth/types/auth";
+import { getUserAvailableRoles, getDefaultUserRole } from "@/features/auth/utils/profileRoles";
 import React, { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -90,9 +96,24 @@ export default function ProfileScreen() {
   };
 
   const user = useAuthStore((state) => state.user);
-  
+  const [selectedRole, setSelectedRole] = useState<UserProfileRole>('player');
+
+  const availableRoles = getUserAvailableRoles(profile || user);
+
+  useEffect(() => {
+    if (profile) {
+      const roles = getUserAvailableRoles(profile);
+      if (!roles.includes(selectedRole)) {
+        setSelectedRole(roles[0] || 'player');
+      }
+    }
+  }, [profile]);
+
   const isOwnProfile = !id || id === user?.id || id === user?.player_profile?.id;
-  const activePhoto = profile?.player_profile?.photo || profile?.photo || (isOwnProfile ? user?.photo : undefined);
+  const activePhoto =
+    profile?.player_profile?.photo ||
+    profile?.photo ||
+    (isOwnProfile ? user?.photo : undefined);
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
@@ -125,6 +146,7 @@ export default function ProfileScreen() {
         const userRes = await api.get<any>("/v1/me/");
         setProfile(userRes);
         activePlayerId = userRes.player_profile?.id || undefined;
+        useAuthStore.setState({ user: userRes });
       }
 
       // Fetch Stats, Achievements and Cards
@@ -193,17 +215,23 @@ export default function ProfileScreen() {
 
   const getInitials = () => {
     if (!profile) return "??";
-    if (profile.full_name) {
-      const parts = profile.full_name.split(" ");
+    const name = profile.player_profile?.full_name || profile.full_name;
+    if (name) {
+      const parts = name.trim().split(" ");
       return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
     }
     const first = profile.first_name?.[0] || "";
     const last = profile.last_name?.[0] || "";
-    return (first + last).toUpperCase();
+    if (first || last) return (first + last).toUpperCase();
+    return (profile.username?.[0] || "?").toUpperCase();
   };
 
   const fullName = profile
-    ? profile.full_name || `${profile.first_name} ${profile.last_name}`
+    ? profile.player_profile?.full_name ||
+      profile.full_name ||
+      `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
+      profile.username ||
+      "Usuario"
     : "Cargando...";
   const initials = getInitials();
 
@@ -272,8 +300,39 @@ export default function ProfileScreen() {
           }
         >
           <View style={styles.webContainer}>
-            {/* Player Hero Section with Ultimate Card */}
-            <View style={[styles.heroSection, { height: heroHeight }]}>
+            {/* Account Type Badge & Multi-Role Selector */}
+            <ProfileRoleBadge
+              currentRole={selectedRole}
+              availableRoles={availableRoles}
+              onSelectRole={(role) => setSelectedRole(role)}
+              isStaff={Boolean(profile?.is_staff || user?.is_staff)}
+            />
+
+            {/* DYNAMIC ROLE VIEWS */}
+            {selectedRole === "sponsor" && (profile?.sponsor_profile || user?.sponsor_profile) ? (
+              <SponsorProfileView
+                sponsor={profile?.sponsor_profile || user?.sponsor_profile}
+                userEmail={profile?.email || user?.email}
+                userPhone={profile?.phone || user?.phone}
+                memberships={profile?.memberships || user?.memberships}
+              />
+            ) : selectedRole === "referee" && (profile?.referee_profile || user?.referee_profile) ? (
+              <RefereeProfileView
+                referee={profile?.referee_profile || user?.referee_profile}
+                fullName={fullName}
+                memberships={profile?.memberships || user?.memberships}
+              />
+            ) : selectedRole === "spectator" && (profile?.spectator_profile || user?.spectator_profile) ? (
+              <SpectatorProfileView
+                spectator={profile?.spectator_profile || user?.spectator_profile}
+                fullName={fullName}
+                username={profile?.username || user?.username || ""}
+                favorites={profile?.favorites || user?.favorites}
+              />
+            ) : (
+              <>
+                {/* Player Hero Section with Ultimate Card */}
+                <View style={[styles.heroSection, { height: heroHeight }]}>
               {isLoading ? (
                 <Skeleton
                   width="100%"
@@ -544,6 +603,8 @@ export default function ProfileScreen() {
                   {t("profile.no_recent_matches")}
                 </Text>
               </View>
+            )}
+              </>
             )}
 
             {/* CONFIGURATION - Only visible on my profile */}
