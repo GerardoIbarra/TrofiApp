@@ -45,6 +45,25 @@ describe("Notification Navigation & Data Routing", () => {
       });
     });
 
+    it("resolves LeagueDetail rejection with rejection_reason in free dictionary", () => {
+      const data = {
+        screen: "LeagueDetail",
+        league_id: "league-rejected-123",
+        status: "rejected",
+        rejection_reason: "Falta información de contacto.",
+      };
+
+      const result = resolveNotificationRoute(data);
+      expect(result).not.toBeNull();
+      expect(result?.pathname).toBe("/league-detail");
+      expect(result?.params).toEqual({
+        id: "league-rejected-123",
+        league_id: "league-rejected-123",
+        status: "rejected",
+        rejection_reason: "Falta información de contacto.",
+      });
+    });
+
     it("resolves MatchDetail with match_id and extra arbitrary keys", () => {
       const data = {
         screen: "MatchDetail",

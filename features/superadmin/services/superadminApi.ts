@@ -77,10 +77,13 @@ export const useApproveLeague = () => {
       const response = await api.post<League>(`/v1/leagues/${leagueId}/approve/`, {});
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (_, leagueId) => {
       queryClient.invalidateQueries({ queryKey: ['pending-leagues'] });
       queryClient.invalidateQueries({ queryKey: ['platform-summary'] });
       queryClient.invalidateQueries({ queryKey: ['leagues'] });
+      queryClient.invalidateQueries({ queryKey: ['leagues-explorer'] });
+      queryClient.invalidateQueries({ queryKey: ['league-detail', leagueId] });
+      queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
     },
   });
 };
@@ -89,14 +92,20 @@ export const useRejectLeague = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (leagueId: string) => {
-      const response = await api.post<League>(`/v1/leagues/${leagueId}/reject/`, {});
+    mutationFn: async (args: string | { id: string; reason?: string }) => {
+      const leagueId = typeof args === 'string' ? args : args.id;
+      const body = typeof args === 'object' && args.reason?.trim() ? { reason: args.reason.trim() } : {};
+      const response = await api.post<League>(`/v1/leagues/${leagueId}/reject/`, body);
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (_, args) => {
+      const leagueId = typeof args === 'string' ? args : args.id;
       queryClient.invalidateQueries({ queryKey: ['pending-leagues'] });
       queryClient.invalidateQueries({ queryKey: ['platform-summary'] });
       queryClient.invalidateQueries({ queryKey: ['leagues'] });
+      queryClient.invalidateQueries({ queryKey: ['leagues-explorer'] });
+      queryClient.invalidateQueries({ queryKey: ['league-detail', leagueId] });
+      queryClient.invalidateQueries({ queryKey: ['league', leagueId] });
     },
   });
 };

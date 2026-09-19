@@ -28,3 +28,6 @@ export const useUpdateLeagueFeatures = () => {
     },
   });
 };
+
+export { useApproveLeague, useRejectLeague } from '@/features/superadmin/services/superadminApi';
+

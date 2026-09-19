@@ -13,6 +13,7 @@ import {
   Calendar,
   ChevronRight,
   CircleDot,
+  Clock,
   Filter,
   Layout,
   Map as MapIcon,
@@ -28,6 +29,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { useAuthStore } from "@/features/auth/store/authStore";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -52,10 +54,10 @@ const getLeagueImage = (index: number) =>
   FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 
 const GAME_FORMATS = [
-  { id: "1", nameKey: "leagues.format_7", icon: CircleDot },
-  { id: "2", nameKey: "leagues.format_11", icon: Layout },
-  { id: "3", nameKey: "leagues.format_women", icon: Venus },
-  { id: "4", nameKey: "leagues.format_veteran", icon: Medal },
+  { id: "7v7", filterKey: "tournament_format", filterVal: "7v7", nameKey: "leagues.format_7", icon: CircleDot },
+  { id: "11v11", filterKey: "tournament_format", filterVal: "11v11", nameKey: "leagues.format_11", icon: Layout },
+  { id: "womens", filterKey: "gender", filterVal: "womens", nameKey: "leagues.format_women", icon: Venus },
+  { id: "veterans", filterKey: "is_veterans", filterVal: "true", nameKey: "leagues.format_veteran", icon: Medal },
 ];
 
 export default function LeaguesExplorerScreen() {
@@ -64,9 +66,14 @@ export default function LeaguesExplorerScreen() {
   const { width } = useWindowDimensions();
   const styles = createStyles(theme, isDark, width);
 
+  const user = useAuthStore((state) => state.user);
+  const isStaff = Boolean(user?.is_staff);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedFormatId, setSelectedFormatId] = useState<string | null>(null);
+  const [showPendingOnly, setShowPendingOnly] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const scrollRef = useRef<ScrollView>(null);
@@ -85,12 +92,23 @@ export default function LeaguesExplorerScreen() {
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ['leagues-explorer', debouncedSearch],
+    queryKey: ['leagues-explorer', debouncedSearch, selectedFormatId, showPendingOnly],
     queryFn: async () => {
-      const isSearchMode = Boolean(debouncedSearch && debouncedSearch.trim());
-      const endpoint = isSearchMode
-        ? `/v1/leagues/?search=${encodeURIComponent(debouncedSearch.trim())}`
-        : "/v1/leagues/";
+      const params = new URLSearchParams();
+      if (debouncedSearch && debouncedSearch.trim()) {
+        params.append("search", debouncedSearch.trim());
+      }
+      if (selectedFormatId) {
+        const fmt = GAME_FORMATS.find((f) => f.id === selectedFormatId);
+        if (fmt) {
+          params.append(fmt.filterKey, fmt.filterVal);
+        }
+      }
+      if (showPendingOnly && isStaff) {
+        params.append("approval_status", "pending");
+      }
+      const queryStr = params.toString();
+      const endpoint = queryStr ? `/v1/leagues/?${queryStr}` : "/v1/leagues/";
       const response = await api.get<LeaguesResponse>(endpoint);
       return response?.results || [];
     },
@@ -98,6 +116,8 @@ export default function LeaguesExplorerScreen() {
 
   const leagues = leaguesData || [];
   const isSearching = Boolean(debouncedSearch.trim() && isFetching);
+  const isFilterActive = Boolean(selectedFormatId || (showPendingOnly && isStaff));
+  const isSearchActive = debouncedSearch.trim().length > 0 || isFilterActive;
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -108,8 +128,6 @@ export default function LeaguesExplorerScreen() {
   const scrollToNearby = () => {
     scrollRef.current?.scrollTo({ y: 600, animated: true });
   };
-
-  const isSearchActive = debouncedSearch.trim().length > 0;
 
   return (
     <View style={GlobalStyles.container}>
@@ -165,18 +183,58 @@ export default function LeaguesExplorerScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* If searching from backend, display dedicated search results */}
+            {/* Staff filter chip for Pending Approval */}
+            {isStaff && (
+              <View style={styles.staffFilterBar}>
+                <TouchableOpacity
+                  style={[styles.staffChip, showPendingOnly && styles.staffChipActive]}
+                  onPress={() => setShowPendingOnly((prev) => !prev)}
+                  activeOpacity={0.8}
+                >
+                  <Clock size={15} color={showPendingOnly ? "#000" : "#F59E0B"} />
+                  <Text style={[styles.staffChipText, showPendingOnly && styles.staffChipTextActive]}>
+                    {showPendingOnly ? "Mostrando: Pendientes de aprobación" : "Filtrar: Pendientes de aprobación"}
+                  </Text>
+                  {showPendingOnly && <X size={14} color="#000" style={{ marginLeft: 4 }} />}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* If searching or filtering from backend, display dedicated search results */}
             {isSearchActive ? (
               <View style={styles.searchResultsContainer}>
                 <View style={styles.sectionHeader}>
-                  <View>
-                    <Text style={styles.sectionOverline}>{t("leagues.search_overline")}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.sectionOverline}>
+                      {showPendingOnly
+                        ? "PANEL DE STAFF"
+                        : selectedFormatId
+                        ? "FORMATO DE JUEGO"
+                        : t("leagues.search_overline")}
+                    </Text>
                     <Text style={styles.sectionTitle}>
                       {isSearching
                         ? t("leagues.searching")
+                        : showPendingOnly
+                        ? `Pendientes (${leagues.length})`
+                        : selectedFormatId
+                        ? `${t(GAME_FORMATS.find((f) => f.id === selectedFormatId)?.nameKey || "")} (${leagues.length})`
                         : t("leagues.search_results", { count: leagues.length })}
                     </Text>
                   </View>
+                  {(selectedFormatId || showPendingOnly || searchQuery) && (
+                    <TouchableOpacity
+                      style={styles.clearFilterBtn}
+                      onPress={() => {
+                        setSelectedFormatId(null);
+                        setShowPendingOnly(false);
+                        setSearchQuery("");
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.clearFilterText}>Limpiar</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 {isSearching ? (
@@ -224,12 +282,24 @@ export default function LeaguesExplorerScreen() {
                           <Text style={styles.nearbyName} numberOfLines={1}>
                             {item.name}
                           </Text>
-                          <View style={styles.activeBadge}>
-                            <View style={styles.activeDot} />
-                            <Text style={styles.activeText}>
-                              {t("leagues.active_badge")}
-                            </Text>
-                          </View>
+                          {item.approval_status === "pending" ? (
+                            <View style={styles.pendingBadge}>
+                              <View style={styles.pendingDot} />
+                              <Text style={styles.pendingText}>Pendiente</Text>
+                            </View>
+                          ) : item.approval_status === "rejected" ? (
+                            <View style={styles.rejectedBadge}>
+                              <View style={styles.rejectedDot} />
+                              <Text style={styles.rejectedText}>Rechazada</Text>
+                            </View>
+                          ) : (
+                            <View style={styles.activeBadge}>
+                              <View style={styles.activeDot} />
+                              <Text style={styles.activeText}>
+                                {t("leagues.active_badge")}
+                              </Text>
+                            </View>
+                          )}
                         </View>
                         <View style={styles.nearbyMetaRow}>
                           <View style={styles.metaItem}>
@@ -384,14 +454,24 @@ export default function LeaguesExplorerScreen() {
                 <View style={styles.formatsGrid}>
                   {GAME_FORMATS.map((format) => {
                     const Icon = format.icon;
+                    const isSelected = selectedFormatId === format.id;
                     return (
-                      <TouchableOpacity key={format.id} style={styles.formatCard}>
+                      <TouchableOpacity
+                        key={format.id}
+                        style={[styles.formatCard, isSelected && styles.formatCardSelected]}
+                        onPress={() => {
+                          setSelectedFormatId((prev) => (prev === format.id ? null : format.id));
+                        }}
+                        activeOpacity={0.8}
+                      >
                         <Icon
                           size={28}
-                          color={theme.primary}
+                          color={isSelected ? theme.primary : theme.textSecondary}
                           style={{ marginBottom: 8 }}
                         />
-                        <Text style={styles.formatName}>{t(format.nameKey)}</Text>
+                        <Text style={[styles.formatName, isSelected && styles.formatNameSelected]}>
+                          {t(format.nameKey)}
+                        </Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -438,7 +518,7 @@ export default function LeaguesExplorerScreen() {
                               <Trophy
                                 size={20}
                                 color={
-                                 isDark
+                                  isDark
                                     ? "rgba(255,255,255,0.6)"
                                     : "rgba(0,0,0,0.4)"
                                 }
@@ -451,12 +531,24 @@ export default function LeaguesExplorerScreen() {
                             <Text style={styles.nearbyName} numberOfLines={1}>
                               {item.name}
                             </Text>
-                            <View style={styles.activeBadge}>
-                              <View style={styles.activeDot} />
-                              <Text style={styles.activeText}>
-                                {t("leagues.active_badge")}
-                              </Text>
-                            </View>
+                            {item.approval_status === "pending" ? (
+                              <View style={styles.pendingBadge}>
+                                <View style={styles.pendingDot} />
+                                <Text style={styles.pendingText}>Pendiente</Text>
+                              </View>
+                            ) : item.approval_status === "rejected" ? (
+                              <View style={styles.rejectedBadge}>
+                                <View style={styles.rejectedDot} />
+                                <Text style={styles.rejectedText}>Rechazada</Text>
+                              </View>
+                            ) : (
+                              <View style={styles.activeBadge}>
+                                <View style={styles.activeDot} />
+                                <Text style={styles.activeText}>
+                                  {t("leagues.active_badge")}
+                                </Text>
+                              </View>
+                            )}
                           </View>
                           <View style={styles.nearbyMetaRow}>
                             <View style={styles.metaItem}>
@@ -761,11 +853,64 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       borderColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
       elevation: isDark ? 0 : 2,
     },
+    formatCardSelected: {
+      borderColor: theme.primary,
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.1)" : "rgba(0, 245, 255, 0.12)",
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 6,
+      elevation: 4,
+    },
     formatName: {
       fontSize: 13,
       fontWeight: "800",
       color: theme.text,
       letterSpacing: 0.5,
+    },
+    formatNameSelected: {
+      color: theme.primary,
+    },
+    staffFilterBar: {
+      paddingHorizontal: 20,
+      marginTop: 10,
+      marginBottom: 4,
+    },
+    staffChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 12,
+      backgroundColor: isDark ? "rgba(245, 158, 11, 0.12)" : "rgba(245, 158, 11, 0.15)",
+      borderWidth: 1,
+      borderColor: "rgba(245, 158, 11, 0.35)",
+      alignSelf: "flex-start",
+    },
+    staffChipActive: {
+      backgroundColor: "#F59E0B",
+      borderColor: "#F59E0B",
+    },
+    staffChipText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: "#F59E0B",
+    },
+    staffChipTextActive: {
+      color: "#000",
+      fontWeight: "800",
+    },
+    clearFilterBtn: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 10,
+      backgroundColor: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+    },
+    clearFilterText: {
+      fontSize: 11,
+      fontWeight: "700",
+      color: theme.primary,
     },
     filterButton: {
       backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
@@ -848,6 +993,52 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       fontSize: 9,
       fontWeight: "900",
       color: theme.primary,
+      letterSpacing: 0.5,
+    },
+    pendingBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 8,
+      backgroundColor: "rgba(245, 158, 11, 0.15)",
+      borderWidth: 0.5,
+      borderColor: "rgba(245, 158, 11, 0.3)",
+    },
+    pendingDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 2.5,
+      backgroundColor: "#F59E0B",
+    },
+    pendingText: {
+      fontSize: 9,
+      fontWeight: "900",
+      color: "#F59E0B",
+      letterSpacing: 0.5,
+    },
+    rejectedBadge: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 8,
+      backgroundColor: "rgba(239, 68, 68, 0.15)",
+      borderWidth: 0.5,
+      borderColor: "rgba(239, 68, 68, 0.3)",
+    },
+    rejectedDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 2.5,
+      backgroundColor: "#EF4444",
+    },
+    rejectedText: {
+      fontSize: 9,
+      fontWeight: "900",
+      color: "#EF4444",
       letterSpacing: 0.5,
     },
     nearbyMetaRow: {

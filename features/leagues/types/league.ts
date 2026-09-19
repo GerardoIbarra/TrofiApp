@@ -34,6 +34,7 @@ export interface League {
   approval_status?: 'pending' | 'approved' | 'rejected';
   approved_at?: string | null;
   approved_by_name?: string | null;
+  rejection_reason?: string | null;
   payment_status?: 'up_to_date' | 'pending' | 'overdue';
   latitude?: number | null;
   longitude?: number | null;

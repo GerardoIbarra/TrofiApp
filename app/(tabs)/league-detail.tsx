@@ -23,6 +23,7 @@ import { LeagueSponsorsWidget } from "@/components/leagues/LeagueSponsorsWidget"
 import { NotFoundState } from "@/components/ui/feedback/NotFoundState";
 import { AnnouncementsWidget } from "@/components/announcements/AnnouncementsWidget";
 import { ChatBox } from "@/components/chat/ChatBox";
+import { LeagueApprovalBar } from "@/components/leagues/LeagueApprovalBar";
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { League } from "@/features/leagues/types/league";
@@ -39,11 +40,13 @@ import {
   Zap,
   Clock,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 
 export default function LeagueDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string; rejection_reason?: string; reason?: string; status?: string }>();
+  const id = params.id;
   const [activeTab, setActiveTab] = useState("STANDINGS");
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isTournamentModalVisible, setIsTournamentModalVisible] =
@@ -71,6 +74,7 @@ export default function LeagueDetailScreen() {
     enabled: !!id,
   });
 
+  const rejectionReason = params.rejection_reason || params.reason || league?.rejection_reason;
   const isOwner = user?.id === league?.created_by;
   const isLeagueAdmin = league?.memberships?.some(
     (m: any) => (m.user === user?.id || m.user_id === user?.id) && (m.role === 'admin' || m.role === 'owner')
@@ -183,7 +187,44 @@ export default function LeagueDetailScreen() {
             onEditPress={() => setIsEditModalVisible(true)}
           />
 
-          {league.approval_status === 'pending' && (
+          {/* Barra de acción para staff/super admin */}
+          {Boolean(user?.is_staff) && (
+            <LeagueApprovalBar
+              league={league}
+              onStatusChanged={() => fetchLeagueDetails()}
+            />
+          )}
+
+          {/* Banner de Rechazo si la liga fue rechazada */}
+          {(league.approval_status === 'rejected' || (rejectionReason && league.approval_status !== 'approved')) && (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              gap: 10,
+              backgroundColor: 'rgba(239, 68, 68, 0.12)',
+              padding: 12,
+              borderRadius: 14,
+              marginHorizontal: 20,
+              marginTop: 10,
+              borderWidth: 1,
+              borderColor: 'rgba(239, 68, 68, 0.35)'
+            }}>
+              <AlertCircle size={18} color="#EF4444" style={{ marginTop: 2 }} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 13, color: '#EF4444', fontWeight: '800' }}>
+                  Liga Rechazada
+                </Text>
+                <Text style={{ fontSize: 12, color: theme.textSecondary, marginTop: 3, lineHeight: 16 }}>
+                  {rejectionReason
+                    ? `Motivo: ${rejectionReason}`
+                    : "Esta liga no fue aprobada por el equipo de administración."}
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Banner de Pendiente para usuarios que no sean staff */}
+          {league.approval_status === 'pending' && !user?.is_staff && (
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
