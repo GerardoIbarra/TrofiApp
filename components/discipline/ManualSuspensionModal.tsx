@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, ScrollView } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
-import { X, Check } from 'lucide-react-native';
+import { X, Check, Search } from 'lucide-react-native';
 import { useCreateManualSuspension } from '@/features/discipline/services/disciplineApi';
 import { useTranslation } from 'react-i18next';
 import api from '@/services/api';
@@ -19,6 +19,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
   const { showToast } = useToast();
 
   const [roster, setRoster] = useState<any[]>([]);
+  const [playerSearch, setPlayerSearch] = useState('');
   
   const [selectedTeam, setSelectedTeam] = useState('');
   const [selectedRoster, setSelectedRoster] = useState('');
@@ -40,6 +41,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
   const fetchRoster = async (teamId: string) => {
     setSelectedTeam(teamId);
     setSelectedRoster('');
+    setPlayerSearch('');
     setRoster([]);
     try {
       const res = await api.get<any>(`/v1/rosters/?tournament_team=${teamId}`);
@@ -48,6 +50,15 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
       console.error(e);
     }
   };
+
+  const filteredRoster = React.useMemo(() => {
+    if (!playerSearch.trim()) return roster;
+    const q = playerSearch.toLowerCase();
+    return roster.filter((r) =>
+      (r.player_name?.toLowerCase() || '').includes(q) ||
+      (r.nickname?.toLowerCase() || '').includes(q)
+    );
+  }, [roster, playerSearch]);
 
   const handleSubmit = () => {
     if (!selectedRoster) {
@@ -91,7 +102,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
           {loadingContext ? (
             <ActivityIndicator size="large" color={theme.primary} />
           ) : (
-            <ScrollView style={styles.form}>
+            <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
               
               <Text style={[styles.label, { color: theme.textSecondary }]}>{t('discipline.label_team')}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
@@ -100,6 +111,7 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
                     key={t.id} 
                     style={[styles.pill, selectedTeam === t.id && { backgroundColor: theme.primary + '30', borderColor: theme.primary }]}
                     onPress={() => fetchRoster(t.id)}
+                    hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                   >
                     <Text style={{ color: theme.text, fontSize: 12 }}>{t.team_name}</Text>
                   </TouchableOpacity>
@@ -112,16 +124,68 @@ export function ManualSuspensionModal({ tournamentId, onClose }: ManualSuspensio
                   {roster.length === 0 ? (
                      <Text style={{ color: '#FF4444', fontSize: 12, marginBottom: 15 }}>{t('discipline.empty_team_roster')}</Text>
                   ) : (
-                    <View style={styles.rosterGrid}>
-                      {roster.map(r => (
-                        <TouchableOpacity 
-                          key={r.id} 
-                          style={[styles.rosterPill, selectedRoster === r.id && { backgroundColor: theme.primary }]}
-                          onPress={() => setSelectedRoster(r.id)}
-                        >
-                          <Text style={{ color: selectedRoster === r.id ? '#000' : theme.text, fontSize: 12 }}>{r.player_name}</Text>
-                        </TouchableOpacity>
-                      ))}
+                    <View style={{ marginBottom: 10 }}>
+                      <View style={[styles.searchBox, { borderColor: isDark ? '#333' : '#E0E0E0', backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)' }]}>
+                        <Search size={16} color={theme.textSecondary} />
+                        <TextInput
+                          style={[styles.searchInput, { color: theme.text }]}
+                          placeholder="Buscar jugador por nombre o apodo..."
+                          placeholderTextColor={theme.textSecondary}
+                          value={playerSearch}
+                          onChangeText={setPlayerSearch}
+                          autoCapitalize="none"
+                        />
+                        {playerSearch.length > 0 && (
+                          <TouchableOpacity onPress={() => setPlayerSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                            <X size={16} color={theme.textSecondary} />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+
+                      <View style={styles.playerList}>
+                        {filteredRoster.length === 0 ? (
+                          <Text style={{ color: theme.textSecondary, fontSize: 12, paddingVertical: 12, textAlign: 'center' }}>
+                            No se encontraron jugadores que coincidan.
+                          </Text>
+                        ) : (
+                          filteredRoster.map(r => {
+                            const isSelected = selectedRoster === r.id;
+                            return (
+                              <TouchableOpacity 
+                                key={r.id} 
+                                style={[
+                                  styles.playerItem, 
+                                  {
+                                    backgroundColor: isSelected
+                                      ? (isDark ? 'rgba(0, 240, 255, 0.15)' : 'rgba(0, 240, 255, 0.1)')
+                                      : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
+                                    borderColor: isSelected
+                                      ? theme.primary
+                                      : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'),
+                                  }
+                                ]}
+                                onPress={() => setSelectedRoster(r.id)}
+                                activeOpacity={0.7}
+                              >
+                                <View style={[styles.playerNum, isSelected && { backgroundColor: theme.primary }]}>
+                                  <Text style={[styles.playerNumText, isSelected && { color: '#001A2C' }]}>
+                                    {r.shirt_number ?? '#'}
+                                  </Text>
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                  <Text style={[styles.playerName, { color: isSelected ? theme.primary : theme.text }]}>
+                                    {r.player_name}
+                                  </Text>
+                                  {r.position ? (
+                                    <Text style={styles.playerSub}>{r.position}</Text>
+                                  ) : null}
+                                </View>
+                                {isSelected && <Check size={18} color={theme.primary} />}
+                              </TouchableOpacity>
+                            );
+                          })
+                        )}
+                      </View>
                     </View>
                   )}
                 </>
@@ -215,17 +279,56 @@ const styles = StyleSheet.create({
     borderColor: '#444',
     marginRight: 10,
   },
-  rosterGrid: {
+  searchBox: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    minHeight: 44,
+    gap: 8,
+    marginBottom: 10,
   },
-  rosterPill: {
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    paddingVertical: 10,
+  },
+  playerList: {
+    gap: 8,
+    maxHeight: 220,
+  },
+  playerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 46,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#444',
+    gap: 12,
+  },
+  playerNum: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playerNumText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#888',
+  },
+  playerName: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  playerSub: {
+    fontSize: 10,
+    color: '#888',
+    marginTop: 1,
   },
   input: {
     borderWidth: 1,

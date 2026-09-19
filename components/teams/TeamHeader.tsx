@@ -155,9 +155,9 @@ const createStyles = (theme: any, isDark: boolean) =>
       flex: 1,
     },
     editButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       backgroundColor: isDark ? "rgba(8, 30, 61, 0.95)" : "#FFFFFF",
       justifyContent: "center",
       alignItems: "center",

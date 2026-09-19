@@ -37,6 +37,7 @@ import { BackgroundGradient } from '@/components/ui/branding/BackgroundGradient'
 import { GlobalStyles } from '@/constants/GlobalStyles';
 import { NotFoundState } from '@/components/ui/feedback/NotFoundState';
 import { TeamHeader } from '@/components/teams/TeamHeader';
+import { TeamDetailSkeleton } from '@/components/teams/TeamDetailSkeleton';
 import { CreateTeamModal } from '@/components/teams/CreateTeamModal';
 import { getTeamPermissions } from '@/features/teams/utils/teamPermissions';
 import {
@@ -147,12 +148,7 @@ export default function TeamDetailScreen() {
   };
 
   if (isLoadingProfile && !profile) {
-    return (
-      <View style={[GlobalStyles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <BackgroundGradient />
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
+    return <TeamDetailSkeleton />;
   }
 
   if (!team) {
@@ -199,6 +195,7 @@ export default function TeamDetailScreen() {
                       style={[styles.tourneyChip, isSelected && styles.tourneyChipActive]}
                       onPress={() => setSelectedTourneyId(reg.tournament)}
                       activeOpacity={0.8}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <Trophy size={13} color={isSelected ? '#000' : theme.primary} />
                       <Text
@@ -327,6 +324,7 @@ export default function TeamDetailScreen() {
               <TouchableOpacity
                 style={[styles.tabBtn, activeTab === 'STATS' && styles.tabBtnActive]}
                 onPress={() => setActiveTab('STATS')}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
               >
                 <Text
                   style={[styles.tabText, activeTab === 'STATS' && styles.tabTextActive]}
@@ -339,6 +337,7 @@ export default function TeamDetailScreen() {
               <TouchableOpacity
                 style={[styles.tabBtn, activeTab === 'ROSTER' && styles.tabBtnActive]}
                 onPress={() => setActiveTab('ROSTER')}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
               >
                 <Text
                   style={[styles.tabText, activeTab === 'ROSTER' && styles.tabTextActive]}
@@ -351,6 +350,7 @@ export default function TeamDetailScreen() {
               <TouchableOpacity
                 style={[styles.tabBtn, activeTab === 'LINEUP' && styles.tabBtnActive]}
                 onPress={() => setActiveTab('LINEUP')}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
               >
                 <Text
                   style={[styles.tabText, activeTab === 'LINEUP' && styles.tabTextActive]}
@@ -363,6 +363,7 @@ export default function TeamDetailScreen() {
               <TouchableOpacity
                 style={[styles.tabBtn, activeTab === 'HISTORY' && styles.tabBtnActive]}
                 onPress={() => setActiveTab('HISTORY')}
+                hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
               >
                 <Text
                   style={[styles.tabText, activeTab === 'HISTORY' && styles.tabTextActive]}
@@ -376,6 +377,7 @@ export default function TeamDetailScreen() {
                 <TouchableOpacity
                   style={[styles.tabBtn, activeTab === 'CHAT' && styles.tabBtnActive]}
                   onPress={() => setActiveTab('CHAT')}
+                  hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
                 >
                   <Text
                     style={[styles.tabText, activeTab === 'CHAT' && styles.tabTextActive]}
@@ -890,10 +892,11 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
+      minHeight: 44,
       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderRadius: 22,
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
     },
@@ -993,13 +996,18 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       paddingHorizontal: 4,
     },
     tabBtn: {
-      paddingVertical: 8,
-      paddingHorizontal: 14,
-      borderRadius: 20,
-      backgroundColor: 'transparent',
+      minHeight: 44,
+      justifyContent: 'center',
+      paddingVertical: 10,
+      paddingHorizontal: 16,
+      borderRadius: 22,
+      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
     },
     tabBtnActive: {
       backgroundColor: theme.primary,
+      borderColor: theme.primary,
     },
     tabText: {
       fontSize: 11,
@@ -1174,10 +1182,13 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
     rosterFichaBtn: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      borderRadius: 8,
+      gap: 5,
+      minHeight: 44,
+      minWidth: 44,
+      justifyContent: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 10,
       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
     },
     rosterFichaBtnText: {

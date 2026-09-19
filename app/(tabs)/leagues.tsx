@@ -478,18 +478,21 @@ export default function LeaguesExplorerScreen() {
                 </View>
 
                 {/* Nearby Competitions */}
-                <View style={styles.sectionHeader}>
-                  <View>
-                    <Text style={styles.sectionTitle}>
-                      {t("leagues.nearby_competitions")}
-                    </Text>
-                  </View>
+                <View style={styles.nearbySectionHeader}>
+                  <Text
+                    style={styles.nearbySectionTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {t("leagues.nearby_competitions")}
+                  </Text>
                   <TouchableOpacity
                     style={styles.mapLink}
                     onPress={() => router.push("/nearby-map")}
                     activeOpacity={0.8}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    <MapIcon size={14} color={theme.primary} />
+                    <MapIcon size={14} color="#001A2C" />
                     <Text style={styles.mapLinkText}>{t("leagues.view_map")}</Text>
                   </TouchableOpacity>
                 </View>
@@ -699,19 +702,43 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       shadowRadius: 4,
       elevation: 3,
     },
+    nearbySectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      marginBottom: 15,
+      marginTop: 10,
+      gap: 12,
+    },
+    nearbySectionTitle: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: "900",
+      fontStyle: "italic",
+      color: theme.text,
+      letterSpacing: 0.5,
+    },
     mapLink: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 5,
-      backgroundColor: isDark ? "rgba(0, 245, 255, 0.08)" : "rgba(0, 245, 255, 0.12)",
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 12,
+      gap: 6,
+      backgroundColor: theme.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: 14,
+      flexShrink: 0,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3,
+      elevation: 2,
     },
     mapLinkText: {
-      fontSize: 11,
-      fontWeight: "800",
-      color: theme.primary,
+      fontSize: 12,
+      fontWeight: "900",
+      color: "#001A2C",
+      letterSpacing: 0.2,
     },
     searchInput: {
       flex: 1,
