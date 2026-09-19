@@ -13,6 +13,8 @@ import { MatchStatusModal } from './modals/MatchStatusModal';
 import { AssignRefereeModal } from './modals/AssignRefereeModal';
 import { PenaltyShootoutModal } from './modals/PenaltyShootoutModal';
 import { ConfirmEndMatchModal } from './modals/ConfirmEndMatchModal';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { getMatchPermissions } from '@/features/matches/utils/matchPermissions';
 
 interface MatchAdminControlsProps {
   match: Match;
@@ -23,6 +25,8 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
+  const user = useAuthStore((state) => state.user);
+  const permissions = React.useMemo(() => getMatchPermissions(user, match), [user, match]);
 
   // API Hooks
   const startMatch = useStartMatch();
@@ -51,9 +55,17 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
   };
 
   const handleReopen = () => {
+    if (!permissions.canReopen) {
+      Alert.alert(
+        'Permiso denegado',
+        'La reapertura de partidos finalizados está reservada exclusivamente para administradores de plataforma o administradores de la liga.'
+      );
+      return;
+    }
+
     Alert.alert(
       'Reabrir Partido',
-      '¿Deseas reabrir este partido finalizado? Esta acción solo está permitida para administradores de plataforma o dueños de la liga.',
+      '¿Deseas reabrir este partido finalizado? El estado volverá a estar abierto y sus incidencias podrán ser editadas nuevamente.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -63,7 +75,7 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
             try {
               await reopenMatch.mutateAsync(match.id);
             } catch (err: any) {
-              Alert.alert('Error', err?.message || 'No se pudo reabrir el partido');
+              Alert.alert('Error', err?.response?.data?.detail || err?.message || 'No se pudo reabrir el partido');
             }
           },
         },
@@ -139,16 +151,18 @@ export function MatchAdminControls({ match, currentMinute }: MatchAdminControlsP
         {/* PLAYED / FINISHED */}
         {(match.status === 'played' || match.status === 'finished') && (
           <>
-            <TouchableOpacity
-              style={[styles.btn, { backgroundColor: '#E91E63' }]}
-              onPress={handleReopen}
-              disabled={reopenMatch.isPending}
-            >
-              <RotateCcw size={16} color="#FFF" />
-              <Text style={[styles.btnText, { color: '#FFF' }]}>
-                {reopenMatch.isPending ? 'Reabriendo...' : 'Reabrir Partido'}
-              </Text>
-            </TouchableOpacity>
+            {permissions.canReopen && (
+              <TouchableOpacity
+                style={[styles.btn, { backgroundColor: '#E91E63' }]}
+                onPress={handleReopen}
+                disabled={reopenMatch.isPending}
+              >
+                <RotateCcw size={16} color="#FFF" />
+                <Text style={[styles.btnText, { color: '#FFF' }]}>
+                  {reopenMatch.isPending ? 'Reabriendo...' : 'Reabrir Partido'}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity style={[styles.btn, { backgroundColor: '#9C27B0' }]}>
               <Edit3 size={16} color="#FFF" />

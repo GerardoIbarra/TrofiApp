@@ -99,12 +99,16 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
                 <View style={styles.cardInfo}>
                   <Text style={[styles.playerName, { color: theme.text }]}>{susp.player_name}</Text>
                   <Text style={[styles.teamName, { color: theme.textSecondary }]}>{susp.team_name}</Text>
-                  
-                  <View style={styles.reasonBadge}>
+                                      <View style={styles.reasonBadge}>
                     <AlertOctagon size={12} color="#FF4444" />
                     <Text style={styles.reasonText}>
-                      {susp.reason === 'manual' ? t('discipline.reason_manual') :
-                       susp.reason === 'red_card' ? t('discipline.reason_red') : t('discipline.reason_yellows')}
+                      {susp.reason === 'manual'
+                        ? t('discipline.reason_manual')
+                        : susp.reason === 'red_card' || susp.reason === 'direct_red'
+                        ? t('discipline.reason_red')
+                        : susp.reason === 'season_carryover' || susp.reason === 'carryover'
+                        ? t('discipline.reason_carryover')
+                        : t('discipline.reason_yellows')}
                     </Text>
                   </View>
                   
@@ -144,9 +148,23 @@ export function TournamentDisciplineWidget({ tournamentId, isAdmin = false }: To
             renderItem={({ item: rec }) => (
               <View style={[styles.recordRow, { backgroundColor: theme.surface, borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }]}>
                  <View style={styles.recordLeft}>
-                    <View style={[styles.cardIcon, { backgroundColor: rec.card_type === 'yellow' ? '#FFD700' : '#FF4444' }]} />
+                    {rec.card_type === 'second_yellow' ? (
+                      <View style={{ flexDirection: 'row', gap: 2 }}>
+                        <View style={[styles.cardIcon, { width: 6, backgroundColor: '#FFD700' }]} />
+                        <View style={[styles.cardIcon, { width: 6, backgroundColor: '#FF4444' }]} />
+                      </View>
+                    ) : (
+                      <View style={[styles.cardIcon, { backgroundColor: rec.card_type === 'yellow' ? '#FFD700' : '#FF4444' }]} />
+                    )}
                     <View>
-                       <Text style={[styles.playerName, { color: theme.text }]}>{rec.player_name}</Text>
+                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                         <Text style={[styles.playerName, { color: theme.text }]}>{rec.player_name}</Text>
+                         {rec.card_type === 'second_yellow' && (
+                           <View style={{ backgroundColor: 'rgba(255, 68, 68, 0.15)', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 4 }}>
+                             <Text style={{ color: '#FF4444', fontSize: 9, fontWeight: '800' }}>2ª Amarilla</Text>
+                           </View>
+                         )}
+                       </View>
                        <Text style={[styles.teamName, { color: theme.textSecondary }]}>{rec.team_name}</Text>
                     </View>
                  </View>

@@ -1,6 +1,15 @@
 import { z } from 'zod';
 
-export const SuspensionReasonEnum = z.enum(['accumulated_yellows', 'red_card', 'manual']);
+export const DisciplinaryCardTypeEnum = z.enum(['yellow', 'red', 'second_yellow']);
+
+export const SuspensionReasonEnum = z.enum([
+  'accumulated_yellows',
+  'red_card',
+  'direct_red',
+  'manual',
+  'season_carryover',
+  'carryover',
+]);
 
 export const DisciplinaryRecordSchema = z.object({
   id: z.string().uuid(),
@@ -9,7 +18,7 @@ export const DisciplinaryRecordSchema = z.object({
   player_name: z.string(),
   team_name: z.string(),
   match: z.string().uuid().nullable().optional(),
-  card_type: z.enum(['yellow', 'red']),
+  card_type: DisciplinaryCardTypeEnum,
   minute: z.number().nullable().optional(),
   created_at: z.string(),
 });
@@ -29,6 +38,16 @@ export const SuspensionSchema = z.object({
   created_at: z.string(),
 });
 
+export const SuspensionCarryoverSchema = z.object({
+  id: z.string().uuid(),
+  suspension: z.string().uuid().optional(),
+  player_name: z.string().optional(),
+  from_tournament: z.string().uuid().optional(),
+  to_tournament: z.string().uuid().optional(),
+  matches_remaining: z.number().optional(),
+  created_at: z.string().optional(),
+});
+
 export const CreateManualSuspensionSchema = z.object({
   roster_membership: z.string().uuid(),
   tournament: z.string().uuid(),
@@ -37,6 +56,8 @@ export const CreateManualSuspensionSchema = z.object({
   notes: z.string(),
 });
 
+export type DisciplinaryCardType = z.infer<typeof DisciplinaryCardTypeEnum>;
 export type DisciplinaryRecord = z.infer<typeof DisciplinaryRecordSchema>;
 export type Suspension = z.infer<typeof SuspensionSchema>;
+export type SuspensionCarryover = z.infer<typeof SuspensionCarryoverSchema>;
 export type CreateManualSuspensionData = z.infer<typeof CreateManualSuspensionSchema>;

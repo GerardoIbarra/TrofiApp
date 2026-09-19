@@ -39,6 +39,8 @@ import {
   useEndMatch, 
   useChangeMatchStatus 
 } from '@/features/matches/services/liveMatchApi';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { getMatchPermissions } from '@/features/matches/utils/matchPermissions';
 import {
   ChevronLeft, 
   ChevronRight,
@@ -243,8 +245,9 @@ export default function MatchDetailScreen() {
   const hasPendingDispute = disputes.some((d) => d.status === 'pending');
   const canFileDispute = isResultLocked && isWithin48Hours && !hasPendingDispute;
 
-  // TODO: Implement proper admin check based on tournament role or match referee
-  const isAdmin = true;
+  const user = useAuthStore((state) => state.user);
+  const matchPermissions = React.useMemo(() => getMatchPermissions(user, match), [user, match]);
+  const isAdmin = matchPermissions.canAdminister;
 
   const derivedPeriod: MatchPeriod = (() => {
     if (!match) return 'not_started';
@@ -552,7 +555,7 @@ export default function MatchDetailScreen() {
                     team_name: currentTeamLineup.team_name,
                     status: p.status,
                     is_suspended: isSuspended,
-                    suspension_reason: isSuspended ? 'Inhabilitado por sanción disciplinaria' : undefined,
+                    suspension_reason: p.suspension_reason || (isSuspended ? 'Inhabilitado por sanción disciplinaria' : undefined),
                   })
                 }
               >
@@ -572,7 +575,9 @@ export default function MatchDetailScreen() {
                     {isSuspended ? (
                       <View style={styles.warningPillRow}>
                         <AlertTriangle size={11} color="#EF4444" />
-                        <Text style={styles.warningPillText}>INHABILITADO POR SANCIÓN</Text>
+                        <Text style={styles.warningPillText} numberOfLines={1}>
+                          {p.suspension_reason ? `INHABILITADO: ${p.suspension_reason.toUpperCase()}` : 'INHABILITADO POR SANCIÓN'}
+                        </Text>
                       </View>
                     ) : (
                       <View style={styles.activePillRow}>

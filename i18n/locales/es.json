@@ -593,6 +593,8 @@
     "reason_manual": "Sanción Administrativa",
     "reason_red": "Tarjeta Roja Directa",
     "reason_yellows": "Acumulación de Amarillas",
+    "reason_carryover": "Arrastre de Temporada",
+    "reason_second_yellow": "Doble Amarilla",
     "suspended_status": "Suspendido: {{total}} partidos (Cumplidos: {{served}})",
     "note_prefix": "Nota:",
     "btn_lift": "Levantar",

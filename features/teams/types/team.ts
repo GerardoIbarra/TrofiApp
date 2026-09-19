@@ -26,6 +26,7 @@ export interface Team {
   owner: string;
   owner_name: string;
   tournament_registrations?: TournamentRegistration[];
+  deleted_at?: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -9,20 +9,23 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useTranslation } from "react-i18next";
+import { getTeamPermissions } from "@/features/teams/utils/teamPermissions";
 
 interface TeamHeaderProps {
   team: Team;
   onEditPress?: () => void;
+  canEdit?: boolean;
 }
 
-export function TeamHeader({ team, onEditPress }: TeamHeaderProps) {
+export function TeamHeader({ team, onEditPress, canEdit: canEditProp }: TeamHeaderProps) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const user = useAuthStore((state) => state.user);
 
-  const isOwner = user?.id === team.owner;
+  const permissions = React.useMemo(() => getTeamPermissions(user, team), [user, team]);
+  const canEdit = canEditProp !== undefined ? canEditProp : permissions.canEdit;
 
   // Split name for visual impact
   const nameParts = team.name.split(" ");
@@ -65,7 +68,7 @@ export function TeamHeader({ team, onEditPress }: TeamHeaderProps) {
           <Text style={styles.regionText}>
             {team.city.toUpperCase()}
           </Text>
-          {isOwner && (
+          {canEdit && (
             <TouchableOpacity 
               style={styles.editButton} 
               onPress={onEditPress}

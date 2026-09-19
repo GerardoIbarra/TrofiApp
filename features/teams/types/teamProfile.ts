@@ -35,6 +35,7 @@ export interface TeamRosterItem {
   is_captain?: boolean;
   status?: 'active' | 'suspended';
   is_suspended?: boolean;
+  suspension_reason?: string | null;
   medical_clearance?: boolean;
 }
 

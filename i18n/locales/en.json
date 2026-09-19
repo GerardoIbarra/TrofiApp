@@ -593,6 +593,8 @@
     "reason_manual": "Administrative Sanction",
     "reason_red": "Straight Red Card",
     "reason_yellows": "Yellow Card Accumulation",
+    "reason_carryover": "Season Carryover",
+    "reason_second_yellow": "Second Yellow Card",
     "suspended_status": "Suspended: {{total}} matches (Served: {{served}})",
     "note_prefix": "Note:",
     "btn_lift": "Lift",

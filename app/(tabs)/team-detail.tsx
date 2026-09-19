@@ -38,6 +38,7 @@ import { GlobalStyles } from '@/constants/GlobalStyles';
 import { NotFoundState } from '@/components/ui/feedback/NotFoundState';
 import { TeamHeader } from '@/components/teams/TeamHeader';
 import { CreateTeamModal } from '@/components/teams/CreateTeamModal';
+import { getTeamPermissions } from '@/features/teams/utils/teamPermissions';
 import {
   useGetTeamProfile,
   useGetTeamHistory,
@@ -113,6 +114,11 @@ export default function TeamDetailScreen() {
     return false;
   }, [user, team, roster]);
 
+  const { canEdit, canDelete } = React.useMemo(
+    () => getTeamPermissions(user, team, roster),
+    [user, team, roster]
+  );
+
   const handleInviteWhatsAppDirect = async () => {
     if (!team) return;
     try {
@@ -173,6 +179,7 @@ export default function TeamDetailScreen() {
           <TeamHeader
             team={team}
             onEditPress={() => setIsEditModalVisible(true)}
+            canEdit={canEdit}
           />
 
           {/* TOURNAMENT SELECTOR (if team is registered in multiple) */}
@@ -540,7 +547,7 @@ export default function TeamDetailScreen() {
                             team_name: team.name,
                             status: player.status,
                             is_suspended: isSuspended,
-                            suspension_reason: isSuspended ? 'Inhabilitado por sanción' : undefined,
+                            suspension_reason: player.suspension_reason || (isSuspended ? 'Inhabilitado por sanción' : undefined),
                           })
                         }
                         activeOpacity={0.8}
@@ -566,7 +573,9 @@ export default function TeamDetailScreen() {
                             {isSuspended ? (
                               <View style={styles.rosterSuspendedBadge}>
                                 <AlertTriangle size={10} color="#EF4444" />
-                                <Text style={styles.rosterSuspendedText}>Suspendido</Text>
+                                <Text style={styles.rosterSuspendedText} numberOfLines={1}>
+                                  {player.suspension_reason ? `Suspendido: ${player.suspension_reason}` : 'Suspendido'}
+                                </Text>
                               </View>
                             ) : (
                               <View style={styles.rosterActiveBadge}>
@@ -788,6 +797,7 @@ export default function TeamDetailScreen() {
         onClose={() => setIsEditModalVisible(false)}
         onSuccess={() => refetchProfile()}
         initialData={team}
+        canDelete={canDelete}
       />
 
       <InviteTeamModal

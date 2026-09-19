@@ -29,12 +29,14 @@ import {
 import { router } from "expo-router";
 import { useToast } from "@/context/ToastContext";
 import { pickAndOptimizeImage } from "@/services/imageOptimizer";
+import { getTeamPermissions } from "@/features/teams/utils/teamPermissions";
 
 interface CreateTeamModalProps {
   visible: boolean;
   onClose: () => void;
   onSuccess: () => void;
   initialData?: Team | null;
+  canDelete?: boolean;
 }
 
 export function CreateTeamModal({
@@ -42,6 +44,7 @@ export function CreateTeamModal({
   onClose,
   onSuccess,
   initialData = null,
+  canDelete: canDeleteProp,
 }: CreateTeamModalProps) {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
@@ -50,6 +53,8 @@ export function CreateTeamModal({
   const { showToast } = useToast();
 
   const isEditing = !!initialData;
+  const permissions = React.useMemo(() => getTeamPermissions(user, initialData), [user, initialData]);
+  const canDelete = canDeleteProp !== undefined ? canDeleteProp : permissions.canDelete;
 
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoadingLeagues, setIsLoadingLeagues] = useState(false);
@@ -190,11 +195,13 @@ export function CreateTeamModal({
   };
 
   const handleDelete = () => {
-    if (!initialData?.id) return;
+    if (!initialData?.id || !canDelete) return;
 
     Alert.alert(
       t('teams_form.delete_team'),
-      t('teams_form.delete_confirm_msg'),
+      t('teams_form.delete_confirm_msg', {
+        defaultValue: "¿Confirmas que deseas eliminar este equipo? El equipo será archivado y dejará de ser visible en listados públicos, pero su historial se mantendrá intacto.",
+      }),
       [
         { text: t('common.cancel'), style: "cancel" },
         {
@@ -204,7 +211,7 @@ export function CreateTeamModal({
             try {
               await api.delete(`/v1/teams/${initialData.id}/`);
               onClose();
-              router.push("/(tabs)/teams" as any);
+              router.replace("/(tabs)/teams" as any);
               onSuccess();
             } catch (error: any) {
               console.error("Error deleting team:", error);
@@ -389,7 +396,7 @@ export function CreateTeamModal({
                 fullWidth
               />
 
-              {isEditing && (
+              {isEditing && canDelete && (
                 <TouchableOpacity 
                   style={styles.deleteButton} 
                   onPress={handleDelete}
