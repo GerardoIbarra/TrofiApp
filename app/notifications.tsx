@@ -81,13 +81,15 @@ export default function NotificationsScreen() {
     
     // Navegar usando la misma lógica centralizada que las notificaciones push
     if (item.data) {
-      // Logros / cambios de overall vuelven a animarse igual que al tocar el push.
+      // Logros / cambios de overall: se animan solo la primera vez (fila no
+      // leída); `is_read` hace de marca de "ya celebrado" entre dispositivos.
+      // Una fila ya leída solo navega.
       handleNotificationData(
         item.data,
         (pathname, params) => {
           router.push({ pathname: pathname as any, params });
         },
-        { notificationType: item.type, body: item.message }
+        { notificationType: item.type, body: item.message, celebrate: !item.read }
       );
     }
   };
