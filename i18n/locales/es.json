@@ -670,5 +670,17 @@
     "req_sent_msg": "El capitán debe aprobar tu solicitud.",
     "error_title": "Error",
     "error_send_msg": "No se pudo enviar la solicitud."
+  },
+  "celebrations": {
+    "achievement_overline": "¡Nuevo logro desbloqueado!",
+    "achievement_fallback_title": "Logro desbloqueado",
+    "view_achievements": "Ver mis logros",
+    "rating_up_overline": "Tu overall subió",
+    "rating_down_overline": "Tu overall cambió",
+    "rating_body": "Tu carta ahora es {{overall}} OVR (antes {{previous}}).",
+    "view_card": "Ver mi carta",
+    "dismiss": "¡Genial!",
+    "dismiss_neutral": "Entendido",
+    "close_a11y": "Cerrar celebración"
   }
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useBottomTabBarHeight } from '@/components/ui/layout/BottomTabBar';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/context/ThemeContext';
@@ -18,6 +19,7 @@ export default function MarketScreen() {
   const { t } = useTranslation();
   const user = useAuthStore(state => state.user);
   const styles = React.useMemo(() => createStyles(theme, isDark), [theme, isDark]);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const [activeTab, setActiveTab] = useState<'team_seeking_player' | 'player_seeking_team'>('team_seeking_player');
   const [searchQuery, setSearchQuery] = useState('');
@@ -167,7 +169,7 @@ export default function MarketScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { bottom: tabBarHeight + 16 }]}
         activeOpacity={0.8}
         onPress={() => setIsModalVisible(true)}
       >

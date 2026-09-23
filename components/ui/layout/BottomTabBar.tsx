@@ -6,6 +6,18 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 
+const TAB_BAR_BASE_HEIGHT = 65;
+
+/**
+ * Altura real del tab bar (incluye el safe area inferior). En iPhone con home
+ * indicator el inset es ~34pt, así que cualquier elemento flotante (FAB) debe
+ * posicionarse con este valor en vez de un `bottom` fijo.
+ */
+export function useBottomTabBarHeight() {
+  const insets = useSafeAreaInsets();
+  return TAB_BAR_BASE_HEIGHT + Math.max(insets.bottom, 10);
+}
+
 export function BottomTabBar({ state, navigation, descriptors }: any) {
   const insets = useSafeAreaInsets();
   const { theme, isDark } = useTheme();
@@ -46,7 +58,7 @@ export function BottomTabBar({ state, navigation, descriptors }: any) {
       styles.tabBar, 
       { 
         paddingBottom: bottomPadding,
-        minHeight: 65 + bottomPadding,
+        minHeight: TAB_BAR_BASE_HEIGHT + bottomPadding,
         backgroundColor: isDark ? '#050A15' : '#FFFFFF',
         borderTopColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)',
       }

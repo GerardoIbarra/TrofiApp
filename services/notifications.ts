@@ -3,6 +3,10 @@ import { Platform } from "react-native";
 import Constants from "expo-constants";
 import api from "./api";
 import { logger } from "./logger";
+import {
+  dispatchCelebration,
+  parseCelebrationEvent,
+} from "@/features/notifications/services/celebrationEvents";
 // Safe loader for expo-notifications: works in standalone APKs, gracefully fails in Expo Go
 let Notifications: typeof import("expo-notifications") | null = null;
 try {
@@ -13,17 +17,25 @@ try {
 }
 
 const DEVICE_TOKEN_ID_KEY = "@device_token_id";
+const LAST_HANDLED_RESPONSE_KEY = "@last_handled_notification_response";
 
 // Configura el comportamiento cuando llega una notificación con la app abierta (foreground)
 if (Notifications) {
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
+    handleNotification: async (notification) => {
+      // Logros y cambios de overall se muestran con el CelebrationOverlay:
+      // evitamos el banner del sistema para no duplicar el aviso.
+      const isCelebration = Boolean(
+        parseCelebrationEvent(notification.request.content.data)
+      );
+      return {
+        shouldShowAlert: !isCelebration,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: !isCelebration,
+        shouldShowList: true,
+      };
+    },
   });
 }
 
@@ -139,31 +151,52 @@ export function setupNotifications(
     logger.info("notifications", "expo-notifications unavailable – listeners not set up");
     return () => {};
   }
+  // Pushes que ya animamos en foreground: si después el usuario los toca,
+  // solo navegamos (sin repetir la animación).
+  const celebratedInForeground = new Set<string>();
+
+  const handleResponse = async (response: import("expo-notifications").NotificationResponse) => {
+    const { identifier, content } = response.notification.request;
+
+    // getLastNotificationResponseAsync puede devolver la misma respuesta en
+    // cada arranque: no volver a navegar/animar algo que ya se procesó.
+    const lastHandled = await AsyncStorage.getItem(LAST_HANDLED_RESPONSE_KEY).catch(() => null);
+    if (lastHandled === identifier) return;
+    AsyncStorage.setItem(LAST_HANDLED_RESPONSE_KEY, identifier).catch(() => {});
+
+    logger.info("notifications", "Notificación abierta por el usuario", { data: content.data });
+    handleNotificationData(content.data, navigate, {
+      celebrate: !celebratedInForeground.has(identifier),
+      body: content.body ?? undefined,
+    });
+  };
+
   // 1. Notificación recibida en primer plano (Foreground)
   const receivedSubscription = Notifications.addNotificationReceivedListener(
     (notification) => {
+      const { identifier, content } = notification.request;
       logger.info("notifications", "Notificación recibida en primer plano", {
-        title: notification.request.content.title,
-        data: notification.request.content.data,
+        title: content.title,
+        data: content.data,
       });
+      const event = dispatchCelebration(content.data, {
+        source: "received",
+        body: content.body ?? undefined,
+      });
+      if (event) celebratedInForeground.add(identifier);
     }
   );
 
   // 2. Notificación tocada por el usuario (Background)
   const responseSubscription = Notifications.addNotificationResponseReceivedListener(
     (response) => {
-      const data = response.notification.request.content.data;
-      logger.info("notifications", "Notificación abierta por el usuario", { data });
-      handleNotificationData(data, navigate);
+      handleResponse(response);
     }
   );
 
   // 3. Notificación que abrió la app si estaba completamente cerrada (Cold boot)
   Notifications.getLastNotificationResponseAsync().then((response) => {
-    if (response) {
-      const data = response.notification.request.content.data;
-      handleNotificationData(data, navigate);
-    }
+    if (response) handleResponse(response);
   }).catch(() => {});
 
   return () => {
@@ -198,6 +231,11 @@ const SCREEN_ROUTE_MAP: Record<string, string> = {
 
   playerdetail: "/player-detail",
   player: "/player-detail",
+  // rating_changed → la card se ve en el detalle del jugador
+  playercard: "/player-detail",
+
+  // achievement_unlocked → los logros viven en un modal dentro del perfil
+  achievements: "/profile",
 
   tournamentteamdetail: "/tournament-team-detail",
 
@@ -301,6 +339,10 @@ export function resolveNotificationRoute(rawData: any): NotificationRouteTarget 
     }
   }
 
+  if (normalized === "achievements") {
+    params.openAchievements = "1";
+  }
+
   if (pathname === "/player-detail" && !params.playerId && (payload.player_id || payload.playerId || params.id)) {
     params.playerId = String(payload.player_id || payload.playerId || params.id);
   }
@@ -323,8 +365,25 @@ export function resolveNotificationRoute(rawData: any): NotificationRouteTarget 
  */
 export function handleNotificationData(
   data: any,
-  navigate: (screen: string, params: Record<string, any>) => void
+  navigate: (screen: string, params: Record<string, any>) => void,
+  options: {
+    /** `notification_type` del registro persistido (la lista no lo trae en `data`). */
+    notificationType?: string | null;
+    /** `false` si el evento ya se animó (ej. push recibido en foreground). */
+    celebrate?: boolean;
+    body?: string;
+  } = {}
 ) {
+  // Logros / cambios de overall: animar al abrir, sea desde el push o desde
+  // una fila vieja de la lista (el mismo `data` queda persistido).
+  if (options.celebrate !== false) {
+    dispatchCelebration(data, {
+      notificationType: options.notificationType,
+      source: "opened",
+      body: options.body,
+    });
+  }
+
   const route = resolveNotificationRoute(data);
   if (route) {
     logger.info("notifications", "Navegando a pantalla desde notificación", {

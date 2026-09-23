@@ -15,6 +15,7 @@ import api from "@/services/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
+import { useCelebrationStore } from "@/features/notifications/store/celebrationStore";
 import {
   Award,
   ChevronRight,
@@ -72,7 +73,11 @@ export default function ProfileScreen() {
   // proporcionalmente solo en pantallas más bajas que ese baseline (ej. iPhone SE).
   const heroHeight = Math.min(480, Math.max(360, screenHeight * (480 / 812)));
   const styles = createStyles(theme, isDark);
-  const { id, userId } = useLocalSearchParams<{ id?: string, userId?: string }>();
+  const { id, userId, openAchievements } = useLocalSearchParams<{
+    id?: string;
+    userId?: string;
+    openAchievements?: string;
+  }>();
 
   const [profile, setProfile] = useState<any | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
@@ -206,6 +211,15 @@ export default function ProfileScreen() {
       setIsRefreshing(false);
     }
   }, [id, userId]);
+
+  // Logro nuevo / cambio de overall mientras el perfil propio está montado:
+  // refrescar desde los endpoints normales (esta pantalla no usa TanStack Query).
+  useEffect(() => {
+    if (!isOwnProfile) return;
+    return useCelebrationStore.subscribe((state, prev) => {
+      if (state.lastEventAt !== prev.lastEventAt) fetchData(true);
+    });
+  }, [isOwnProfile, fetchData]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -633,8 +647,12 @@ export default function ProfileScreen() {
       />
 
       <AchievementsModal
-        visible={showAchievementsModal}
-        onClose={() => setShowAchievementsModal(false)}
+        // `openAchievements=1` llega al tocar un push de `achievement_unlocked`.
+        visible={showAchievementsModal || openAchievements === "1"}
+        onClose={() => {
+          setShowAchievementsModal(false);
+          if (openAchievements) router.setParams({ openAchievements: undefined });
+        }}
         userId={profile?.id || user?.id}
         userName={fullName}
       />

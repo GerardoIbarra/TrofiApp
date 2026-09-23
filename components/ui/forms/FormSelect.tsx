@@ -55,7 +55,12 @@ export function FormSelect<T extends FieldValues>({
         return (
           <View style={[styles.inputContainer, containerStyle]}>
             <View style={styles.labelWrapper}>
-              <Text style={styles.inputLabel}>
+              <Text
+                style={styles.inputLabel}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+              >
                 {label}
                 {required && <Text style={styles.requiredStar}> *</Text>}
               </Text>
@@ -66,7 +71,10 @@ export function FormSelect<T extends FieldValues>({
               onPress={() => setShow(true)}
               style={[styles.inputWrapper, error && styles.inputError]}
             >
-              <Text style={[styles.dateText, !value && styles.placeholderText]}>
+              <Text
+                style={[styles.dateText, !value && styles.placeholderText]}
+                numberOfLines={1}
+              >
                 {selectedOption ? selectedOption.label : placeholder}
               </Text>
               <ChevronDown size={20} color={theme.textSecondary} />
@@ -134,6 +142,7 @@ const createStyles = (theme: any, isDark: boolean, insets: any) =>
       marginBottom: 8,
     },
     inputLabel: {
+      flexShrink: 1,
       fontSize: 11,
       fontWeight: '700',
       color: theme.textSecondary,
@@ -152,11 +161,13 @@ const createStyles = (theme: any, isDark: boolean, insets: any) =>
       borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
       paddingHorizontal: 15,
       height: 56,
+      gap: 8,
     },
     inputError: {
       borderColor: '#ff4444',
     },
     dateText: {
+      flex: 1,
       fontSize: 16,
       color: theme.text,
       fontWeight: '500',

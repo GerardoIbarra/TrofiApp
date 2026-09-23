@@ -291,7 +291,7 @@ export default function TeamDetailScreen() {
           {/* CAPTAIN / ADMIN WHATSAPP INVITATION BUTTON */}
           {canInvite && (
             <TouchableOpacity
-              style={styles.whatsAppInviteBannerBtn}
+              style={[styles.whatsAppInviteBannerBtn, styles.whatsAppInviteHeaderBtn]}
               onPress={handleInviteWhatsAppDirect}
               disabled={inviteMutation.isPending}
               activeOpacity={0.8}
@@ -1101,6 +1101,9 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 4,
+    },
+    whatsAppInviteHeaderBtn: {
+      marginHorizontal: 20,
     },
     whatsAppInviteBannerText: {
       color: '#FFFFFF',

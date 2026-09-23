@@ -1,4 +1,5 @@
 import { CreateLeagueModal } from "@/components/leagues/CreateLeagueModal";
+import { useBottomTabBarHeight } from "@/components/ui/layout/BottomTabBar";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
@@ -87,6 +88,7 @@ export default function LeaguesExplorerScreen() {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const styles = createStyles(theme, isDark, width);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const user = useAuthStore((state) => state.user);
   const isStaff = Boolean(user?.is_staff);
@@ -352,16 +354,19 @@ export default function LeaguesExplorerScreen() {
                         )}
                       </View>
                       <View style={styles.nearbyMetaRow}>
-                        <View style={styles.metaItem}>
+                        <View style={[styles.metaItem, styles.metaItemShrink]}>
                           <MapPin size={12} color={theme.textSecondary} />
-                          <Text style={styles.nearbyMeta} numberOfLines={1}>
+                          <Text style={[styles.nearbyMeta, styles.metaTextShrink]} numberOfLines={1}>
                             {item.city || t("leagues.no_city")}
                           </Text>
                         </View>
                         {item.country && (
                           <>
                             <Text style={styles.metaDivider}>•</Text>
-                            <Text style={styles.nearbyMeta}>
+                            <Text
+                              style={[styles.nearbyMeta, styles.metaTextShrink]}
+                              numberOfLines={1}
+                            >
                               {item.country}
                             </Text>
                           </>
@@ -631,9 +636,9 @@ export default function LeaguesExplorerScreen() {
                           )}
                         </View>
                         <View style={styles.nearbyMetaRow}>
-                          <View style={styles.metaItem}>
+                          <View style={[styles.metaItem, styles.metaItemShrink]}>
                             <MapPin size={12} color={theme.textSecondary} />
-                            <Text style={styles.nearbyMeta} numberOfLines={1}>
+                            <Text style={[styles.nearbyMeta, styles.metaTextShrink]} numberOfLines={1}>
                               {item.city || t("leagues.no_city")}
                             </Text>
                           </View>
@@ -703,7 +708,7 @@ export default function LeaguesExplorerScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { bottom: tabBarHeight + 16 }]}
         activeOpacity={0.8}
         onPress={() => setIsModalVisible(true)}
       >
@@ -1164,11 +1169,21 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
       flexDirection: "row",
       alignItems: "center",
       gap: 8,
+      minWidth: 0,
     },
     metaItem: {
       flexDirection: "row",
       alignItems: "center",
       gap: 4,
+    },
+    // iOS no recorta hijos desbordados (Android sí): ciudad/país ceden espacio
+    // y se truncan para que la distancia nunca se salga de la tarjeta.
+    metaItemShrink: {
+      flexShrink: 1,
+      minWidth: 0,
+    },
+    metaTextShrink: {
+      flexShrink: 1,
     },
     metaDivider: {
       color: theme.textSecondary,

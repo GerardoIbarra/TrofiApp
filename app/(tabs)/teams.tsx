@@ -1,4 +1,5 @@
 import { CreateTeamModal } from "@/components/teams/CreateTeamModal";
+import { useBottomTabBarHeight } from "@/components/ui/layout/BottomTabBar";
 import { TeamCardSkeleton } from "@/components/teams/TeamCardSkeleton";
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
 import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
@@ -35,6 +36,7 @@ export default function TeamsScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const [isModalVisible, setIsModalVisible] = useState(false);
 
@@ -158,7 +160,7 @@ export default function TeamsScreen() {
 
         {/* Floating Action Button */}
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { bottom: tabBarHeight + 16 }]}
           activeOpacity={0.8}
           onPress={() => setIsModalVisible(true)}
         >

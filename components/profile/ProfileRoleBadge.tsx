@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
   },
   badgeTextContainer: {
     flex: 1,
+    minWidth: 0,
   },
   accountTypeOverline: {
     fontSize: 9,
@@ -178,10 +179,12 @@ const styles = StyleSheet.create({
   },
   roleTitleRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: 8,
   },
   roleTitleText: {
+    flexShrink: 1,
     fontSize: 14,
     fontWeight: '900',
     letterSpacing: 0.5,

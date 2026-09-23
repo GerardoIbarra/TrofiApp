@@ -670,5 +670,17 @@
     "req_sent_msg": "The captain must approve your request.",
     "error_title": "Error",
     "error_send_msg": "Could not send join request."
+  },
+  "celebrations": {
+    "achievement_overline": "New achievement unlocked!",
+    "achievement_fallback_title": "Achievement unlocked",
+    "view_achievements": "View my achievements",
+    "rating_up_overline": "Your overall went up",
+    "rating_down_overline": "Your overall changed",
+    "rating_body": "Your card is now {{overall}} OVR (was {{previous}}).",
+    "view_card": "View my card",
+    "dismiss": "Awesome!",
+    "dismiss_neutral": "Got it",
+    "close_a11y": "Close celebration"
   }
 }

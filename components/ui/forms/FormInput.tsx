@@ -44,7 +44,12 @@ export function FormInput<T extends FieldValues>({
       render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
         <View style={[styles.inputContainer, containerStyle]}>
           <View style={styles.labelWrapper}>
-            <Text style={styles.inputLabel}>
+            <Text
+              style={styles.inputLabel}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
               {label}
               {required && <Text style={styles.requiredStar}> *</Text>}
             </Text>
@@ -95,6 +100,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       marginBottom: 8,
     },
     inputLabel: {
+      flexShrink: 1,
       fontSize: 11,
       fontWeight: '700',
       color: theme.textSecondary,

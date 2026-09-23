@@ -1,4 +1,5 @@
 import { BackgroundGradient } from "@/components/ui/branding/BackgroundGradient";
+import { useBottomTabBarHeight } from "@/components/ui/layout/BottomTabBar";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import React, { useState } from "react";
@@ -60,6 +61,7 @@ export default function LeagueDetailScreen() {
   const { theme, isDark } = useTheme();
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const {
     data: league = null,
@@ -339,7 +341,7 @@ export default function LeagueDetailScreen() {
       {/* FAB PARA NUEVO TORNEO (Dueño o admin en pestaña de torneos) */}
       {canManage && (currentTab === "STANDINGS" || currentTab === "POSICIONES") && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { bottom: tabBarHeight + 16 }]}
           onPress={() => setIsTournamentModalVisible(true)}
           activeOpacity={0.8}
         >

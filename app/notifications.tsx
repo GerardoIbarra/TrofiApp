@@ -28,6 +28,8 @@ import {
   Megaphone,
   CheckCheck,
   Shield,
+  Award,
+  TrendingUp,
 } from "lucide-react-native";
 import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
 import { router } from "expo-router";
@@ -35,6 +37,12 @@ import { handleNotificationData } from "@/services/notifications";
 
 const getNotificationVisuals = (type: string) => {
   const normalized = (type || "").toLowerCase();
+  if (normalized === "achievement_unlocked") {
+    return { icon: Award, color: "#F59E0B" };
+  }
+  if (normalized === "rating_changed") {
+    return { icon: TrendingUp, color: "#10B981" };
+  }
   if (normalized.includes("league")) {
     return { icon: Trophy, color: "#FFB000" };
   }
@@ -73,9 +81,14 @@ export default function NotificationsScreen() {
     
     // Navegar usando la misma lógica centralizada que las notificaciones push
     if (item.data) {
-      handleNotificationData(item.data, (pathname, params) => {
-        router.push({ pathname: pathname as any, params });
-      });
+      // Logros / cambios de overall vuelven a animarse igual que al tocar el push.
+      handleNotificationData(
+        item.data,
+        (pathname, params) => {
+          router.push({ pathname: pathname as any, params });
+        },
+        { notificationType: item.type, body: item.message }
+      );
     }
   };
 

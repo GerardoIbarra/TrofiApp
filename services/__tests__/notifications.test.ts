@@ -20,6 +20,10 @@ jest.mock("expo-constants", () => ({
   },
 }));
 
+jest.mock("@/services/queryClient", () => ({
+  queryClient: { invalidateQueries: jest.fn() },
+}));
+
 jest.mock("../api", () => ({
   get: jest.fn(),
   post: jest.fn(),
@@ -175,6 +179,30 @@ describe("Notification Navigation & Data Routing", () => {
         league_id: "uuid-123",
         status: "approved",
       });
+    });
+  });
+  describe("celebration events routing", () => {
+    it("routes achievement_unlocked to the profile with the achievements modal open", () => {
+      const result = resolveNotificationRoute({
+        screen: "Achievements",
+        achievement_id: "ach-1",
+        achievement_type: "loyal_fan",
+      });
+      expect(result?.pathname).toBe("/profile");
+      expect(result?.params.openAchievements).toBe("1");
+    });
+
+    it("routes rating_changed to the player detail (card)", () => {
+      const result = resolveNotificationRoute({
+        screen: "PlayerCard",
+        player_id: "player-1",
+        card_id: "card-1",
+        previous_overall: 70,
+        overall: 74,
+        direction: "up",
+      });
+      expect(result?.pathname).toBe("/player-detail");
+      expect(result?.params.playerId).toBe("player-1");
     });
   });
 });

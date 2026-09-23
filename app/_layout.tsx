@@ -28,6 +28,7 @@ LogBox.ignoreLogs([
 import { ErrorBoundary } from "@/components/ui/feedback/ErrorBoundary";
 import { UpdatePrompt } from "@/components/ui/feedback/UpdatePrompt";
 import { OfflineBanner } from "@/components/ui/feedback/OfflineBanner";
+import { CelebrationOverlay } from "@/components/notifications/CelebrationOverlay";
 import * as Sentry from "@sentry/react-native";
 import { isCancellationError } from "@/services/logger";
 
@@ -275,6 +276,7 @@ function RootLayout() {
             <InitialNavigation />
             <OfflineBanner />
             <UpdatePrompt />
+            <CelebrationOverlay />
           </ToastProvider>
         </PersistQueryClientProvider>
       </ThemeProvider>
