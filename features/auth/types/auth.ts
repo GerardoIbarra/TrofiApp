@@ -110,6 +110,7 @@ export interface User {
   phone?: string;
   photo?: string | null;
   is_staff?: boolean;
+  is_superuser?: boolean;
   memberships?: Membership[];
   player_profile_id?: string;
   player_profile?: PlayerProfile;

@@ -66,7 +66,7 @@ export function getUserAvailableRoles(user: Partial<User> | null | undefined): U
   if (user.spectator_profile) {
     roles.push('spectator');
   }
-  if (user.is_staff) {
+  if (isTrofiStaff(user)) {
     roles.push('staff');
   }
 
@@ -84,4 +84,14 @@ export function getUserAvailableRoles(user: Partial<User> | null | undefined): U
 export function getDefaultUserRole(user: Partial<User> | null | undefined): UserProfileRole {
   const roles = getUserAvailableRoles(user);
   return roles[0] || 'player';
+}
+
+/**
+ * Staff de Trofi (is_staff) o super admin (is_superuser): puede aprobar o
+ * rechazar ligas desde la vista de la liga (TFI-104).
+ */
+export function isTrofiStaff(
+  user?: { is_staff?: boolean; is_superuser?: boolean } | null
+): boolean {
+  return Boolean(user?.is_staff || user?.is_superuser);
 }

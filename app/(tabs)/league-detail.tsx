@@ -27,6 +27,7 @@ import { ChatBox } from "@/components/chat/ChatBox";
 import { LeagueApprovalBar } from "@/components/leagues/LeagueApprovalBar";
 import api from "@/services/api";
 import { useAuthStore } from "@/features/auth/store/authStore";
+import { isTrofiStaff } from "@/features/auth/utils/profileRoles";
 import { League } from "@/features/leagues/types/league";
 import { useGetLeagueAchievements } from "@/features/achievements/services/achievementsApi";
 import { useLocalSearchParams, router } from "expo-router";
@@ -81,7 +82,8 @@ export default function LeagueDetailScreen() {
   const isLeagueAdmin = league?.memberships?.some(
     (m: any) => (m.user === user?.id || m.user_id === user?.id) && (m.role === 'admin' || m.role === 'owner')
   );
-  const canManage = isOwner || isLeagueAdmin || Boolean(user?.is_staff);
+  const isStaff = isTrofiStaff(user);
+  const canManage = isOwner || isLeagueAdmin || isStaff;
 
   const FEATURE_CONFIG = [
     { key: "payments_enabled", label: t("league_detail.feature_payments"), icon: CreditCard },
@@ -190,7 +192,7 @@ export default function LeagueDetailScreen() {
           />
 
           {/* Barra de acción para staff/super admin */}
-          {Boolean(user?.is_staff) && (
+          {isStaff && (
             <LeagueApprovalBar
               league={league}
               onStatusChanged={() => fetchLeagueDetails()}
@@ -226,7 +228,7 @@ export default function LeagueDetailScreen() {
           )}
 
           {/* Banner de Pendiente para usuarios que no sean staff */}
-          {league.approval_status === 'pending' && !user?.is_staff && (
+          {league.approval_status === 'pending' && !isStaff && (
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',

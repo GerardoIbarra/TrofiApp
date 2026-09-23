@@ -1,4 +1,4 @@
-import { getUserAvailableRoles, getDefaultUserRole, ROLE_CONFIG } from '../profileRoles';
+import { getUserAvailableRoles, getDefaultUserRole, ROLE_CONFIG, isTrofiStaff } from '../profileRoles';
 
 describe('profileRoles utilities', () => {
   it('detects single role correctly for sponsor', () => {
@@ -55,5 +55,18 @@ describe('profileRoles utilities', () => {
       expect(config.badgeLabel).toBeTruthy();
       expect(config.color).toMatch(/^#[0-9A-Fa-f]{6}$/);
     });
+  });
+});
+
+describe('isTrofiStaff', () => {
+  it('is true for staff or super admin users', () => {
+    expect(isTrofiStaff({ is_staff: true })).toBe(true);
+    expect(isTrofiStaff({ is_superuser: true })).toBe(true);
+  });
+
+  it('is false for regular users or no user', () => {
+    expect(isTrofiStaff({ is_staff: false })).toBe(false);
+    expect(isTrofiStaff(null)).toBe(false);
+    expect(isTrofiStaff(undefined)).toBe(false);
   });
 });

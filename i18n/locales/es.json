@@ -88,7 +88,16 @@
     "no_search_results_sub": "No encontramos ligas con \"{{query}}\". Intenta con otro término.",
     "empty_explore_title": "Explora nuevas arenas",
     "empty_explore_sub": "No encontramos ligas con ese nombre. Intenta con otra búsqueda.",
-    "live_league": "LIGA ACTIVA"
+    "live_league": "LIGA ACTIVA",
+    "distance_any": "Todas",
+    "distance_overline": "CERCA DE TI",
+    "distance_results": "A {{km}} km ({{count}})",
+    "distance_empty_title": "Nada tan cerca",
+    "distance_empty_sub": "No hay ligas dentro de un radio de {{km}} km.",
+    "expand_radius": "Ampliar a {{km}} km",
+    "nearest_leagues": "Las más cercanas",
+    "location_required_title": "Activa tu ubicación",
+    "location_required_sub": "Necesitamos tu ubicación para filtrar ligas por distancia."
   },
   "teams": {
     "location": "UBICACIÓN",

@@ -7,7 +7,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Layers, Trophy, Check, X, Calendar, MapPin } from 'lucide-react-native';
+import { Layers, Trophy, Check, X, Calendar, MapPin, ChevronRight } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { useToast } from '@/context/ToastContext';
 import { League } from '@/features/leagues/types/league';
@@ -70,7 +71,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
                   showToast({
                     type: 'error',
                     title: 'Error',
-                    message: err?.response?.data?.detail || 'No se pudo aprobar.',
+                    message: err?.message || 'No se pudo aprobar.',
                   });
                 },
               });
@@ -85,7 +86,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
                   showToast({
                     type: 'error',
                     title: 'Error',
-                    message: err?.response?.data?.detail || 'No se pudo aprobar.',
+                    message: err?.message || 'No se pudo aprobar.',
                   });
                 },
               });
@@ -117,7 +118,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
                   showToast({
                     type: 'error',
                     title: 'Error',
-                    message: err?.response?.data?.detail || 'No se pudo rechazar.',
+                    message: err?.message || 'No se pudo rechazar.',
                   });
                 },
               });
@@ -132,7 +133,7 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
                   showToast({
                     type: 'error',
                     title: 'Error',
-                    message: err?.response?.data?.detail || 'No se pudo rechazar.',
+                    message: err?.message || 'No se pudo rechazar.',
                   });
                 },
               });
@@ -174,25 +175,38 @@ export const ApprovalActionCard: React.FC<ApprovalActionCardProps> = ({
         </Text>
       </View>
 
-      <Text style={[styles.title, { color: theme.text }]}>{item.name}</Text>
+      {/* Ligas: abrir la vista de la liga, donde el staff revisa todo y puede
+          rechazar con motivo opcional (TFI-104). */}
+      <TouchableOpacity
+        disabled={!isLeague}
+        onPress={() => router.push({ pathname: '/league-detail', params: { id: item.id } })}
+        activeOpacity={0.7}
+        accessibilityRole={isLeague ? 'link' : undefined}
+        accessibilityHint={isLeague ? 'Abre la vista de la liga' : undefined}
+      >
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { color: theme.text }]}>{item.name}</Text>
+          {isLeague && <ChevronRight size={18} color={theme.textSecondary} />}
+        </View>
 
-      <View style={styles.metaRow}>
-        {isLeague ? (
-          <View style={styles.detailRow}>
-            <MapPin size={13} color={theme.textSecondary} />
-            <Text style={[styles.detailText, { color: theme.textSecondary }]}>
-              {leagueItem.city}, {leagueItem.country}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.detailRow}>
-            <Layers size={13} color={theme.textSecondary} />
-            <Text style={[styles.detailText, { color: theme.textSecondary }]}>
-              {tournamentItem.league_name || 'Liga asociada'} ({tournamentItem.format})
-            </Text>
-          </View>
-        )}
-      </View>
+        <View style={styles.metaRow}>
+          {isLeague ? (
+            <View style={styles.detailRow}>
+              <MapPin size={13} color={theme.textSecondary} />
+              <Text style={[styles.detailText, { color: theme.textSecondary }]}>
+                {leagueItem.city}, {leagueItem.country}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.detailRow}>
+              <Layers size={13} color={theme.textSecondary} />
+              <Text style={[styles.detailText, { color: theme.textSecondary }]}>
+                {tournamentItem.league_name || 'Liga asociada'} ({tournamentItem.format})
+              </Text>
+            </View>
+          )}
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.actionsRow}>
         <TouchableOpacity
@@ -255,10 +269,17 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontSize: 11,
       fontWeight: '500',
     },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+      marginBottom: 6,
+    },
     title: {
+      flexShrink: 1,
       fontSize: 16,
       fontWeight: '800',
-      marginBottom: 6,
     },
     metaRow: {
       marginBottom: 14,

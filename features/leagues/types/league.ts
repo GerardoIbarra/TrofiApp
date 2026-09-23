@@ -48,4 +48,11 @@ export interface LeaguesResponse {
   next: string | null;
   previous: string | null;
   results: League[];
+  /**
+   * Solo con `?distance_km=`: mensaje del backend cuando no hay ligas dentro
+   * del radio (ej. "No hay ligas dentro de un radio de 50 km.").
+   */
+  detail?: string;
+  /** Solo con `?distance_km=` y 0 resultados: las ligas más cercanas fuera del radio. */
+  nearby_leagues?: League[];
 }

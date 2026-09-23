@@ -5,8 +5,11 @@ import { LayoutHeader } from "@/components/ui/layout/LayoutHeader";
 import { GlobalStyles } from "@/constants/GlobalStyles";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { League } from "@/features/leagues/types/league";
+import { isTrofiStaff } from "@/features/auth/utils/profileRoles";
+import { League, LeaguesResponse } from "@/features/leagues/types/league";
 import api from "@/services/api";
+import { LocationService } from "@/services/locationService";
+import { useToast } from "@/context/ToastContext";
 import { openInExternalMaps } from "@/services/mapLinking";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
@@ -52,6 +55,9 @@ const FALLBACK_IMAGES = [
 const getLeagueImage = (index: number) =>
   FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 
+// Mismos radios que el mapa de cercanía (app/nearby-map.tsx).
+const RADIUS_OPTIONS = [5, 10, 25, 50, 100];
+
 const GAME_FORMATS = [
   {
     id: "7v7",
@@ -91,13 +97,16 @@ export default function LeaguesExplorerScreen() {
   const tabBarHeight = useBottomTabBarHeight();
 
   const user = useAuthStore((state) => state.user);
-  const isStaff = Boolean(user?.is_staff);
+  const isStaff = isTrofiStaff(user);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedFormatId, setSelectedFormatId] = useState<string | null>(null);
   const [showPendingOnly, setShowPendingOnly] = useState(false);
+  const [selectedRadius, setSelectedRadius] = useState<number | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const { showToast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
 
   const scrollRef = useRef<ScrollView>(null);
@@ -121,8 +130,9 @@ export default function LeaguesExplorerScreen() {
       debouncedSearch,
       selectedFormatId,
       showPendingOnly,
+      selectedRadius,
     ],
-    queryFn: async (): Promise<League[]> => {
+    queryFn: async (): Promise<LeaguesResponse> => {
       const params = new URLSearchParams();
       if (debouncedSearch && debouncedSearch.trim()) {
         params.append("search", debouncedSearch.trim());
@@ -136,20 +146,57 @@ export default function LeaguesExplorerScreen() {
       if (showPendingOnly && isStaff) {
         params.append("approval_status", "pending");
       }
+      // La ubicación viaja en los headers X-Latitude/X-Longitude (services/api.ts).
+      if (selectedRadius) {
+        params.append("distance_km", String(selectedRadius));
+      }
       const queryStr = params.toString();
       const endpoint = queryStr ? `/v1/leagues/?${queryStr}` : "/v1/leagues/";
       const response = await api.get<any>(endpoint);
-      const results: League[] = Array.isArray(response)
-        ? response
-        : response?.results || [];
-      return results;
+      if (Array.isArray(response)) {
+        return { count: response.length, next: null, previous: null, results: response };
+      }
+      return {
+        count: response?.count ?? 0,
+        next: response?.next ?? null,
+        previous: response?.previous ?? null,
+        results: response?.results || [],
+        detail: response?.detail,
+        nearby_leagues: response?.nearby_leagues || [],
+      };
     },
   });
 
-  const leagues: League[] = leaguesData || [];
+  const leagues: League[] = leaguesData?.results || [];
+  const nearestLeagues: League[] = leaguesData?.nearby_leagues || [];
+  const nextRadius = selectedRadius
+    ? RADIUS_OPTIONS.find((km) => km > selectedRadius)
+    : undefined;
+
+  // Sin ubicación no hay contra qué medir la distancia: pedirla al elegir un radio.
+  const handleSelectRadius = async (km: number | null) => {
+    if (km === null || km === selectedRadius) {
+      setSelectedRadius(null);
+      return;
+    }
+    if (!LocationService.getLocation()) {
+      setIsLocating(true);
+      const location = await LocationService.fetchCurrentPosition();
+      setIsLocating(false);
+      if (!location) {
+        showToast({
+          type: "info",
+          title: t("leagues.location_required_title"),
+          message: t("leagues.location_required_sub"),
+        });
+        return;
+      }
+    }
+    setSelectedRadius(km);
+  };
   const isSearching = Boolean(debouncedSearch.trim() && isFetching);
   const isFilterActive = Boolean(
-    selectedFormatId || (showPendingOnly && isStaff),
+    selectedFormatId || (showPendingOnly && isStaff) || selectedRadius,
   );
   const isSearchActive = debouncedSearch.trim().length > 0 || isFilterActive;
 
@@ -162,6 +209,108 @@ export default function LeaguesExplorerScreen() {
   const scrollToNearby = () => {
     scrollRef.current?.scrollTo({ y: 600, animated: true });
   };
+
+  // Tarjeta de resultado de búsqueda/filtros (también usada para las ligas
+  // más cercanas que devuelve el filtro por distancia).
+  const renderSearchResultCard = (item: League) => (
+    <TouchableOpacity
+      key={item.id}
+      style={styles.nearbyCard}
+      onPress={() =>
+        router.push({
+          pathname: "/league-detail",
+          params: { id: item.id },
+        })
+      }
+      activeOpacity={0.8}
+    >
+      <View style={styles.nearbyLogo}>
+        <View style={styles.logoCircle}>
+          {item.logo ? (
+            <Image
+              source={{ uri: item.logo }}
+              style={styles.logoImage}
+              contentFit="contain"
+            />
+          ) : (
+            <Trophy
+              size={20}
+              color={
+                isDark
+                  ? "rgba(255,255,255,0.6)"
+                  : "rgba(0,0,0,0.4)"
+              }
+            />
+          )}
+        </View>
+      </View>
+      <View style={styles.nearbyInfo}>
+        <View style={styles.nameStatusRow}>
+          <Text style={styles.nearbyName} numberOfLines={1}>
+            {item.name}
+          </Text>
+          {item.approval_status === "pending" ? (
+            <View style={styles.pendingBadge}>
+              <View style={styles.pendingDot} />
+              <Text style={styles.pendingText}>Pendiente</Text>
+            </View>
+          ) : item.approval_status === "rejected" ? (
+            <View style={styles.rejectedBadge}>
+              <View style={styles.rejectedDot} />
+              <Text style={styles.rejectedText}>Rechazada</Text>
+            </View>
+          ) : (
+            <View style={styles.activeBadge}>
+              <View style={styles.activeDot} />
+              <Text style={styles.activeText}>
+                {t("leagues.active_badge")}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.nearbyMetaRow}>
+          <View style={[styles.metaItem, styles.metaItemShrink]}>
+            <MapPin size={12} color={theme.textSecondary} />
+            <Text style={[styles.nearbyMeta, styles.metaTextShrink]} numberOfLines={1}>
+              {item.city || t("leagues.no_city")}
+            </Text>
+          </View>
+          {item.country && (
+            <>
+              <Text style={styles.metaDivider}>•</Text>
+              <Text
+                style={[styles.nearbyMeta, styles.metaTextShrink]}
+                numberOfLines={1}
+              >
+                {item.country}
+              </Text>
+            </>
+          )}
+          {item.distance_km != null && (
+            <>
+              <Text style={styles.metaDivider}>•</Text>
+              <View style={styles.metaItem}>
+                <Navigation size={11} color={theme.primary} />
+                <Text
+                  style={[
+                    styles.nearbyMeta,
+                    { color: theme.primary, fontWeight: "700" },
+                  ]}
+                >
+                  {typeof item.distance_km === "number"
+                    ? `${item.distance_km.toFixed(2)} km`
+                    : `${item.distance_km} km`}
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+      <View style={styles.nearbyStatusColumn}>
+        <ChevronRight size={18} color={theme.textSecondary} />
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={GlobalStyles.container}>
@@ -221,6 +370,44 @@ export default function LeaguesExplorerScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Filtro por distancia (?distance_km=) */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.radiusBar}
+          >
+            <View style={styles.radiusLabel}>
+              {isLocating ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : (
+                <Navigation size={13} color={theme.textSecondary} />
+              )}
+            </View>
+            {[null, ...RADIUS_OPTIONS].map((km) => {
+              const isActive = selectedRadius === km;
+              return (
+                <TouchableOpacity
+                  key={`radius-${km ?? "all"}`}
+                  style={[styles.radiusChip, isActive && styles.radiusChipActive]}
+                  onPress={() => handleSelectRadius(km)}
+                  disabled={isLocating}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isActive }}
+                >
+                  <Text
+                    style={[
+                      styles.radiusChipText,
+                      isActive && styles.radiusChipTextActive,
+                    ]}
+                  >
+                    {km === null ? t("leagues.distance_any") : `${km} km`}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
           {/* Staff filter chip for Pending Approval */}
           {isStaff && (
             <View style={styles.staffFilterBar}>
@@ -260,7 +447,9 @@ export default function LeaguesExplorerScreen() {
                       ? "PANEL DE STAFF"
                       : selectedFormatId
                         ? "FORMATO DE JUEGO"
-                        : t("leagues.search_overline")}
+                        : selectedRadius
+                          ? t("leagues.distance_overline")
+                          : t("leagues.search_overline")}
                   </Text>
                   <Text style={styles.sectionTitle}>
                     {isSearching
@@ -269,17 +458,23 @@ export default function LeaguesExplorerScreen() {
                         ? `Pendientes (${leagues.length})`
                         : selectedFormatId
                           ? `${t(GAME_FORMATS.find((f) => f.id === selectedFormatId)?.nameKey || "")} (${leagues.length})`
-                          : t("leagues.search_results", {
+                          : selectedRadius
+                            ? t("leagues.distance_results", {
+                                km: selectedRadius,
+                                count: leagues.length,
+                              })
+                            : t("leagues.search_results", {
                               count: leagues.length,
                             })}
                   </Text>
                 </View>
-                {(selectedFormatId || showPendingOnly || searchQuery) && (
+                {(selectedFormatId || showPendingOnly || searchQuery || selectedRadius) && (
                   <TouchableOpacity
                     style={styles.clearFilterBtn}
                     onPress={() => {
                       setSelectedFormatId(null);
                       setShowPendingOnly(false);
+                      setSelectedRadius(null);
                       setSearchQuery("");
                     }}
                     activeOpacity={0.7}
@@ -297,105 +492,46 @@ export default function LeaguesExplorerScreen() {
                   </Text>
                 </View>
               ) : leagues.length > 0 ? (
-                leagues.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.nearbyCard}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/league-detail",
-                        params: { id: item.id },
-                      })
-                    }
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.nearbyLogo}>
-                      <View style={styles.logoCircle}>
-                        {item.logo ? (
-                          <Image
-                            source={{ uri: item.logo }}
-                            style={styles.logoImage}
-                            contentFit="contain"
-                          />
-                        ) : (
-                          <Trophy
-                            size={20}
-                            color={
-                              isDark
-                                ? "rgba(255,255,255,0.6)"
-                                : "rgba(0,0,0,0.4)"
-                            }
-                          />
-                        )}
-                      </View>
-                    </View>
-                    <View style={styles.nearbyInfo}>
-                      <View style={styles.nameStatusRow}>
-                        <Text style={styles.nearbyName} numberOfLines={1}>
-                          {item.name}
+                leagues.map(renderSearchResultCard)
+              ) : selectedRadius ? (
+                /* Nada dentro del radio: mensaje del backend + ligas más cercanas */
+                <View>
+                  <View style={styles.emptyState}>
+                    <Navigation
+                      size={36}
+                      color={theme.textSecondary}
+                      opacity={0.3}
+                      style={{ marginBottom: 15 }}
+                    />
+                    <Text style={styles.emptyStateTitle}>
+                      {t("leagues.distance_empty_title")}
+                    </Text>
+                    <Text style={styles.emptyStateSub}>
+                      {leaguesData?.detail ||
+                        t("leagues.distance_empty_sub", { km: selectedRadius })}
+                    </Text>
+                    {nextRadius && (
+                      <TouchableOpacity
+                        style={styles.expandRadiusBtn}
+                        onPress={() => setSelectedRadius(nextRadius)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.expandRadiusText}>
+                          {t("leagues.expand_radius", { km: nextRadius })}
                         </Text>
-                        {item.approval_status === "pending" ? (
-                          <View style={styles.pendingBadge}>
-                            <View style={styles.pendingDot} />
-                            <Text style={styles.pendingText}>Pendiente</Text>
-                          </View>
-                        ) : item.approval_status === "rejected" ? (
-                          <View style={styles.rejectedBadge}>
-                            <View style={styles.rejectedDot} />
-                            <Text style={styles.rejectedText}>Rechazada</Text>
-                          </View>
-                        ) : (
-                          <View style={styles.activeBadge}>
-                            <View style={styles.activeDot} />
-                            <Text style={styles.activeText}>
-                              {t("leagues.active_badge")}
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                      <View style={styles.nearbyMetaRow}>
-                        <View style={[styles.metaItem, styles.metaItemShrink]}>
-                          <MapPin size={12} color={theme.textSecondary} />
-                          <Text style={[styles.nearbyMeta, styles.metaTextShrink]} numberOfLines={1}>
-                            {item.city || t("leagues.no_city")}
-                          </Text>
-                        </View>
-                        {item.country && (
-                          <>
-                            <Text style={styles.metaDivider}>•</Text>
-                            <Text
-                              style={[styles.nearbyMeta, styles.metaTextShrink]}
-                              numberOfLines={1}
-                            >
-                              {item.country}
-                            </Text>
-                          </>
-                        )}
-                        {item.distance_km != null && (
-                          <>
-                            <Text style={styles.metaDivider}>•</Text>
-                            <View style={styles.metaItem}>
-                              <Navigation size={11} color={theme.primary} />
-                              <Text
-                                style={[
-                                  styles.nearbyMeta,
-                                  { color: theme.primary, fontWeight: "700" },
-                                ]}
-                              >
-                                {typeof item.distance_km === "number"
-                                  ? `${item.distance_km.toFixed(2)} km`
-                                  : `${item.distance_km} km`}
-                              </Text>
-                            </View>
-                          </>
-                        )}
-                      </View>
-                    </View>
-                    <View style={styles.nearbyStatusColumn}>
-                      <ChevronRight size={18} color={theme.textSecondary} />
-                    </View>
-                  </TouchableOpacity>
-                ))
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {nearestLeagues.length > 0 && (
+                    <>
+                      <Text style={styles.nearestHeader}>
+                        {t("leagues.nearest_leagues")}
+                      </Text>
+                      {nearestLeagues.map(renderSearchResultCard)}
+                    </>
+                  )}
+                </View>
               ) : (
                 <View style={styles.emptyState}>
                   <Trophy
@@ -990,6 +1126,60 @@ const createStyles = (theme: any, isDark: boolean, width: number) =>
     },
     formatNameSelected: {
       color: theme.primary,
+    },
+    radiusBar: {
+      alignItems: "center",
+      gap: 8,
+      paddingHorizontal: 20,
+      marginTop: 10,
+    },
+    radiusLabel: {
+      width: 20,
+      alignItems: "center",
+    },
+    radiusChip: {
+      minHeight: 36,
+      justifyContent: "center",
+      paddingHorizontal: 14,
+      borderRadius: 18,
+      backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
+      borderWidth: 1,
+      borderColor: "transparent",
+    },
+    radiusChipActive: {
+      borderColor: theme.primary,
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.08)" : "rgba(0, 245, 255, 0.12)",
+    },
+    radiusChipText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: theme.textSecondary,
+    },
+    radiusChipTextActive: {
+      color: theme.primary,
+    },
+    expandRadiusBtn: {
+      marginTop: 16,
+      minHeight: 44,
+      justifyContent: "center",
+      paddingHorizontal: 20,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: theme.primary,
+    },
+    expandRadiusText: {
+      fontSize: 13,
+      fontWeight: "800",
+      color: theme.primary,
+    },
+    nearestHeader: {
+      fontSize: 11,
+      fontWeight: "800",
+      letterSpacing: 1.5,
+      textTransform: "uppercase",
+      color: theme.textSecondary,
+      marginHorizontal: 20,
+      marginBottom: 12,
     },
     staffFilterBar: {
       paddingHorizontal: 20,

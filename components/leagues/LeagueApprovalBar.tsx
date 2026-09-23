@@ -36,6 +36,10 @@ export const LeagueApprovalBar: React.FC<LeagueApprovalBarProps> = ({
   const rejectMutation = useRejectLeague();
 
   const isPending = approveMutation.isPending || rejectMutation.isPending;
+  // Solo ofrecer la acción que cambia el estado actual: una liga aprobada no
+  // se vuelve a aprobar, y una rechazada puede aprobarse si se corrigió.
+  const canApprove = league.approval_status !== 'approved';
+  const canReject = league.approval_status !== 'rejected';
 
   const handleApprove = () => {
     Alert.alert(
@@ -60,7 +64,7 @@ export const LeagueApprovalBar: React.FC<LeagueApprovalBarProps> = ({
                 showToast({
                   type: 'error',
                   title: 'Error',
-                  message: err?.response?.data?.detail || 'No se pudo aprobar la liga.',
+                  message: err?.message || 'No se pudo aprobar la liga.',
                 });
               },
             });
@@ -90,7 +94,7 @@ export const LeagueApprovalBar: React.FC<LeagueApprovalBarProps> = ({
           showToast({
             type: 'error',
             title: 'Error',
-            message: err?.response?.data?.detail || 'No se pudo rechazar la liga.',
+            message: err?.message || 'No se pudo rechazar la liga.',
           });
         },
       }
@@ -143,39 +147,45 @@ export const LeagueApprovalBar: React.FC<LeagueApprovalBarProps> = ({
           </View>
         </View>
 
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.approveBtn, isPending && styles.disabledBtn]}
-            onPress={handleApprove}
-            disabled={isPending}
-            activeOpacity={0.8}
-          >
-            {approveMutation.isPending ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <>
-                <Check size={16} color="#FFF" />
-                <Text style={styles.approveBtnText}>Aprobar Liga</Text>
-              </>
+        {(canApprove || canReject) && (
+          <View style={styles.actionsRow}>
+            {canApprove && (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.approveBtn, isPending && styles.disabledBtn]}
+                onPress={handleApprove}
+                disabled={isPending}
+                activeOpacity={0.8}
+              >
+                {approveMutation.isPending ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <Check size={16} color="#FFF" />
+                    <Text style={styles.approveBtnText}>Aprobar Liga</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.rejectBtn, isPending && styles.disabledBtn]}
-            onPress={() => setIsRejectModalVisible(true)}
-            disabled={isPending}
-            activeOpacity={0.8}
-          >
-            {rejectMutation.isPending ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <>
-                <X size={16} color="#EF4444" />
-                <Text style={styles.rejectBtnText}>Rechazar</Text>
-              </>
+            {canReject && (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.rejectBtn, isPending && styles.disabledBtn]}
+                onPress={() => setIsRejectModalVisible(true)}
+                disabled={isPending}
+                activeOpacity={0.8}
+              >
+                {rejectMutation.isPending ? (
+                  <ActivityIndicator size="small" color="#EF4444" />
+                ) : (
+                  <>
+                    <X size={16} color="#EF4444" />
+                    <Text style={styles.rejectBtnText}>Rechazar</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
+          </View>
+        )}
       </View>
 
       {/* Modal de Rechazo con Motivo Opcional */}
