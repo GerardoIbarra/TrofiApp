@@ -35,7 +35,7 @@ import { RefereeProfileView } from "@/components/profile/RefereeProfileView";
 import { SpectatorProfileView } from "@/components/profile/SpectatorProfileView";
 import { UserProfileRole } from "@/features/auth/types/auth";
 import { getUserAvailableRoles, getDefaultUserRole } from "@/features/auth/utils/profileRoles";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   useWindowDimensions,
@@ -101,18 +101,15 @@ export default function ProfileScreen() {
   };
 
   const user = useAuthStore((state) => state.user);
-  const [selectedRole, setSelectedRole] = useState<UserProfileRole>('player');
-
   const availableRoles = getUserAvailableRoles(profile || user);
-
-  useEffect(() => {
-    if (profile) {
-      const roles = getUserAvailableRoles(profile);
-      if (!roles.includes(selectedRole)) {
-        setSelectedRole(roles[0] || 'player');
-      }
-    }
-  }, [profile]);
+  // Derivado en vez de sincronizado con un effect: si el rol elegido no está
+  // disponible (o aún no se eligió), se usa el principal. Así no se pinta
+  // primero la vista de jugador y luego salta a la del rol real.
+  const [chosenRole, setSelectedRole] = useState<UserProfileRole | null>(null);
+  const selectedRole: UserProfileRole =
+    chosenRole && availableRoles.includes(chosenRole)
+      ? chosenRole
+      : availableRoles[0] || 'player';
 
   const isOwnProfile = !id || id === user?.id || id === user?.player_profile?.id;
   const activePhoto =
@@ -120,12 +117,20 @@ export default function ProfileScreen() {
     profile?.photo ||
     (isOwnProfile ? user?.photo : undefined);
 
+  // Qué perfil está cargado y cuándo: el skeleton solo se muestra la primera
+  // vez (o al cambiar de perfil); volver al tab refresca en segundo plano.
+  const loadedKeyRef = useRef<string | null>(null);
+  const lastFetchAtRef = useRef(0);
+  const profileKey = id ? `player:${id}` : userId ? `user:${userId}` : "me";
+
   const fetchData = useCallback(async (isRefresh = false) => {
+    const hasDataForThisProfile = loadedKeyRef.current === profileKey;
     if (isRefresh) {
       setIsRefreshing(true);
-    } else {
+    } else if (!hasDataForThisProfile) {
       setIsLoading(true);
     }
+    lastFetchAtRef.current = Date.now();
     try {
       let activePlayerId = id;
 
@@ -151,58 +156,58 @@ export default function ProfileScreen() {
         const userRes = await api.get<any>("/v1/me/");
         setProfile(userRes);
         activePlayerId = userRes.player_profile?.id || undefined;
-        useAuthStore.setState({ user: userRes });
+        // Solo si cambió: hay ~20 componentes suscritos a `user` y un objeto
+        // nuevo en cada visita los re-renderiza a todos.
+        const currentUser = useAuthStore.getState().user;
+        if (JSON.stringify(currentUser) !== JSON.stringify(userRes)) {
+          useAuthStore.setState({ user: userRes });
+        }
       }
 
-      // Fetch Stats, Achievements and Cards
+      // Stats, logros y card son independientes: pedirlos en paralelo (antes
+      // iban en cascada) y aplicar los tres resultados en un solo render.
       if (activePlayerId) {
-        // 1. Stats
-        try {
-          const statsRes = await api.get<PlayerStats>(
-            `/v1/player-stats/?player=${activePlayerId}`,
+        const [statsResult, achResult, cardResult] = await Promise.allSettled([
+          api.get<any>(`/v1/player-stats/?player=${activePlayerId}`, { silent: true }),
+          api.get<any>(`/v1/player-achievements/?player=${activePlayerId}`, { silent: true }),
+          api.get<any>(
+            `/v1/player-cards/?player=${activePlayerId}&is_active=true`,
             { silent: true },
-          );
-          // Assuming the endpoint returns a list or we pick the first one if multiple
+          ),
+        ]);
+
+        const warnUnlessNotFound = (label: string, reason: any) => {
+          if (reason?.status !== 404) console.warn(`${label} fetch issue:`, reason);
+        };
+
+        if (statsResult.status === "fulfilled") {
+          const statsRes = statsResult.value;
           setStats(
             Array.isArray(statsRes)
               ? statsRes[0]
-              : (statsRes as any).results?.[0] || statsRes,
+              : statsRes?.results?.[0] || statsRes,
           );
-        } catch (err: any) {
-          if (err?.status !== 404)
-            console.warn("Player stats fetch issue:", err);
+        } else {
+          warnUnlessNotFound("Player stats", statsResult.reason);
           setStats(null);
         }
 
-        // 2. Achievements
-        try {
-          const achRes = await api.get<any>(
-            `/v1/player-achievements/?player=${activePlayerId}`,
-            { silent: true },
-          );
-          setAchievements(
-            Array.isArray(achRes) ? achRes : achRes.results || [],
-          );
-        } catch (err: any) {
-          if (err?.status !== 404)
-            console.warn("Achievements fetch issue:", err);
+        if (achResult.status === "fulfilled") {
+          const achRes = achResult.value;
+          setAchievements(Array.isArray(achRes) ? achRes : achRes?.results || []);
+        } else {
+          warnUnlessNotFound("Achievements", achResult.reason);
         }
 
-        // 3. Active Card
-        try {
-          const cardRes = await api.get<any>(
-            `/v1/player-cards/?player=${activePlayerId}&is_active=true`,
-            { silent: true },
-          );
-          const activeCard = Array.isArray(cardRes)
-            ? cardRes[0]
-            : cardRes.results?.[0] || cardRes;
-          setCard(activeCard);
-        } catch (err: any) {
-          if (err?.status !== 404) console.warn("Card fetch issue:", err);
+        if (cardResult.status === "fulfilled") {
+          const cardRes = cardResult.value;
+          setCard(Array.isArray(cardRes) ? cardRes[0] : cardRes?.results?.[0] || cardRes);
+        } else {
+          warnUnlessNotFound("Card", cardResult.reason);
           setCard(null);
         }
       }
+      loadedKeyRef.current = profileKey;
     } catch (err) {
       console.error("Error fetching profile data:", err);
       setHasError(true);
@@ -210,7 +215,7 @@ export default function ProfileScreen() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [id, userId]);
+  }, [id, userId, profileKey]);
 
   // Logro nuevo / cambio de overall mientras el perfil propio está montado:
   // refrescar desde los endpoints normales (esta pantalla no usa TanStack Query).
@@ -223,8 +228,13 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchData();
-    }, [fetchData])
+      // Evitar refetch si se acaba de cargar este mismo perfil (ir y volver
+      // rápido entre tabs). Pull-to-refresh y los eventos siguen forzándolo.
+      const isFresh =
+        loadedKeyRef.current === profileKey &&
+        Date.now() - lastFetchAtRef.current < 15000;
+      if (!isFresh) fetchData();
+    }, [fetchData, profileKey])
   );
 
   const getInitials = () => {
