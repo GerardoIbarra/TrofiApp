@@ -192,7 +192,7 @@ describe("Notification Navigation & Data Routing", () => {
       expect(result?.params.openAchievements).toBe("1");
     });
 
-    it("routes rating_changed to the player detail (card)", () => {
+    it("routes rating_changed to the user's own profile (card)", () => {
       const result = resolveNotificationRoute({
         screen: "PlayerCard",
         player_id: "player-1",
@@ -201,8 +201,7 @@ describe("Notification Navigation & Data Routing", () => {
         overall: 74,
         direction: "up",
       });
-      expect(result?.pathname).toBe("/player-detail");
-      expect(result?.params.playerId).toBe("player-1");
+      expect(result?.pathname).toBe("/profile");
     });
   });
 });

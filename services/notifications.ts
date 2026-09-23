@@ -231,8 +231,8 @@ const SCREEN_ROUTE_MAP: Record<string, string> = {
 
   playerdetail: "/player-detail",
   player: "/player-detail",
-  // rating_changed → la card se ve en el detalle del jugador
-  playercard: "/player-detail",
+  // rating_changed ("Tu overall cambió") siempre es del propio usuario → su perfil
+  playercard: "/profile",
 
   // achievement_unlocked → los logros viven en un modal dentro del perfil
   achievements: "/profile",

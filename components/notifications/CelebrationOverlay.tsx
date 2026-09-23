@@ -266,11 +266,10 @@ function RatingContent({ event, reduceMotion, onDismiss }: ContentProps<RatingCe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Es la card del propio usuario: se ve en su perfil (misma card que ahí).
   const openCard = () => {
     onDismiss();
-    if (event.playerId) {
-      router.push({ pathname: '/player-detail', params: { playerId: event.playerId } });
-    }
+    router.push('/profile');
   };
 
   return (
@@ -312,9 +311,7 @@ function RatingContent({ event, reduceMotion, onDismiss }: ContentProps<RatingCe
       </Text>
 
       <Actions
-        primaryLabel={
-          event.source === 'received' && event.playerId ? t('celebrations.view_card') : undefined
-        }
+        primaryLabel={event.source === 'received' ? t('celebrations.view_card') : undefined}
         onPrimary={openCard}
         secondaryLabel={isUp ? t('celebrations.dismiss') : t('celebrations.dismiss_neutral')}
         onSecondary={onDismiss}

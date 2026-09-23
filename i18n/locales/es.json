@@ -214,7 +214,12 @@
     "search_placeholder": "Buscar jugador...",
     "no_players": "No se encontraron jugadores",
     "player": "Jugador",
-    "rating": "Media"
+    "rating": "Media",
+    "rarity_bronze": "BRONCE",
+    "rarity_silver": "PLATA",
+    "rarity_gold": "ORO",
+    "rarity_elite": "ÉLITE",
+    "rarity_iconic": "ICÓNICA"
   },
   "explore": {
     "search_placeholder": "Ligas, equipos o jugadores...",

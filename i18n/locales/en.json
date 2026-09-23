@@ -214,7 +214,12 @@
     "search_placeholder": "Search player...",
     "no_players": "No players found",
     "player": "Player",
-    "rating": "Rating"
+    "rating": "Rating",
+    "rarity_bronze": "BRONZE",
+    "rarity_silver": "SILVER",
+    "rarity_gold": "GOLD",
+    "rarity_elite": "ELITE",
+    "rarity_iconic": "ICONIC"
   },
   "explore": {
     "search_placeholder": "Leagues, teams or players...",

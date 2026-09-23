@@ -23,7 +23,7 @@ import {
   Award,
 } from 'lucide-react-native';
 import { useGetPlayerProfile } from '@/features/players/services/playerProfileApi';
-import { PlayerCardView } from '@/components/players/profile/PlayerCardView';
+import { UltimateCard } from '@/components/players/profile/UltimateCard';
 import { PlayerStatsWidget } from '@/components/players/profile/PlayerStatsWidget';
 import { PlayerAchievementsList } from '@/components/players/profile/PlayerAchievementsList';
 import * as Linking from 'expo-linking';
@@ -51,11 +51,12 @@ export default function PlayerDetailScreen() {
   );
 
   const currentCard = profile?.card || null;
+  // Al abrir desde una notificación no llega `playerName`: armarlo del perfil.
   const displayName =
     playerName ||
-    (profile?.player
-      ? `${profile.player.first_name || ''} ${profile.player.last_name || ''}`.trim()
-      : 'JUGADOR');
+    profile?.player?.full_name ||
+    `${profile?.player?.first_name || ''} ${profile?.player?.last_name || ''}`.trim() ||
+    'JUGADOR';
 
   const currentStats =
     profile?.stats_by_tournament?.find(
@@ -197,9 +198,10 @@ export default function PlayerDetailScreen() {
         {activeTab === 'CARD' && (
           <View style={styles.tabContent}>
             {currentCard ? (
-              <PlayerCardView
+              <UltimateCard
                 card={currentCard}
-                playerName={displayName}
+                name={displayName}
+                photoUrl={profile?.player?.photo || profile?.player?.avatar}
                 isProvisional={currentStats?.provisional}
               />
             ) : (

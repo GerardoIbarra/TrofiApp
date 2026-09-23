@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, router, useFocusEffect } from "expo-router";
 import { useCelebrationStore } from "@/features/notifications/store/celebrationStore";
+import { UltimateCard } from "@/components/players/profile/UltimateCard";
 import {
   Award,
   ChevronRight,
@@ -388,8 +389,6 @@ export default function ProfileScreen() {
                   />
                   <View style={styles.heroContent}>
                     <UltimateCard
-                      theme={theme}
-                      isDark={isDark}
                       name={fullName}
                       card={card}
                       photoUrl={activePhoto}
@@ -702,105 +701,6 @@ function KPIBox({
   );
 }
 
-function UltimateCard({
-  theme,
-  isDark,
-  name,
-  card,
-  photoUrl,
-}: {
-  theme: any;
-  isDark: boolean;
-  name: string;
-  card: PlayerCard | null;
-  photoUrl?: string | null;
-}) {
-  const styles = createStyles(theme, isDark);
-  const avatarUri = photoUrl || card?.generated_image;
-  return (
-    <View style={styles.cardShield}>
-      <LinearGradient
-        colors={isDark ? ["#1A2B48", "#0A1525"] : ["#F8FAFC", "#E2E8F0"]}
-        style={StyleSheet.absoluteFill}
-      />
-
-      {/* Decorative Brush Stroke Effect */}
-      <LinearGradient
-        colors={["transparent", theme.primary + "22", "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-
-      <View style={styles.cardHeader}>
-        <View style={styles.ratingInfo}>
-          <Text style={styles.ratingNumber} numberOfLines={1}>
-            {card?.overall || "--"}
-          </Text>
-          <Text style={styles.posLabel} numberOfLines={1}>
-            {card?.position || "ST"}
-          </Text>
-          <View style={styles.flagPlaceholder} />
-        </View>
-        {avatarUri ? (
-          <Image
-            source={{ uri: avatarUri }}
-            style={styles.cardPlayerImage}
-          />
-        ) : (
-          <View style={[styles.cardPlayerImage, styles.cardPlaceholderImage]}>
-            <User size={64} color={theme.primary} opacity={0.6} />
-          </View>
-        )}
-      </View>
-
-      <View style={styles.cardNameSection}>
-        <Text
-          style={styles.cardNameText}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.7}
-        >
-          {name.toUpperCase()}
-        </Text>
-        <View style={styles.nameDivider} />
-      </View>
-
-      <View style={styles.statsGrid}>
-        <View style={styles.statsColumn}>
-          <View style={styles.statLine}>
-            <Text style={styles.statValue}>{card?.pace || "--"}</Text>
-            <Text style={styles.statKey}>RIT</Text>
-          </View>
-          <View style={styles.statLine}>
-            <Text style={styles.statValue}>{card?.shooting || "--"}</Text>
-            <Text style={styles.statKey}>TIR</Text>
-          </View>
-          <View style={styles.statLine}>
-            <Text style={styles.statValue}>{card?.passing || "--"}</Text>
-            <Text style={styles.statKey}>PAS</Text>
-          </View>
-        </View>
-        <View style={styles.statsDivider} />
-        <View style={styles.statsColumn}>
-          <View style={styles.statLine}>
-            <Text style={styles.statValue}>{card?.dribbling || "--"}</Text>
-            <Text style={styles.statKey}>REG</Text>
-          </View>
-          <View style={styles.statLine}>
-            <Text style={styles.statValue}>{card?.defense || "--"}</Text>
-            <Text style={styles.statKey}>DEF</Text>
-          </View>
-          <View style={styles.statLine}>
-            <Text style={styles.statValue}>{card?.physical || "--"}</Text>
-            <Text style={styles.statKey}>FIS</Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
-
 function MenuItem({
   icon,
   label,
@@ -859,26 +759,6 @@ const createStyles = (theme: any, isDark: boolean) =>
       alignItems: "center",
       zIndex: 10,
     },
-    cardShield: {
-      width: 200,
-      height: 300,
-      borderRadius: 20,
-      borderWidth: 3,
-      borderColor: theme.primary,
-      overflow: "hidden",
-      backgroundColor: theme.surface,
-      elevation: 20,
-      shadowColor: theme.primary,
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.5,
-      shadowRadius: 15,
-    },
-    cardHeader: {
-      flexDirection: "row",
-      height: 140,
-      paddingTop: 20,
-      paddingLeft: 15,
-    },
     initialsContainer: {
       backgroundColor: theme.primary,
       justifyContent: "center",
@@ -889,95 +769,6 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "900",
       color: "#000",
       letterSpacing: -5,
-    },
-    // Sin ancho fijo: "82" en SF (iOS) es más ancho que en Roboto y con 40pt
-    // se partía en dos líneas. minWidth mantiene alineado un rating de 1 dígito.
-    ratingInfo: {
-      alignItems: "center",
-      minWidth: 44,
-      flexShrink: 0,
-      marginRight: 6,
-    },
-    ratingNumber: {
-      fontSize: 32,
-      fontWeight: "900",
-      color: theme.text,
-      lineHeight: 34,
-    },
-    posLabel: {
-      fontSize: 14,
-      fontWeight: "800",
-      color: theme.textSecondary,
-      marginTop: -2,
-    },
-    flagPlaceholder: {
-      width: 20,
-      height: 12,
-      backgroundColor: "#006847", // Mexico Green
-      marginTop: 10,
-      borderRadius: 2,
-    },
-    // Solo `flex: 1` (sin width 100%): el 100% hacía que la foto ocupara todo
-    // el ancho de la card y, como iOS no recorta, tapaba el rating y el nombre.
-    cardPlayerImage: {
-      flex: 1,
-      height: "110%",
-      resizeMode: "contain",
-      marginTop: -10,
-    },
-    cardPlaceholderImage: {
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.04)",
-      borderRadius: 16,
-      marginRight: 10,
-    },
-    cardNameSection: {
-      alignItems: "center",
-      paddingVertical: 5,
-      paddingHorizontal: 12,
-    },
-    cardNameText: {
-      fontSize: 18,
-      fontWeight: "900",
-      color: theme.text,
-      letterSpacing: 1,
-    },
-    nameDivider: {
-      width: "80%",
-      height: 1,
-      backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
-      marginTop: 4,
-    },
-    statsGrid: {
-      flexDirection: "row",
-      justifyContent: "center",
-      paddingTop: 10,
-      paddingHorizontal: 15,
-    },
-    statsColumn: {
-      width: 60,
-    },
-    statsDivider: {
-      width: 1,
-      height: 45,
-      backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
-      marginHorizontal: 10,
-    },
-    statLine: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      marginBottom: 4,
-    },
-    statValue: {
-      fontSize: 14,
-      fontWeight: "900",
-      color: theme.text,
-    },
-    statKey: {
-      fontSize: 11,
-      fontWeight: "700",
-      color: theme.textSecondary,
     },
     infoRow: {
       flexDirection: "row",
