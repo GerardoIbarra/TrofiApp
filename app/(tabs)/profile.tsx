@@ -724,8 +724,12 @@ function UltimateCard({
 
       <View style={styles.cardHeader}>
         <View style={styles.ratingInfo}>
-          <Text style={styles.ratingNumber}>{card?.overall || "--"}</Text>
-          <Text style={styles.posLabel}>{card?.position || "ST"}</Text>
+          <Text style={styles.ratingNumber} numberOfLines={1}>
+            {card?.overall || "--"}
+          </Text>
+          <Text style={styles.posLabel} numberOfLines={1}>
+            {card?.position || "ST"}
+          </Text>
           <View style={styles.flagPlaceholder} />
         </View>
         {avatarUri ? (
@@ -741,7 +745,14 @@ function UltimateCard({
       </View>
 
       <View style={styles.cardNameSection}>
-        <Text style={styles.cardNameText}>{name.toUpperCase()}</Text>
+        <Text
+          style={styles.cardNameText}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+        >
+          {name.toUpperCase()}
+        </Text>
         <View style={styles.nameDivider} />
       </View>
 
@@ -869,9 +880,13 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: "#000",
       letterSpacing: -5,
     },
+    // Sin ancho fijo: "82" en SF (iOS) es más ancho que en Roboto y con 40pt
+    // se partía en dos líneas. minWidth mantiene alineado un rating de 1 dígito.
     ratingInfo: {
       alignItems: "center",
-      width: 40,
+      minWidth: 44,
+      flexShrink: 0,
+      marginRight: 6,
     },
     ratingNumber: {
       fontSize: 32,
@@ -892,10 +907,11 @@ const createStyles = (theme: any, isDark: boolean) =>
       marginTop: 10,
       borderRadius: 2,
     },
+    // Solo `flex: 1` (sin width 100%): el 100% hacía que la foto ocupara todo
+    // el ancho de la card y, como iOS no recorta, tapaba el rating y el nombre.
     cardPlayerImage: {
       flex: 1,
       height: "110%",
-      width: "100%",
       resizeMode: "contain",
       marginTop: -10,
     },
@@ -909,6 +925,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     cardNameSection: {
       alignItems: "center",
       paddingVertical: 5,
+      paddingHorizontal: 12,
     },
     cardNameText: {
       fontSize: 18,
