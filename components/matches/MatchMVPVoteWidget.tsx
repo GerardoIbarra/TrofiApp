@@ -14,6 +14,7 @@ import {
   useVoteMVP,
   useLockMVPVote,
 } from '@/features/matches/services/matchApi';
+import { isValidMatchId } from '@/features/matches/utils/matchValidation';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useToast } from '@/context/ToastContext';
 
@@ -45,11 +46,15 @@ export function MatchMVPVoteWidget({
 
   const [selectedMembershipId, setSelectedMembershipId] = useState<string | null>(null);
 
-  const { data: tallyData, isLoading, refetch } = useGetMVPVotes(matchId, isPlayed);
-  const voteMutation = useVoteMVP(matchId);
-  const lockMutation = useLockMVPVote(matchId);
+  const isRealMatch = isValidMatchId(matchId);
+  const { data: tallyData, isLoading, refetch } = useGetMVPVotes(
+    isRealMatch ? matchId : undefined,
+    Boolean(isPlayed && isRealMatch)
+  );
+  const voteMutation = useVoteMVP(isRealMatch ? matchId : undefined);
+  const lockMutation = useLockMVPVote(isRealMatch ? matchId : undefined);
 
-  if (!isPlayed) {
+  if (!isPlayed || !isRealMatch) {
     return null;
   }
 
@@ -94,6 +99,11 @@ export function MatchMVPVoteWidget({
   }
 
   const handleVote = async () => {
+    if (!matchId || !isValidMatchId(matchId)) {
+      showToast({ type: 'error', title: 'Error', message: 'No se puede votar en un partido no válido o de demostración.' });
+      return;
+    }
+
     if (!selectedMembershipId) {
       showToast({ type: 'error', title: 'Selecciona un candidato', message: 'Elige al jugador que consideres el MVP del encuentro.' });
       return;
@@ -109,6 +119,11 @@ export function MatchMVPVoteWidget({
   };
 
   const handleLockVote = () => {
+    if (!matchId || !isValidMatchId(matchId)) {
+      showToast({ type: 'error', title: 'Error', message: 'No se puede cerrar la votación en un partido no válido o de demostración.' });
+      return;
+    }
+
     Alert.alert(
       'Cerrar Votación MVP',
       '¿Deseas cerrar la votación y confirmar el MVP de este partido?',

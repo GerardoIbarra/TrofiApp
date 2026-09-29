@@ -22,10 +22,17 @@ import {
   MessageSquare,
   Award,
 } from 'lucide-react-native';
-import { useGetPlayerProfile } from '@/features/players/services/playerProfileApi';
+import {
+  useGetPlayerProfile,
+  useGetPlayerCards,
+  useGetCardHistory,
+  getPlayerCardImageUrl,
+  getPlayerCardHtmlPreviewUrl,
+} from '@/features/players/services/playerProfileApi';
 import { UltimateCard } from '@/components/players/profile/UltimateCard';
 import { PlayerStatsWidget } from '@/components/players/profile/PlayerStatsWidget';
 import { PlayerAchievementsList } from '@/components/players/profile/PlayerAchievementsList';
+import { DEFAULT_RARITY_COLORS } from '@/features/players/utils/cardUtils';
 import * as Linking from 'expo-linking';
 import { useToast } from '@/context/ToastContext';
 
@@ -49,8 +56,18 @@ export default function PlayerDetailScreen() {
     playerId,
     selectedTournamentId
   );
+  const { data: playerCards = [] } = useGetPlayerCards(playerId);
 
-  const currentCard = profile?.card || null;
+  const currentCard =
+    profile?.cards?.find(
+      (c) => c.tournament === (selectedTournamentId || profile?.active_tournament_id)
+    )?.card ||
+    profile?.card ||
+    (playerCards.length > 0 ? (playerCards[0] as any) : null);
+
+  const { data: cardHistoryData = [] } = useGetCardHistory(currentCard?.id);
+  const displayHistory = cardHistoryData.length > 0 ? cardHistoryData : profile?.card_history || [];
+
   // Al abrir desde una notificación no llega `playerName`: armarlo del perfil.
   const displayName =
     playerName ||
@@ -66,8 +83,8 @@ export default function PlayerDetailScreen() {
     null;
 
   const handleShare = () => {
-    if (currentCard) {
-      const url = `https://api.trofiapp.com/api/v1/player-cards/${currentCard.id}/image/`;
+    if (currentCard?.id) {
+      const url = getPlayerCardImageUrl(currentCard.id);
       Linking.openURL(url).catch((err) => {
         console.error("Couldn't load page", err);
         showToast({ type: 'error', title: 'Error', message: 'No se pudo abrir la imagen de la carta para compartir.' });
@@ -213,24 +230,31 @@ export default function PlayerDetailScreen() {
             )}
 
             {/* Card History (Rating Evolution) */}
-            {profile?.card_history && profile.card_history.length > 0 && (
+            {displayHistory && displayHistory.length > 0 && (
               <View style={styles.historyCardBox}>
                 <View style={styles.historyHeader}>
                   <TrendingUp size={16} color={theme.primary} />
-                  <Text style={[styles.historyTitle, { color: theme.text }]}>Evolución de Rating</Text>
+                  <Text style={[styles.historyTitle, { color: theme.text }]}>Evolución de Rating (Cartas Retro)</Text>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.historyScroll}>
-                  {profile.card_history.map((hist, idx) => (
-                    <View key={idx} style={styles.histItem}>
-                      <Text style={[styles.histOverall, { color: theme.primary }]}>{hist.overall}</Text>
-                      <Text style={[styles.histRarity, { color: theme.textSecondary }]}>
-                        {hist.rarity.toUpperCase()}
-                      </Text>
-                      <Text style={[styles.histDate, { color: theme.textSecondary }]}>
-                        {new Date(hist.captured_at).toLocaleDateString()}
-                      </Text>
-                    </View>
-                  ))}
+                  {displayHistory.map((hist, idx) => {
+                    const normRarity = hist.rarity?.toLowerCase() || '';
+                    const itemColor =
+                      hist.rarity_color || DEFAULT_RARITY_COLORS[normRarity] || theme.primary;
+                    const itemLabel = hist.rarity_label || hist.rarity?.toUpperCase() || 'NORMAL';
+
+                    return (
+                      <View key={idx} style={[styles.histItem, { borderColor: itemColor + '55' }]}>
+                        <Text style={[styles.histOverall, { color: itemColor }]}>{hist.overall}</Text>
+                        <Text style={[styles.histRarity, { color: itemColor }]} numberOfLines={1}>
+                          {itemLabel}
+                        </Text>
+                        <Text style={[styles.histDate, { color: theme.textSecondary }]}>
+                          {new Date(hist.captured_at).toLocaleDateString()}
+                        </Text>
+                      </View>
+                    );
+                  })}
                 </ScrollView>
               </View>
             )}

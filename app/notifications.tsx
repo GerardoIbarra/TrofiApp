@@ -32,15 +32,16 @@ import {
   TrendingUp,
 } from "lucide-react-native";
 import { NotificationPreferencesModal } from "@/components/notifications/NotificationPreferencesModal";
+import { NotificationDetailModal } from "@/components/notifications/NotificationDetailModal";
 import { router } from "expo-router";
-import { handleNotificationData } from "@/services/notifications";
+import { handleNotificationData, resolveNotificationRoute } from "@/services/notifications";
 
 const getNotificationVisuals = (type: string) => {
   const normalized = (type || "").toLowerCase();
-  if (normalized === "achievement_unlocked") {
+  if (normalized === "achievement_unlocked" || normalized.includes("achievement")) {
     return { icon: Award, color: "#F59E0B" };
   }
-  if (normalized === "rating_changed") {
+  if (normalized === "rating_changed" || normalized.includes("rating")) {
     return { icon: TrendingUp, color: "#10B981" };
   }
   if (normalized.includes("league")) {
@@ -69,6 +70,7 @@ export default function NotificationsScreen() {
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const [showPreferences, setShowPreferences] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<any | null>(null);
 
   const { data: serverNotifications = [], isLoading, refetch } = useGetNotifications();
   const { mutate: markAsRead } = useMarkNotificationAsRead();
@@ -79,11 +81,8 @@ export default function NotificationsScreen() {
       markAsRead(item.rawId);
     }
     
-    // Navegar usando la misma lógica centralizada que las notificaciones push
-    if (item.data) {
-      // Logros / cambios de overall: se animan solo la primera vez (fila no
-      // leída); `is_read` hace de marca de "ya celebrado" entre dispositivos.
-      // Una fila ya leída solo navega.
+    // Si la notificación tiene una pantalla de destino (partido, equipo, liga, chat, logros, perfil, etc.)
+    if (item.targetRoute) {
       handleNotificationData(
         item.data,
         (pathname, params) => {
@@ -91,6 +90,10 @@ export default function NotificationsScreen() {
         },
         { notificationType: item.type, body: item.message, celebrate: !item.read }
       );
+    } else {
+      // Si es un aviso oficial / announcement o notificación general sin pantalla directa:
+      // Abrir modal de detalle para leer el comunicado completo sin truncar.
+      setSelectedNotification(item);
     }
   };
 
@@ -99,6 +102,27 @@ export default function NotificationsScreen() {
       ? serverNotifications.map((n: any, idx: number) => {
           const type = n.notification_type || "announcement";
           const visuals = getNotificationVisuals(type);
+
+          let parsedData: any = {};
+          if (typeof n.data === "string") {
+            try {
+              parsedData = JSON.parse(n.data);
+            } catch (_) {
+              parsedData = {};
+            }
+          } else if (typeof n.data === "object" && n.data !== null) {
+            parsedData = n.data;
+          }
+
+          // Unir propiedades raíz del registro con su data
+          const mergedData = {
+            ...n,
+            ...parsedData,
+            notification_type: type,
+          };
+
+          const targetRoute = resolveNotificationRoute(mergedData, { notificationType: type });
+
           return {
             id: String(n.id ?? `notification-${idx}`),
             rawId: n.id,
@@ -109,11 +133,11 @@ export default function NotificationsScreen() {
             read: Boolean(n.is_read),
             icon: visuals.icon,
             color: visuals.color,
-            data: n.data || null,
+            data: mergedData,
+            targetRoute,
           };
         })
       : [];
-
 
   const renderItem = ({ item }: { item: (typeof displayNotifications)[0] }) => {
     const Icon = item.icon;
@@ -138,7 +162,15 @@ export default function NotificationsScreen() {
           <Text style={styles.time}>{item.time}</Text>
         </View>
         
-        <ChevronRight size={18} color={theme.textSecondary} opacity={0.3} />
+        <View style={styles.actionIndicator}>
+          {item.targetRoute ? (
+            <ChevronRight size={18} color={theme.textSecondary} opacity={0.4} />
+          ) : (
+            <View style={[styles.noticeBadge, { backgroundColor: item.color + "15" }]}>
+              <Text style={[styles.noticeBadgeText, { color: item.color }]}>Aviso</Text>
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -191,6 +223,15 @@ export default function NotificationsScreen() {
       <NotificationPreferencesModal
         visible={showPreferences}
         onClose={() => setShowPreferences(false)}
+      />
+
+      <NotificationDetailModal
+        visible={!!selectedNotification}
+        notification={selectedNotification}
+        onClose={() => setSelectedNotification(null)}
+        onNavigateToTarget={(pathname, params) => {
+          router.push({ pathname: pathname as any, params });
+        }}
       />
     </View>
   );
@@ -274,5 +315,20 @@ const createStyles = (theme: any, isDark: boolean) =>
     emptyText: {
       color: theme.textSecondary,
       fontSize: 14,
+    },
+    actionIndicator: {
+      justifyContent: "center",
+      alignItems: "center",
+      marginLeft: 4,
+    },
+    noticeBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 6,
+    },
+    noticeBadgeText: {
+      fontSize: 10,
+      fontWeight: "800",
+      letterSpacing: 0.5,
     },
   });

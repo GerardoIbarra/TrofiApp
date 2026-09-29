@@ -7,8 +7,18 @@ export interface TournamentCardItem {
 }
 
 export interface CardHistoryItem {
+  id?: string;
+  card?: string;
   overall: number;
+  pace?: number;
+  shooting?: number;
+  passing?: number;
+  dribbling?: number;
+  defense?: number;
+  physical?: number;
   rarity: string;
+  rarity_color?: string;
+  rarity_label?: string;
   captured_at: string;
 }
 

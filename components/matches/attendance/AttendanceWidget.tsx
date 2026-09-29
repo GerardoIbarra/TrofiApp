@@ -4,6 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { Check, X, Users, AlertCircle, Settings } from 'lucide-react-native';
 import { useGetMatchAttendance, useConfirmAttendance } from '@/features/matches/services/matchApi';
+import { isValidMatchId } from '@/features/matches/utils/matchValidation';
 import { CaptainAttendanceModal } from './CaptainAttendanceModal';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useToast } from '@/context/ToastContext';
@@ -21,9 +22,14 @@ export function AttendanceWidget({ matchId, isCaptain, userTeamId, roster = [] }
   const user = useAuthStore(state => state.user);
   const { showToast } = useToast();
 
+  const isRealMatch = isValidMatchId(matchId);
   const [isCaptainModalVisible, setIsCaptainModalVisible] = useState(false);
-  const { data, isLoading } = useGetMatchAttendance(matchId);
+  const { data, isLoading } = useGetMatchAttendance(isRealMatch ? matchId : undefined);
   const confirmMutation = useConfirmAttendance();
+
+  if (!isRealMatch) {
+    return null;
+  }
 
   const handleConfirmStatus = (status: 'confirmed' | 'declined') => {
     confirmMutation.mutate({

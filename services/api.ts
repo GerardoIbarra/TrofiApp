@@ -7,7 +7,8 @@ import { metrics } from './metrics';
  * Centralized API client for TrofiApp with Silent Refresh logic.
  */
 
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+const BASE_URL = API_BASE_URL;
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: Record<string, unknown> | FormData | null;

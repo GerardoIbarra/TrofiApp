@@ -6,6 +6,8 @@ import {
   CrownSeasonAwardsResponse,
   ComputeWeeklyMVPRequest,
   ComputeWeeklyMVPResponse,
+  ComputeTeamOfTheWeekRequest,
+  ComputeTeamOfTheWeekResponse,
 } from '../types/tournamentAwards';
 
 export const useCreateTournament = () => {
@@ -118,18 +120,67 @@ export const useComputeWeeklyMVP = () => {
     mutationFn: async ({
       tournamentId,
       data,
+      start,
+      end,
+      matchday,
     }: {
       tournamentId: string;
       data?: ComputeWeeklyMVPRequest;
+      start?: string;
+      end?: string;
+      matchday?: number;
     }): Promise<ComputeWeeklyMVPResponse> => {
+      const payload: ComputeWeeklyMVPRequest = {
+        ...data,
+        ...(start !== undefined ? { start } : {}),
+        ...(end !== undefined ? { end } : {}),
+        ...(matchday !== undefined ? { matchday } : {}),
+      };
       return await api.post<ComputeWeeklyMVPResponse>(
         `/v1/tournaments/${tournamentId}/compute-weekly-mvp/`,
-        data || {}
+        payload
       );
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tournament', variables.tournamentId] });
       queryClient.invalidateQueries({ queryKey: ['player-profile'] });
+    },
+  });
+};
+
+export const useComputeTeamOfTheWeek = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      tournamentId,
+      data,
+      start,
+      end,
+      matchday,
+    }: {
+      tournamentId: string;
+      data?: ComputeTeamOfTheWeekRequest;
+      start?: string;
+      end?: string;
+      matchday?: number;
+    }): Promise<ComputeTeamOfTheWeekResponse> => {
+      const payload: ComputeTeamOfTheWeekRequest = {
+        ...data,
+        ...(start !== undefined ? { start } : {}),
+        ...(end !== undefined ? { end } : {}),
+        ...(matchday !== undefined ? { matchday } : {}),
+      };
+      return await api.post<ComputeTeamOfTheWeekResponse>(
+        `/v1/tournaments/${tournamentId}/compute-team-of-the-week/`,
+        payload
+      );
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['tournament', variables.tournamentId] });
+      queryClient.invalidateQueries({ queryKey: ['player-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['user-achievements'] });
+      queryClient.invalidateQueries({ queryKey: ['player-achievements'] });
     },
   });
 };

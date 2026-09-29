@@ -153,9 +153,33 @@ describe("Notification Navigation & Data Routing", () => {
       const result = resolveNotificationRoute(data);
       expect(result?.pathname).toBe("/match-detail");
       expect(result?.params.id).toBe("inferred-match-1");
+      expect(result?.actionLabel).toBe("Ver Partido");
     });
 
-    it("returns null when data is null, undefined, or invalid", () => {
+    it("supports Django foreign key alias fields (team, league, tournament, match)", () => {
+      const resultTeam = resolveNotificationRoute({ team: "team-uuid-1" });
+      expect(resultTeam?.pathname).toBe("/team-detail");
+      expect(resultTeam?.params.id).toBe("team-uuid-1");
+      expect(resultTeam?.actionLabel).toBe("Ver Equipo");
+
+      const resultLeague = resolveNotificationRoute({ league: "league-uuid-2" });
+      expect(resultLeague?.pathname).toBe("/league-detail");
+      expect(resultLeague?.params.id).toBe("league-uuid-2");
+      expect(resultLeague?.actionLabel).toBe("Ver Liga");
+    });
+
+    it("infers category screens based on notification_type when specific IDs are missing", () => {
+      const teamNotif = resolveNotificationRoute({}, { notificationType: "team_update" });
+      expect(teamNotif?.pathname).toBe("/teams");
+
+      const leagueNotif = resolveNotificationRoute({}, { notificationType: "league_announcement" });
+      expect(leagueNotif?.pathname).toBe("/leagues");
+
+      const chatNotif = resolveNotificationRoute({}, { notificationType: "chat_message" });
+      expect(chatNotif?.pathname).toBe("/direct-messages");
+    });
+
+    it("returns null when data is null, undefined, or invalid without notificationType", () => {
       expect(resolveNotificationRoute(null)).toBeNull();
       expect(resolveNotificationRoute(undefined)).toBeNull();
       expect(resolveNotificationRoute("invalid-json{")).toBeNull();
@@ -202,6 +226,19 @@ describe("Notification Navigation & Data Routing", () => {
         direction: "up",
       });
       expect(result?.pathname).toBe("/profile");
+    });
+
+    it("routes FanCard rating_changed to profile with openFanCard and spectator role", () => {
+      const result = resolveNotificationRoute({
+        screen: "FanCard",
+        card_id: "fan-card-1",
+        previous_overall: 70,
+        overall: 74,
+        direction: "up",
+      });
+      expect(result?.pathname).toBe("/profile");
+      expect(result?.params.openFanCard).toBe("1");
+      expect(result?.params.role).toBe("spectator");
     });
   });
 });

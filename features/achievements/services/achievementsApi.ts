@@ -5,12 +5,15 @@ import {
   AchievementListResponse,
   CreateLeagueAchievementPayload,
 } from '../types/achievement';
+import { isValidEntityId } from '@/features/matches/utils/matchValidation';
 
 export const useGetUserAchievements = (userId?: string) => {
+  const isRealUser = isValidEntityId(userId);
+
   return useQuery({
     queryKey: ['user-achievements', userId],
     queryFn: async (): Promise<Achievement[]> => {
-      if (!userId) return [];
+      if (!isRealUser || !userId) return [];
       const response = await api.get<AchievementListResponse | Achievement[]>(
         `/v1/achievements/?user=${userId}`
       );
@@ -19,15 +22,17 @@ export const useGetUserAchievements = (userId?: string) => {
       }
       return response?.results || [];
     },
-    enabled: !!userId,
+    enabled: isRealUser,
   });
 };
 
 export const useGetLeagueAchievements = (leagueId?: string) => {
+  const isRealLeague = isValidEntityId(leagueId);
+
   return useQuery({
     queryKey: ['league-achievements', leagueId],
     queryFn: async (): Promise<Achievement[]> => {
-      if (!leagueId) return [];
+      if (!isRealLeague || !leagueId) return [];
       const response = await api.get<AchievementListResponse | Achievement[]>(
         `/v1/achievements/?league=${leagueId}`
       );
@@ -36,7 +41,7 @@ export const useGetLeagueAchievements = (leagueId?: string) => {
       }
       return response?.results || [];
     },
-    enabled: !!leagueId,
+    enabled: isRealLeague,
   });
 };
 

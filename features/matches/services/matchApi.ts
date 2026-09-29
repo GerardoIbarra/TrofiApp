@@ -15,6 +15,7 @@ import {
   VoteMVPResponse,
   LockMVPVoteResponse,
 } from "../types/mvpVoting";
+import { isValidMatchId } from "../utils/matchValidation";
 
 export const useCreateMatch = () => {
   const queryClient = useQueryClient();
@@ -115,14 +116,17 @@ export const useRecordExtraTime = () => {
   });
 };
 
-export const useGetMatchAttendance = (matchId: string) => {
+export const useGetMatchAttendance = (matchId?: string | null) => {
+  const isMatchValid = isValidMatchId(matchId);
+
   return useQuery({
     queryKey: ["match-attendance", matchId],
     queryFn: async () => {
+      if (!isMatchValid || !matchId) return null;
       const response = await api.get<MatchAttendanceSummary>(`/v1/matches/${matchId}/attendance-confirmations/`);
       return response;
     },
-    enabled: !!matchId,
+    enabled: isMatchValid,
   });
 };
 
@@ -131,6 +135,9 @@ export const useConfirmAttendance = () => {
 
   return useMutation({
     mutationFn: async ({ matchId, data }: { matchId: string; data: ConfirmAttendanceData }) => {
+      if (!isValidMatchId(matchId)) {
+        throw new Error("ID de partido inválido");
+      }
       const response = await api.post(`/v1/matches/${matchId}/confirm-attendance/`, data);
       return response;
     },
@@ -169,6 +176,9 @@ export const useCaptainConfirmAttendance = () => {
 
   return useMutation({
     mutationFn: async ({ matchId, data }: { matchId: string; data: CaptainConfirmAttendanceData }) => {
+      if (!isValidMatchId(matchId)) {
+        throw new Error("ID de partido inválido");
+      }
       const response = await api.post(`/v1/matches/${matchId}/captain-confirm-attendance/`, data);
       return response;
     },
@@ -190,6 +200,9 @@ export const useFanCheckIn = () => {
       matchId: string;
       data: FanCheckInRequest;
     }): Promise<FanCheckInResponse> => {
+      if (!isValidMatchId(matchId)) {
+        throw new Error("ID de partido inválido");
+      }
       let body: any = {};
       if (data.latitude !== undefined && data.latitude !== null) body.latitude = data.latitude;
       if (data.longitude !== undefined && data.longitude !== null) body.longitude = data.longitude;
@@ -201,44 +214,60 @@ export const useFanCheckIn = () => {
       queryClient.invalidateQueries({ queryKey: ["match", variables.matchId] });
       queryClient.invalidateQueries({ queryKey: ["fan-checkin", variables.matchId] });
       queryClient.invalidateQueries({ queryKey: ["user-achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["fan-cards"] });
     },
   });
 };
 
-export const useGetMVPVotes = (matchId: string, enabled = true) => {
+export const useGetMVPVotes = (matchId?: string | null, enabled = true) => {
+  const isMatchValid = isValidMatchId(matchId);
+
   return useQuery({
     queryKey: ["mvp-votes", matchId],
     queryFn: async (): Promise<MVPVoteTallyResponse> => {
+      if (!isMatchValid || !matchId) {
+        return { results: [] };
+      }
       return await api.get<MVPVoteTallyResponse>(`/v1/matches/${matchId}/vote-mvp/`);
     },
-    enabled: !!matchId && enabled,
-    refetchInterval: 10000, // Poll every 10s during live voting
+    enabled: isMatchValid && enabled,
+    refetchInterval: isMatchValid && enabled ? 10000 : false, // Poll every 10s during live voting only with real match
   });
 };
 
-export const useVoteMVP = (matchId: string) => {
+export const useVoteMVP = (matchId?: string | null) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: VoteMVPPayload): Promise<VoteMVPResponse> => {
+      if (!matchId || !isValidMatchId(matchId)) {
+        throw new Error("ID de partido inválido para votación.");
+      }
       return await api.post<VoteMVPResponse>(`/v1/matches/${matchId}/vote-mvp/`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mvp-votes", matchId] });
+      if (matchId) {
+        queryClient.invalidateQueries({ queryKey: ["mvp-votes", matchId] });
+      }
     },
   });
 };
 
-export const useLockMVPVote = (matchId: string) => {
+export const useLockMVPVote = (matchId?: string | null) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (): Promise<LockMVPVoteResponse> => {
+      if (!matchId || !isValidMatchId(matchId)) {
+        throw new Error("ID de partido inválido para cerrar votación.");
+      }
       return await api.post<LockMVPVoteResponse>(`/v1/matches/${matchId}/lock-mvp-vote/`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mvp-votes", matchId] });
-      queryClient.invalidateQueries({ queryKey: ["match", matchId] });
+      if (matchId) {
+        queryClient.invalidateQueries({ queryKey: ["mvp-votes", matchId] });
+        queryClient.invalidateQueries({ queryKey: ["match", matchId] });
+      }
     },
   });
 };

@@ -1,39 +1,20 @@
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { User } from "lucide-react-native";
+import { User, Trophy, Flame, Sparkles } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/context/ThemeContext";
+import {
+  getContrastInk,
+  DEFAULT_RARITY_COLORS,
+  UltimateCardData,
+} from "@/features/players/utils/cardUtils";
 
-// Solo los campos que dibuja la card: así acepta tanto el PlayerCard de
-// /player-cards/ (perfil propio) como el del /players/{id}/profile/ (detalle).
-export interface UltimateCardData {
-  overall?: number | null;
-  position?: string | null;
-  pace?: number | null;
-  shooting?: number | null;
-  passing?: number | null;
-  dribbling?: number | null;
-  defense?: number | null;
-  physical?: number | null;
-  generated_image?: string | null;
-  rarity?: string | null;
-}
-
-// La rareza se muestra como acento (borde + etiqueta) sobre el diseño base,
-// así la card se ve igual en todos lados y en ambos temas. `ink` es el color
-// de texto legible sobre el color de la etiqueta.
-const RARITY_STYLES: Record<string, { color: string; ink: string }> = {
-  bronze: { color: "#CD7F32", ink: "#1F1206" },
-  silver: { color: "#A8B4C0", ink: "#0F1720" },
-  gold: { color: "#F5B301", ink: "#1F1600" },
-  elite: { color: "#A855F7", ink: "#FFFFFF" },
-  iconic: { color: "#F43F5E", ink: "#FFFFFF" },
-};
+export { getContrastInk, UltimateCardData };
 
 /**
- * Player card oficial de Trofi. Se usa tanto en el perfil propio como en el
- * detalle de otro jugador, para que la card se vea igual en todos lados.
+ * Player card oficial de Trofi.
+ * El backend es la fuente de verdad de rarity_color, rarity_label y card_type_display.
  */
 export function UltimateCard({
   name,
@@ -51,18 +32,55 @@ export function UltimateCard({
   const { t } = useTranslation();
   const styles = createStyles(theme, isDark);
   const avatarUri = photoUrl || card?.generated_image;
-  const rarity = card?.rarity ? RARITY_STYLES[card.rarity] : undefined;
-  const accent = rarity?.color ?? theme.primary;
+
+  // El backend es la fuente de verdad del color hex (PlayerCard.RARITY_COLORS)
+  const normalizedRarity = card?.rarity ? card.rarity.toLowerCase().trim() : "";
+  const accent =
+    card?.rarity_color ||
+    (normalizedRarity ? DEFAULT_RARITY_COLORS[normalizedRarity] : undefined) ||
+    theme.primary;
+
+  const ink = getContrastInk(accent);
+
+  // rarity_label viene del backend en español listo para mostrar
+  const rarityLabel =
+    card?.rarity_label ||
+    (normalizedRarity ? t(`players.rarity_${normalizedRarity}`, normalizedRarity.toUpperCase()) : null);
+
+  // Subtítulo de torneo o tipo de carta especial
+  const subtitle =
+    card?.tournament_season_label ||
+    card?.tournament_name ||
+    (card?.card_type_display && card.card_type !== "base" ? card.card_type_display : null);
+
+  const isLegend = normalizedRarity === "legend";
+  const isChampion = normalizedRarity === "champion";
+  const isOnFire = normalizedRarity === "on_fire";
+
   return (
-    <View style={[styles.cardShield, { borderColor: accent, shadowColor: accent }]}>
+    <View
+      style={[
+        styles.cardShield,
+        {
+          borderColor: accent,
+          shadowColor: accent,
+        },
+      ]}
+    >
       <LinearGradient
-        colors={isDark ? ["#1A2B48", "#0A1525"] : ["#F8FAFC", "#E2E8F0"]}
+        colors={
+          isLegend
+            ? ["#18181B", "#09090B"]
+            : isDark
+            ? ["#1A2B48", "#0A1525"]
+            : ["#F8FAFC", "#E2E8F0"]
+        }
         style={StyleSheet.absoluteFill}
       />
 
       {/* Decorative Brush Stroke Effect */}
       <LinearGradient
-        colors={["transparent", theme.primary + "22", "transparent"]}
+        colors={["transparent", accent + "22", "transparent"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
@@ -74,6 +92,18 @@ export function UltimateCard({
         </View>
       )}
 
+      {/* Special Edition Badge Icon */}
+      {isChampion && (
+        <View style={styles.specialBadge}>
+          <Trophy size={11} color="#FFD700" />
+        </View>
+      )}
+      {isOnFire && (
+        <View style={styles.specialBadge}>
+          <Flame size={11} color="#FF4500" />
+        </View>
+      )}
+
       <View style={styles.cardHeader}>
         <View style={styles.ratingInfo}>
           <Text style={styles.ratingNumber} numberOfLines={1}>
@@ -82,25 +112,19 @@ export function UltimateCard({
           <Text style={styles.posLabel} numberOfLines={1}>
             {card?.position || "ST"}
           </Text>
-          {rarity && card?.rarity && (
-            <View style={[styles.rarityPill, { backgroundColor: rarity.color }]}>
-              <Text
-                style={[styles.rarityText, { color: rarity.ink }]}
-                numberOfLines={1}
-              >
-                {t(`players.rarity_${card.rarity}`)}
+          {rarityLabel && (
+            <View style={[styles.rarityPill, { backgroundColor: accent }]}>
+              <Text style={[styles.rarityText, { color: ink }]} numberOfLines={1}>
+                {rarityLabel.toUpperCase()}
               </Text>
             </View>
           )}
         </View>
         {avatarUri ? (
-          <Image
-            source={{ uri: avatarUri }}
-            style={styles.cardPlayerImage}
-          />
+          <Image source={{ uri: avatarUri }} style={styles.cardPlayerImage} />
         ) : (
           <View style={[styles.cardPlayerImage, styles.cardPlaceholderImage]}>
-            <User size={64} color={theme.primary} opacity={0.6} />
+            <User size={64} color={accent} opacity={0.6} />
           </View>
         )}
       </View>
@@ -114,7 +138,13 @@ export function UltimateCard({
         >
           {name.toUpperCase()}
         </Text>
-        <View style={styles.nameDivider} />
+        {subtitle ? (
+          <Text style={[styles.cardSubtitleText, { color: accent }]} numberOfLines={1}>
+            {subtitle.toUpperCase()}
+          </Text>
+        ) : (
+          <View style={styles.nameDivider} />
+        )}
       </View>
 
       <View style={styles.statsGrid}>
@@ -148,6 +178,15 @@ export function UltimateCard({
           </View>
         </View>
       </View>
+
+      {/* Special card type chip at the bottom */}
+      {card?.card_type_display && card.card_type !== "base" && (
+        <View style={styles.cardFooterTag}>
+          <Text style={[styles.cardFooterTagText, { color: accent }]}>
+            ★ {card.card_type_display.toUpperCase()} ★
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -156,14 +195,13 @@ const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     cardShield: {
       width: 200,
-      height: 300,
+      height: 310,
       borderRadius: 20,
       borderWidth: 3,
       borderColor: theme.primary,
       overflow: "hidden",
       backgroundColor: theme.surface,
       elevation: 20,
-      shadowColor: theme.primary,
       shadowOffset: { width: 0, height: 10 },
       shadowOpacity: 0.5,
       shadowRadius: 15,
@@ -174,8 +212,6 @@ const createStyles = (theme: any, isDark: boolean) =>
       paddingTop: 20,
       paddingLeft: 15,
     },
-    // Sin ancho fijo: "82" en SF (iOS) es más ancho que en Roboto y con 40pt
-    // se partía en dos líneas. minWidth mantiene alineado un rating de 1 dígito.
     ratingInfo: {
       alignItems: "center",
       minWidth: 44,
@@ -196,7 +232,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     rarityPill: {
       marginTop: 8,
-      paddingHorizontal: 5,
+      paddingHorizontal: 6,
       paddingVertical: 2,
       borderRadius: 5,
     },
@@ -205,8 +241,6 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "900",
       letterSpacing: 0.5,
     },
-    // Solo `flex: 1` (sin width 100%): el 100% hacía que la foto ocupara todo
-    // el ancho de la card y, como iOS no recorta, tapaba el rating y el nombre.
     cardPlayerImage: {
       flex: 1,
       height: "110%",
@@ -222,14 +256,20 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     cardNameSection: {
       alignItems: "center",
-      paddingVertical: 5,
+      paddingVertical: 4,
       paddingHorizontal: 12,
     },
     cardNameText: {
-      fontSize: 18,
+      fontSize: 17,
       fontWeight: "900",
       color: theme.text,
       letterSpacing: 1,
+    },
+    cardSubtitleText: {
+      fontSize: 9,
+      fontWeight: "800",
+      letterSpacing: 0.8,
+      marginTop: 2,
     },
     nameDivider: {
       width: "80%",
@@ -240,7 +280,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     statsGrid: {
       flexDirection: "row",
       justifyContent: "center",
-      paddingTop: 10,
+      paddingTop: 8,
       paddingHorizontal: 15,
     },
     statsColumn: {
@@ -249,21 +289,21 @@ const createStyles = (theme: any, isDark: boolean) =>
     statLine: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginBottom: 4,
+      marginBottom: 3,
     },
     statValue: {
-      fontSize: 14,
+      fontSize: 13,
       fontWeight: "900",
       color: theme.text,
     },
     statKey: {
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: "700",
       color: theme.textSecondary,
     },
     statsDivider: {
       width: 1,
-      height: 45,
+      height: 42,
       backgroundColor: isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.1)",
       marginHorizontal: 10,
     },
@@ -280,6 +320,25 @@ const createStyles = (theme: any, isDark: boolean) =>
     provisionalText: {
       color: "#FFFFFF",
       fontSize: 9,
+      fontWeight: "900",
+      letterSpacing: 1,
+    },
+    specialBadge: {
+      position: "absolute",
+      top: 10,
+      left: 10,
+      zIndex: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      padding: 5,
+      borderRadius: 12,
+    },
+    cardFooterTag: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingBottom: 4,
+    },
+    cardFooterTagText: {
+      fontSize: 8,
       fontWeight: "900",
       letterSpacing: 1,
     },

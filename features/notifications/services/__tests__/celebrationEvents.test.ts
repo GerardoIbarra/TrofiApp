@@ -67,6 +67,31 @@ describe('parseCelebrationEvent', () => {
     });
   });
 
+  it('parses FanCard rating_changed without player_id', () => {
+    const fanCardData = {
+      screen: 'FanCard',
+      card_id: 'fan-card-1',
+      previous_overall: 70,
+      overall: 74,
+      direction: 'up',
+    };
+    const event = parseCelebrationEvent(fanCardData, {
+      notificationType: 'rating_changed',
+      source: 'received',
+    });
+    expect(event).toMatchObject({
+      kind: 'rating',
+      cardId: 'fan-card-1',
+      cardType: 'fan',
+      screen: 'FanCard',
+      previousOverall: 70,
+      overall: 74,
+      direction: 'up',
+      source: 'received',
+    });
+    expect((event as any)?.playerId).toBeUndefined();
+  });
+
   it('accepts stringified JSON payloads', () => {
     expect(parseCelebrationEvent(JSON.stringify(ratingData()))?.kind).toBe('rating');
   });
@@ -125,5 +150,19 @@ describe('dispatchCelebration + store', () => {
     jest.advanceTimersByTime(RATING_DEBOUNCE_MS + 1);
     dispatchCelebration(ratingData({ overall: 76 }));
     expect(useCelebrationStore.getState().queue).toHaveLength(1);
+  });
+
+  it('invalidates fan-cards queries when FanCard rating changes', () => {
+    const fanCardData = {
+      screen: 'FanCard',
+      card_id: 'fan-card-1',
+      previous_overall: 70,
+      overall: 74,
+      direction: 'up',
+    };
+    dispatchCelebration(fanCardData, { notificationType: 'rating_changed' });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ['fan-cards'],
+    });
   });
 });

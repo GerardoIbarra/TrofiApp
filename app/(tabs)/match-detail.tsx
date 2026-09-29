@@ -24,6 +24,7 @@ import { RateRefereeModal } from '@/components/referees/RateRefereeModal';
 import { FanCheckInModal } from '@/components/matches/FanCheckInModal';
 import { MatchMVPVoteWidget } from '@/components/matches/MatchMVPVoteWidget';
 import { useGetMatchDisputes } from '@/features/tournaments/services/matchDisputeApi';
+import { isValidMatchId } from '@/features/matches/utils/matchValidation';
 import { MatchDispute } from '@/features/tournaments/types/matchDispute';
 import { FileDisputeModal } from '@/components/matches/disputes/FileDisputeModal';
 import { ResolveDisputeModal } from '@/components/matches/disputes/ResolveDisputeModal';
@@ -84,7 +85,8 @@ export default function MatchDetailScreen() {
   const [now] = useState(() => Date.now());
 
   const matchIdStr = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : undefined;
-  const { data: disputes = [], refetch: refetchDisputes } = useGetMatchDisputes(matchIdStr);
+  const isRealMatchId = isValidMatchId(matchIdStr);
+  const { data: disputes = [], refetch: refetchDisputes } = useGetMatchDisputes(isRealMatchId ? matchIdStr : undefined);
 
   const startMatch = useStartMatch();
   const pauseMatch = usePauseMatch();
@@ -308,7 +310,7 @@ export default function MatchDetailScreen() {
         </View>
         
         {/* RSVP / Attendance Widget */}
-        {match && (
+        {match && isValidMatchId(match.id) && (
           <AttendanceWidget 
             matchId={match.id}
             isCaptain={true} // TO DO: Real check if current user is captain
@@ -318,7 +320,7 @@ export default function MatchDetailScreen() {
         )}
 
         {/* Sponsor Banner for Match */}
-        {match && (
+        {match && isValidMatchId(match.id) && (
           <SponsorBanner
             placementType="match_banner"
             tournamentId={match.tournament}
@@ -328,11 +330,12 @@ export default function MatchDetailScreen() {
         )}
 
         {/* Fan Check-in Button */}
-        <TouchableOpacity
-          style={styles.fanCheckInBanner}
-          activeOpacity={0.8}
-          onPress={() => setIsFanCheckInVisible(true)}
-        >
+        {match && isValidMatchId(match.id) && (
+          <TouchableOpacity
+            style={styles.fanCheckInBanner}
+            activeOpacity={0.8}
+            onPress={() => setIsFanCheckInVisible(true)}
+          >
           <View style={styles.fanCheckInLeft}>
             <View style={styles.fanCheckInIconCircle}>
               <MapPin size={20} color="#001A2C" />
@@ -346,6 +349,7 @@ export default function MatchDetailScreen() {
           </View>
           <ChevronRight size={18} color="#001A2C" />
         </TouchableOpacity>
+        )}
         
         <View style={styles.detailCard}>
           <View style={styles.detailItem}>
@@ -429,7 +433,7 @@ export default function MatchDetailScreen() {
       )}
 
       {/* MVP Voting Widget for finished matches */}
-      {match && (match.status === 'played' || (match.status as any) === 'completed') && (
+      {match && isValidMatchId(match.id) && (match.status === 'played' || (match.status as any) === 'completed') && (
         <MatchMVPVoteWidget
           matchId={match.id}
           isPlayed={true}
@@ -815,7 +819,7 @@ export default function MatchDetailScreen() {
       )}
 
       {/* Admin Controls */}
-      {isAdmin && match && (
+      {isAdmin && match && isValidMatchId(match.id) && (
         <MatchAdminControls
           match={match}
           currentMinute={liveMinute}
@@ -823,15 +827,17 @@ export default function MatchDetailScreen() {
       )}
 
       {/* Dispute Banner */}
-      <View style={{ paddingHorizontal: 16 }}>
-        <MatchDisputeBanner
-          disputes={disputes}
-          canResolve={isAdmin}
-          canFile={canFileDispute}
-          onResolvePress={(d) => setSelectedDisputeToResolve(d)}
-          onFilePress={() => setIsFileDisputeVisible(true)}
-        />
-      </View>
+      {match && isValidMatchId(match.id) && (
+        <View style={{ paddingHorizontal: 16 }}>
+          <MatchDisputeBanner
+            disputes={disputes}
+            canResolve={isAdmin}
+            canFile={canFileDispute}
+            onResolvePress={(d) => setSelectedDisputeToResolve(d)}
+            onFilePress={() => setIsFileDisputeVisible(true)}
+          />
+        </View>
+      )}
 
       {/* Tabs */}
       <View style={styles.tabsWrapper}>
@@ -859,7 +865,7 @@ export default function MatchDetailScreen() {
         {activeTab === 'ESTADISTICAS' && renderStatsTab()}
       </View>
 
-      {match && (
+      {match && isValidMatchId(match.id) && (
         <RateRefereeModal
           visible={isRateModalVisible}
           onClose={() => setIsRateModalVisible(false)}
@@ -868,7 +874,7 @@ export default function MatchDetailScreen() {
         />
       )}
 
-      {match && (
+      {match && isValidMatchId(match.id) && (
         <FanCheckInModal
           visible={isFanCheckInVisible}
           onClose={() => setIsFanCheckInVisible(false)}
@@ -878,7 +884,7 @@ export default function MatchDetailScreen() {
         />
       )}
 
-      {match && (
+      {match && isValidMatchId(match.id) && (
         <FileDisputeModal
           visible={isFileDisputeVisible}
           onClose={() => setIsFileDisputeVisible(false)}
@@ -891,7 +897,7 @@ export default function MatchDetailScreen() {
         />
       )}
 
-      {selectedDisputeToResolve && match && (
+      {selectedDisputeToResolve && match && isValidMatchId(match.id) && (
         <ResolveDisputeModal
           visible={Boolean(selectedDisputeToResolve)}
           onClose={() => setSelectedDisputeToResolve(null)}

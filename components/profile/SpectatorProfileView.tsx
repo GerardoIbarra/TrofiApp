@@ -19,11 +19,19 @@ import {
   Compass,
 } from 'lucide-react-native';
 
+import { FanCard } from './FanCard';
+import { useGetActiveFanCard } from '@/features/fans/services/fanCardApi';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { FanCard as FanCardType } from '@/features/fans/types/fanCard';
+
 interface SpectatorProfileViewProps {
   spectator: SpectatorProfile;
   fullName: string;
   username: string;
   favorites?: Favorite[];
+  userId?: string;
+  photoUrl?: string | null;
+  fanCard?: FanCardType | null;
 }
 
 export function SpectatorProfileView({
@@ -31,15 +39,31 @@ export function SpectatorProfileView({
   fullName,
   username,
   favorites = [],
+  userId,
+  photoUrl,
+  fanCard,
 }: SpectatorProfileViewProps) {
   const { theme, isDark } = useTheme();
+  const authUser = useAuthStore((state) => state.user);
+  const resolvedUserId = userId || (authUser?.id ? String(authUser.id) : undefined);
+  const { card: fetchedCard } = useGetActiveFanCard(resolvedUserId);
+  const activeFanCard = fanCard !== undefined ? fanCard : fetchedCard;
 
   const favoriteTeams = favorites.filter((f) => f.team || f.team_name || f.favorite_type === 'team');
   const favoriteLeagues = favorites.filter((f) => f.league || f.league_name || f.favorite_type === 'league');
 
   return (
     <View style={styles.container}>
-      {/* Fan Hero Card */}
+      {/* Official Fan Card */}
+      <View style={styles.fanCardHeroContainer}>
+        <FanCard
+          name={fullName}
+          card={activeFanCard}
+          photoUrl={photoUrl || authUser?.photo}
+        />
+      </View>
+
+      {/* Fan Profile Details Card */}
       <View
         style={[
           styles.fanCard,
@@ -248,6 +272,12 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     marginBottom: 24,
+  },
+  fanCardHeroContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    marginTop: 8,
   },
   fanCard: {
     borderRadius: 20,

@@ -74,10 +74,12 @@ export default function ProfileScreen() {
   // proporcionalmente solo en pantallas más bajas que ese baseline (ej. iPhone SE).
   const heroHeight = Math.min(480, Math.max(360, screenHeight * (480 / 812)));
   const styles = createStyles(theme, isDark);
-  const { id, userId, openAchievements } = useLocalSearchParams<{
+  const { id, userId, openAchievements, openFanCard, role } = useLocalSearchParams<{
     id?: string;
     userId?: string;
     openAchievements?: string;
+    openFanCard?: string;
+    role?: string;
   }>();
 
   const [profile, setProfile] = useState<any | null>(null);
@@ -108,7 +110,9 @@ export default function ProfileScreen() {
   // primero la vista de jugador y luego salta a la del rol real.
   const [chosenRole, setSelectedRole] = useState<UserProfileRole | null>(null);
   const selectedRole: UserProfileRole =
-    chosenRole && availableRoles.includes(chosenRole)
+    openFanCard === "1" || role === "spectator"
+      ? "spectator"
+      : chosenRole && availableRoles.includes(chosenRole)
       ? chosenRole
       : availableRoles[0] || 'player';
 
@@ -347,12 +351,25 @@ export default function ProfileScreen() {
                 fullName={fullName}
                 memberships={profile?.memberships || user?.memberships}
               />
-            ) : selectedRole === "spectator" && (profile?.spectator_profile || user?.spectator_profile) ? (
+            ) : selectedRole === "spectator" ? (
               <SpectatorProfileView
-                spectator={profile?.spectator_profile || user?.spectator_profile}
+                spectator={
+                  profile?.spectator_profile ||
+                  user?.spectator_profile || {
+                    id: profile?.id || user?.id || "",
+                    city: profile?.city || (user as any)?.city || "",
+                    bio: profile?.bio || (user as any)?.bio || "",
+                    preferred_language: "es",
+                    is_public: true,
+                    created_at: "",
+                    updated_at: "",
+                  }
+                }
                 fullName={fullName}
                 username={profile?.username || user?.username || ""}
                 favorites={profile?.favorites || user?.favorites}
+                userId={userId || profile?.user || profile?.id || user?.id}
+                photoUrl={activePhoto}
               />
             ) : (
               <>

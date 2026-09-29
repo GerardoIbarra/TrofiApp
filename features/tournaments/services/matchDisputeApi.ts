@@ -5,19 +5,22 @@ import {
   FileDisputePayload,
   ResolveDisputePayload,
 } from '../types/matchDispute';
+import { isValidMatchId } from '@/features/matches/utils/matchValidation';
 
 export const useGetMatchDisputes = (matchId?: string) => {
+  const isMatchValid = isValidMatchId(matchId);
+
   return useQuery({
     queryKey: ['match-disputes', matchId],
     queryFn: async (): Promise<MatchDispute[]> => {
-      if (!matchId) return [];
+      if (!isMatchValid || !matchId) return [];
       const response = await api.get<any>(`/v1/match-disputes/?match=${matchId}`);
       if (Array.isArray(response)) {
         return response;
       }
       return response?.results || [];
     },
-    enabled: Boolean(matchId),
+    enabled: isMatchValid,
   });
 };
 

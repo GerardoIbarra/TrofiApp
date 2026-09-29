@@ -208,6 +208,7 @@ export function setupNotifications(
 export interface NotificationRouteTarget {
   pathname: string;
   params: Record<string, any>;
+  actionLabel?: string;
 }
 
 const SCREEN_ROUTE_MAP: Record<string, string> = {
@@ -233,6 +234,7 @@ const SCREEN_ROUTE_MAP: Record<string, string> = {
   player: "/player-detail",
   // rating_changed ("Tu overall cambió") siempre es del propio usuario → su perfil
   playercard: "/profile",
+  fancard: "/profile",
 
   // achievement_unlocked → los logros viven en un modal dentro del perfil
   achievements: "/profile",
@@ -262,10 +264,13 @@ const SCREEN_ROUTE_MAP: Record<string, string> = {
  * - data.screen: nombre de pantalla a la que navegar (ej: "LeagueDetail", "MatchDetail", etc.)
  * - Resto de claves: diccionario libre pasado a params (ej: league_id, status, match_id, etc.)
  */
-export function resolveNotificationRoute(rawData: any): NotificationRouteTarget | null {
-  if (!rawData) return null;
+export function resolveNotificationRoute(
+  rawData: any,
+  options: { notificationType?: string | null } = {}
+): NotificationRouteTarget | null {
+  if (!rawData && !options.notificationType) return null;
 
-  let payload = rawData;
+  let payload = rawData || {};
   if (typeof payload === "string") {
     try {
       payload = JSON.parse(payload);
@@ -274,7 +279,10 @@ export function resolveNotificationRoute(rawData: any): NotificationRouteTarget 
     }
   }
 
-  if (typeof payload !== "object" || payload === null) return null;
+  if (typeof payload !== "object" || payload === null) {
+    if (!options.notificationType) return null;
+    payload = {};
+  }
 
   const rawScreen = typeof payload.screen === "string" ? payload.screen.trim() : "";
   const params: Record<string, any> = {};
@@ -300,20 +308,60 @@ export function resolveNotificationRoute(rawData: any): NotificationRouteTarget 
     }
   }
 
-  // Heurística de fallback si no se especificó screen
+  // Identificadores comunes (incluyendo nombres directos serializados por Django)
+  const matchId = payload.match_id || payload.matchId || payload.match;
+  const tournamentId = payload.tournament_id || payload.tournamentId || payload.tournament;
+  const leagueId = payload.league_id || payload.leagueId || payload.league;
+  const teamId = payload.team_id || payload.teamId || payload.team;
+  const spotId = payload.spot_id || payload.pickup_spot_id || payload.pickupSpotId || payload.spot;
+  const playerId = payload.player_id || payload.playerId || payload.player;
+
+  // Heurística de fallback si no se especificó screen pero sí existen IDs
   if (!pathname) {
-    if (payload.match_id || payload.matchId) {
+    if (matchId) {
       pathname = "/match-detail";
-    } else if (payload.tournament_id || payload.tournamentId) {
+    } else if (tournamentId) {
       pathname = "/tournament-detail";
-    } else if (payload.league_id || payload.leagueId) {
+    } else if (leagueId) {
       pathname = "/league-detail";
-    } else if (payload.team_id || payload.teamId) {
+    } else if (teamId) {
       pathname = "/team-detail";
-    } else if (payload.spot_id || payload.pickup_spot_id || payload.pickupSpotId) {
+    } else if (spotId) {
       pathname = "/pickup-spot-detail";
-    } else if (payload.player_id || payload.playerId) {
+    } else if (playerId) {
       pathname = "/player-detail";
+    } else if (payload.with || payload.with_user_id || payload.sender_id || payload.chat_id) {
+      pathname = "/direct-messages";
+    }
+  }
+
+  // Heurística basada en el tipo de notificación si no vino ningún ID específico
+  if (!pathname) {
+    const rawType = String(
+      options.notificationType || payload.notification_type || payload.type || ""
+    ).toLowerCase();
+
+    if (rawType.includes("league")) {
+      pathname = "/leagues";
+    } else if (rawType.includes("team")) {
+      pathname = "/teams";
+    } else if (rawType.includes("match")) {
+      pathname = "/explore";
+    } else if (rawType.includes("tournament")) {
+      pathname = "/explore";
+    } else if (rawType.includes("pickup") || rawType.includes("reta")) {
+      pathname = "/retas";
+    } else if (rawType.includes("chat") || rawType.includes("message")) {
+      pathname = "/direct-messages";
+    } else if (rawType.includes("referee")) {
+      pathname = "/referee-marketplace";
+    } else if (rawType.includes("sponsor")) {
+      pathname = "/sponsor-placements";
+    } else if (rawType === "achievement_unlocked" || rawType.includes("achievement")) {
+      pathname = "/profile";
+      params.openAchievements = "1";
+    } else if (rawType === "rating_changed" || rawType.includes("rating") || rawType.includes("card")) {
+      pathname = "/profile";
     }
   }
 
@@ -324,18 +372,18 @@ export function resolveNotificationRoute(rawData: any): NotificationRouteTarget 
 
   // Garantizar que las pantallas que esperan 'id' como parámetro principal lo tengan disponible
   if (!params.id) {
-    if (pathname === "/league-detail" && (payload.league_id || payload.leagueId)) {
-      params.id = String(payload.league_id || payload.leagueId);
-    } else if (pathname === "/match-detail" && (payload.match_id || payload.matchId)) {
-      params.id = String(payload.match_id || payload.matchId);
-    } else if (pathname === "/tournament-detail" && (payload.tournament_id || payload.tournamentId)) {
-      params.id = String(payload.tournament_id || payload.tournamentId);
-    } else if (pathname === "/team-detail" && (payload.team_id || payload.teamId)) {
-      params.id = String(payload.team_id || payload.teamId);
-    } else if (pathname === "/pickup-spot-detail" && (payload.spot_id || payload.pickup_spot_id || payload.pickupSpotId)) {
-      params.id = String(payload.spot_id || payload.pickup_spot_id || payload.pickupSpotId);
-    } else if (pathname === "/player-detail" && (payload.player_id || payload.playerId)) {
-      params.id = String(payload.player_id || payload.playerId);
+    if (pathname === "/league-detail" && leagueId) {
+      params.id = String(leagueId);
+    } else if (pathname === "/match-detail" && matchId) {
+      params.id = String(matchId);
+    } else if (pathname === "/tournament-detail" && tournamentId) {
+      params.id = String(tournamentId);
+    } else if (pathname === "/team-detail" && teamId) {
+      params.id = String(teamId);
+    } else if (pathname === "/pickup-spot-detail" && spotId) {
+      params.id = String(spotId);
+    } else if (pathname === "/player-detail" && playerId) {
+      params.id = String(playerId);
     }
   }
 
@@ -343,8 +391,13 @@ export function resolveNotificationRoute(rawData: any): NotificationRouteTarget 
     params.openAchievements = "1";
   }
 
-  if (pathname === "/player-detail" && !params.playerId && (payload.player_id || payload.playerId || params.id)) {
-    params.playerId = String(payload.player_id || payload.playerId || params.id);
+  if (normalized === "fancard") {
+    params.openFanCard = "1";
+    params.role = "spectator";
+  }
+
+  if (pathname === "/player-detail" && !params.playerId && (playerId || params.id)) {
+    params.playerId = String(playerId || params.id);
   }
 
   if (pathname === "/direct-messages") {
@@ -356,7 +409,25 @@ export function resolveNotificationRoute(rawData: any): NotificationRouteTarget 
     }
   }
 
-  return { pathname, params };
+  // Label intuitivo para botones de acción
+  let actionLabel = "Ver Detalle";
+  if (pathname === "/match-detail") actionLabel = "Ver Partido";
+  else if (pathname === "/tournament-detail") actionLabel = "Ver Torneo";
+  else if (pathname === "/league-detail") actionLabel = "Ver Liga";
+  else if (pathname === "/team-detail") actionLabel = "Ver Equipo";
+  else if (pathname === "/pickup-spot-detail") actionLabel = "Ver Cancha";
+  else if (pathname === "/player-detail") actionLabel = "Ver Jugador";
+  else if (pathname === "/direct-messages") actionLabel = "Abrir Chat";
+  else if (pathname === "/leagues") actionLabel = "Explorar Ligas";
+  else if (pathname === "/teams") actionLabel = "Explorar Equipos";
+  else if (pathname === "/retas") actionLabel = "Ver Retas";
+  else if (pathname === "/profile") {
+    if (params.openAchievements === "1") actionLabel = "Ver Logros";
+    else if (params.openFanCard === "1") actionLabel = "Ver Fan Card";
+    else actionLabel = "Ver Mi Perfil";
+  }
+
+  return { pathname, params, actionLabel };
 }
 
 /**
@@ -384,7 +455,9 @@ export function handleNotificationData(
     });
   }
 
-  const route = resolveNotificationRoute(data);
+  const route = resolveNotificationRoute(data, {
+    notificationType: options.notificationType,
+  });
   if (route) {
     logger.info("notifications", "Navegando a pantalla desde notificación", {
       pathname: route.pathname,

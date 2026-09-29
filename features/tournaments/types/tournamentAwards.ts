@@ -38,3 +38,28 @@ export interface ComputeWeeklyMVPResponse {
   week_start: string;
   week_end: string;
 }
+
+export interface ComputeTeamOfTheWeekRequest {
+  [key: string]: unknown;
+  start?: string; // ISO date-time
+  end?: string;   // ISO date-time
+  matchday?: number;
+}
+
+export interface TOTWPlayer {
+  id: string;
+  name: string;
+  position?: string;
+  avg_rating?: string | number;
+  metadata?: {
+    position?: string;
+    avg_rating?: string;
+  };
+}
+
+export interface ComputeTeamOfTheWeekResponse {
+  team: TOTWPlayer[];
+  week_start?: string;
+  week_end?: string;
+  matchday?: number;
+}

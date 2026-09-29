@@ -8,6 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  TextInput,
 } from 'react-native';
 import {
   Trophy,
@@ -26,11 +27,13 @@ import {
   useDetermineChampion,
   useCrownSeasonAwards,
   useComputeWeeklyMVP,
+  useComputeTeamOfTheWeek,
 } from '@/features/tournaments/services/tournamentApi';
 import {
   DetermineChampionResponse,
   CrownSeasonAwardsResponse,
   ComputeWeeklyMVPResponse,
+  ComputeTeamOfTheWeekResponse,
 } from '@/features/tournaments/types/tournamentAwards';
 import { useAwardTeamAchievement } from '@/features/teams/services/teamProfileApi';
 import api from '@/services/api';
@@ -43,7 +46,7 @@ interface TournamentAwardsModalProps {
   championDetermination?: string; // 'standings' | 'playoffs'
 }
 
-type TabType = 'CHAMPION' | 'SEASON_AWARDS' | 'WEEKLY_MVP' | 'TEAM_ACHIEVEMENTS';
+type TabType = 'CHAMPION' | 'SEASON_AWARDS' | 'WEEKLY_MVP' | 'WEEKLY_TOTW' | 'TEAM_ACHIEVEMENTS';
 
 export function TournamentAwardsModal({
   visible,
@@ -61,6 +64,8 @@ export function TournamentAwardsModal({
   const [championResult, setChampionResult] = useState<DetermineChampionResponse | null>(null);
   const [seasonResult, setSeasonResult] = useState<CrownSeasonAwardsResponse | null>(null);
   const [weeklyResult, setWeeklyResult] = useState<ComputeWeeklyMVPResponse | null>(null);
+  const [totwResult, setTotwResult] = useState<ComputeTeamOfTheWeekResponse | null>(null);
+  const [totwMatchday, setTotwMatchday] = useState<string>('');
 
   const [selectedTeamId, setSelectedTeamId] = useState<string>('');
   const [selectedAchievementType, setSelectedAchievementType] = useState<
@@ -72,6 +77,7 @@ export function TournamentAwardsModal({
   const determineChampionMutation = useDetermineChampion();
   const crownSeasonAwardsMutation = useCrownSeasonAwards();
   const computeWeeklyMVPMutation = useComputeWeeklyMVP();
+  const computeTeamOfTheWeekMutation = useComputeTeamOfTheWeek();
   const awardTeamAchievementMutation = useAwardTeamAchievement();
 
   const fetchTeams = async () => {
@@ -156,6 +162,36 @@ export function TournamentAwardsModal({
     }
   };
 
+  const handleComputeTOTW = async () => {
+    try {
+      const matchdayNum = totwMatchday.trim() ? parseInt(totwMatchday.trim(), 10) : undefined;
+      const res = await computeTeamOfTheWeekMutation.mutateAsync({
+        tournamentId,
+        matchday: Number.isFinite(matchdayNum) ? matchdayNum : undefined,
+      });
+      setTotwResult(res);
+      if (res.team && res.team.length > 0) {
+        showToast({
+          type: 'success',
+          title: '¡Equipo de la Semana!',
+          message: `Se otorgó el logro 'totw' a los ${res.team.length} jugadores seleccionados.`,
+        });
+      } else {
+        showToast({
+          type: 'info',
+          title: 'Sin Jugadores Calificados',
+          message: 'No hubo suficientes jugadores calificados en este periodo o el formato del torneo es menor a 5v5.',
+        });
+      }
+    } catch (err: any) {
+      showToast({
+        type: 'error',
+        title: 'Error',
+        message: err?.message || 'No se pudo calcular el Equipo de la Semana.',
+      });
+    }
+  };
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
@@ -174,7 +210,12 @@ export function TournamentAwardsModal({
           </View>
 
           {/* Navigation Tabs */}
-          <View style={styles.tabsRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabsRow}
+            style={{ flexGrow: 0, marginBottom: 16 }}
+          >
             <TouchableOpacity
               style={[styles.tabBtn, activeTab === 'CHAMPION' && styles.tabBtnActive]}
               onPress={() => setActiveTab('CHAMPION')}
@@ -201,7 +242,17 @@ export function TournamentAwardsModal({
             >
               <Star size={14} color={activeTab === 'WEEKLY_MVP' ? '#001A2C' : theme.textSecondary} />
               <Text style={[styles.tabBtnText, activeTab === 'WEEKLY_MVP' && styles.tabBtnTextActive]}>
-                MVP Semana
+                MVP
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabBtn, activeTab === 'WEEKLY_TOTW' && styles.tabBtnActive]}
+              onPress={() => setActiveTab('WEEKLY_TOTW')}
+            >
+              <Users size={14} color={activeTab === 'WEEKLY_TOTW' ? '#001A2C' : theme.textSecondary} />
+              <Text style={[styles.tabBtnText, activeTab === 'WEEKLY_TOTW' && styles.tabBtnTextActive]}>
+                Once (TOTW)
               </Text>
             </TouchableOpacity>
 
@@ -212,12 +263,12 @@ export function TournamentAwardsModal({
                 fetchTeams();
               }}
             >
-              <Users size={14} color={activeTab === 'TEAM_ACHIEVEMENTS' ? '#001A2C' : theme.textSecondary} />
+              <ShieldCheck size={14} color={activeTab === 'TEAM_ACHIEVEMENTS' ? '#001A2C' : theme.textSecondary} />
               <Text style={[styles.tabBtnText, activeTab === 'TEAM_ACHIEVEMENTS' && styles.tabBtnTextActive]}>
                 Equipos
               </Text>
             </TouchableOpacity>
-          </View>
+          </ScrollView>
 
           <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollBody}>
             {/* TAB 1: CORONAR CAMPEÓN */}
@@ -415,7 +466,119 @@ export function TournamentAwardsModal({
               </View>
             )}
 
-            {/* TAB 4: LOGROS MANUALES DE EQUIPO (TICKET 18 SEC. 5) */}
+            {/* TAB 4: EQUIPO DE LA SEMANA (TOTW) */}
+            {activeTab === 'WEEKLY_TOTW' && (
+              <View style={styles.sectionContainer}>
+                <View style={styles.infoBanner}>
+                  <Text style={styles.infoBannerTitle}>Equipo de la Semana (TOTW)</Text>
+                  <Text style={styles.infoBannerSub}>
+                    Agrupa por posición y selecciona a los mejores jugadores según su calificación promedio en la ventana seleccionada. Otorga el logro &apos;totw&apos; de forma automática e idempotente.
+                  </Text>
+                </View>
+
+                {/* Optional matchday input */}
+                <Text style={styles.fieldLabel}>JORNADA / FECHA ESPECÍFICA (OPCIONAL)</Text>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Ej: 3 (dejar vacío para últimos 7 días)"
+                  placeholderTextColor={theme.textSecondary}
+                  keyboardType="numeric"
+                  value={totwMatchday}
+                  onChangeText={setTotwMatchday}
+                />
+                <Text style={styles.inputHelperText}>
+                  Si indicas una jornada, tiene prioridad sobre el rango de fechas. Si lo dejas vacío, se evaluarán los últimos 7 días.
+                </Text>
+
+                {totwResult ? (
+                  <View style={[styles.awardCard, { marginTop: 14 }]}>
+                    <View style={styles.awardCardHeader}>
+                      <Users size={18} color={theme.primary} />
+                      <Text style={styles.awardCardTitle}>
+                        {totwResult.matchday
+                          ? `TOTW - JORNADA ${totwResult.matchday}`
+                          : `TOTW - ÚLTIMOS 7 DÍAS`}
+                      </Text>
+                    </View>
+
+                    {totwResult.week_start && totwResult.week_end && !totwResult.matchday && (
+                      <Text style={styles.weeklyDates}>
+                        {new Date(totwResult.week_start).toLocaleDateString()} - {new Date(totwResult.week_end).toLocaleDateString()}
+                      </Text>
+                    )}
+
+                    {totwResult.team && totwResult.team.length > 0 ? (
+                      <View style={{ gap: 8, marginTop: 8 }}>
+                        {totwResult.team.map((player, idx) => (
+                          <View key={player.id || idx} style={styles.totwRow}>
+                            <View style={styles.posBadge}>
+                              <Text style={styles.posBadgeText}>{player.position || 'JUG'}</Text>
+                            </View>
+                            <View style={{ flex: 1, marginLeft: 8 }}>
+                              <Text style={styles.bestXIName}>{player.name}</Text>
+                              {player.team_name ? (
+                                <Text style={styles.totwTeamName}>{player.team_name}</Text>
+                              ) : null}
+                            </View>
+                            <Text style={styles.bestXIRating}>
+                              ★ {typeof player.avg_rating === 'number'
+                                ? player.avg_rating.toFixed(1)
+                                : typeof player.rating === 'number'
+                                ? player.rating.toFixed(1)
+                                : '-'}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    ) : (
+                      <Text style={styles.emptyText}>
+                        No hubo jugadores calificados en este periodo o el formato del torneo no admite XI ideal.
+                      </Text>
+                    )}
+
+                    <TouchableOpacity
+                      style={[
+                        styles.primaryActionBtn,
+                        computeTeamOfTheWeekMutation.isPending && { opacity: 0.6 },
+                        { marginTop: 12 },
+                      ]}
+                      onPress={handleComputeTOTW}
+                      disabled={computeTeamOfTheWeekMutation.isPending}
+                    >
+                      {computeTeamOfTheWeekMutation.isPending ? (
+                        <ActivityIndicator size="small" color="#001A2C" />
+                      ) : (
+                        <>
+                          <Users size={16} color="#001A2C" />
+                          <Text style={styles.primaryActionBtnText}>Recalcular TOTW</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.primaryActionBtn,
+                      computeTeamOfTheWeekMutation.isPending && { opacity: 0.6 },
+                      { marginTop: 16 },
+                    ]}
+                    onPress={handleComputeTOTW}
+                    disabled={computeTeamOfTheWeekMutation.isPending}
+                  >
+                    {computeTeamOfTheWeekMutation.isPending ? (
+                      <ActivityIndicator size="small" color="#001A2C" />
+                    ) : (
+                      <>
+                        <Users size={18} color="#001A2C" />
+                        <Text style={styles.primaryActionBtnText}>Calcular Equipo de la Semana</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
+
+            {/* TAB 5: LOGROS MANUALES DE EQUIPO (TICKET 18 SEC. 5) */}
             {activeTab === 'TEAM_ACHIEVEMENTS' && (
               <View style={styles.sectionContainer}>
                 <View style={styles.infoBanner}>
@@ -576,11 +739,11 @@ const createStyles = (theme: any, isDark: boolean) =>
       gap: 6,
     },
     tabBtn: {
-      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: 8,
+      paddingHorizontal: 12,
       borderRadius: 9,
       gap: 6,
     },
@@ -843,5 +1006,44 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: theme.textSecondary,
       textAlign: 'center',
       marginVertical: 12,
+    },
+    textInput: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 13,
+      color: theme.text,
+    },
+    inputHelperText: {
+      fontSize: 10,
+      color: theme.textSecondary,
+      marginTop: 4,
+    },
+    totwRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+    },
+    posBadge: {
+      backgroundColor: isDark ? 'rgba(0, 240, 255, 0.15)' : 'rgba(0, 240, 255, 0.1)',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 6,
+      minWidth: 38,
+      alignItems: 'center',
+    },
+    posBadgeText: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: theme.primary,
+    },
+    totwTeamName: {
+      fontSize: 11,
+      color: theme.textSecondary,
     },
   });

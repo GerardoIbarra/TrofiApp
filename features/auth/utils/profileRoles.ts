@@ -63,7 +63,7 @@ export function getUserAvailableRoles(user: Partial<User> | null | undefined): U
   if (user.sponsor_profile) {
     roles.push('sponsor');
   }
-  if (user.spectator_profile) {
+  if (user.spectator_profile || (user as any).fan_card || (user as any).has_fan_card) {
     roles.push('spectator');
   }
   if (isTrofiStaff(user)) {

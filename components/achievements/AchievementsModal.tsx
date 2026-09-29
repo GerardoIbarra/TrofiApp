@@ -12,6 +12,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { X, CheckCircle2, Lock, Trophy } from 'lucide-react-native';
 import { BADGE_CATALOG } from '@/components/achievements/badgeCatalog';
 import { useGetUserAchievements } from '@/features/achievements/services/achievementsApi';
+import { isValidEntityId } from '@/features/matches/utils/matchValidation';
 import { Achievement } from '@/features/achievements/types/achievement';
 
 interface AchievementsModalProps {
@@ -31,12 +32,16 @@ export function AchievementsModal({
   const { theme, isDark } = useTheme();
   const [activeCategory, setActiveCategory] = useState<'all' | 'fan' | 'referee' | 'player'>('all');
 
-  const { data: userAchievements = [], isLoading } = useGetUserAchievements(userId);
+  const { data: userAchievements = [], isLoading } = useGetUserAchievements(
+    visible && isValidEntityId(userId) ? userId : undefined
+  );
 
-  // Map unlocked achievement types
+  // Map unlocked achievement types and frequencies (for repeatable badges like POTM)
   const unlockedMap = new Map<string, Achievement>();
+  const unlockedCounts = new Map<string, number>();
   userAchievements.forEach((ach) => {
     unlockedMap.set(ach.achievement_type, ach);
+    unlockedCounts.set(ach.achievement_type, (unlockedCounts.get(ach.achievement_type) || 0) + 1);
   });
 
   const filteredBadges = BADGE_CATALOG.filter(
@@ -235,7 +240,9 @@ export function AchievementsModal({
                           ]}
                         >
                           <Text style={[styles.unlockedBadgeText, { color: badge.color }]}>
-                            LOGRADO
+                            {(unlockedCounts.get(badge.type) || 1) > 1
+                              ? `×${unlockedCounts.get(badge.type)}`
+                              : 'LOGRADO'}
                           </Text>
                         </View>
                       ) : (

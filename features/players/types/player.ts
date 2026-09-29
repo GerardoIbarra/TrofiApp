@@ -72,7 +72,8 @@ export interface PlayerAchievement {
 export interface PlayerCard {
   id: string;
   generated_image: string | null;
-  card_type: string;
+  card_type: string; // base, season, form, mvp, top_scorer, special
+  card_type_display?: string;
   position: string;
   overall: number;
   pace: number;
@@ -81,11 +82,32 @@ export interface PlayerCard {
   dribbling: number;
   defense: number;
   physical: number;
-  rarity: string;
-  theme: string;
-  is_active: boolean;
+  rarity: string; // bronze, silver, gold, elite, iconic, legend, icon, champion, on_fire, veteran, rookie, birthday, community, derby
+  rarity_color?: string; // hex color embedded by backend (e.g. #17968C)
+  rarity_label?: string; // localized label embedded by backend (e.g. "Icónica")
+  theme?: string | null;
+  last_calculated_at?: string | null;
+  tournament?: string | null;
+  tournament_name?: string | null;
+  tournament_season_label?: string | null;
+  is_active?: boolean;
   player: string;
-  tournament: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CardHistoryItem {
+  id?: string;
+  card?: string;
+  overall: number;
+  pace?: number;
+  shooting?: number;
+  passing?: number;
+  dribbling?: number;
+  defense?: number;
+  physical?: number;
+  rarity: string;
+  rarity_color?: string;
+  rarity_label?: string;
+  captured_at: string;
 }

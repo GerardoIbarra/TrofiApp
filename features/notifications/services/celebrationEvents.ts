@@ -73,7 +73,7 @@ export function parseCelebrationEvent(
 
   const looksLikeRating =
     type === CELEBRATION_NOTIFICATION_TYPES.ratingChanged ||
-    (!type && screen === 'playercard' && data.card_id && data.overall != null);
+    (!type && (screen === 'playercard' || screen === 'fancard') && data.card_id && data.overall != null);
 
   if (looksLikeRating) {
     const overall = toNumber(data.overall);
@@ -85,12 +85,15 @@ export function parseCelebrationEvent(
         : overall >= previousOverall
         ? 'up'
         : 'down';
+    const isFanCard = screen === 'fancard';
     return {
       kind: 'rating',
       key: nextKey(),
       source,
-      playerId: String(data.player_id ?? ''),
+      playerId: data.player_id ? String(data.player_id) : undefined,
       cardId: String(data.card_id),
+      cardType: isFanCard ? 'fan' : 'player',
+      screen: isFanCard ? 'FanCard' : 'PlayerCard',
       previousOverall,
       overall,
       direction,
@@ -113,12 +116,18 @@ function refreshAffectedQueries(event: CelebrationEvent) {
     return;
   }
 
-  if (event.playerId) {
-    queryClient.invalidateQueries({ queryKey: ['player-profile', event.playerId] });
-    queryClient.invalidateQueries({ queryKey: ['player-cards', event.playerId] });
-  } else {
-    queryClient.invalidateQueries({ queryKey: ['player-profile'] });
-    queryClient.invalidateQueries({ queryKey: ['player-cards'] });
+  if (event.cardType === 'fan' || !event.playerId) {
+    queryClient.invalidateQueries({ queryKey: ['fan-cards'] });
+  }
+
+  if (event.cardType !== 'fan') {
+    if (event.playerId) {
+      queryClient.invalidateQueries({ queryKey: ['player-profile', event.playerId] });
+      queryClient.invalidateQueries({ queryKey: ['player-cards', event.playerId] });
+    } else {
+      queryClient.invalidateQueries({ queryKey: ['player-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['player-cards'] });
+    }
   }
 }
 

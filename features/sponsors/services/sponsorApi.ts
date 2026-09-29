@@ -7,6 +7,7 @@ import {
   UpdateSponsorPlacementData,
   PlacementType,
 } from '../types/sponsor';
+import { isValidEntityId } from '@/features/matches/utils/matchValidation';
 
 export interface GetSponsorPlacementsParams {
   sponsor?: string;
@@ -18,9 +19,18 @@ export interface GetSponsorPlacementsParams {
 }
 
 export const useGetSponsorPlacements = (params?: GetSponsorPlacementsParams) => {
+  const hasInvalidFilter = Boolean(
+    params &&
+      ((params.league && !isValidEntityId(params.league)) ||
+        (params.tournament && !isValidEntityId(params.tournament)) ||
+        (params.team && !isValidEntityId(params.team)) ||
+        (params.sponsor && !isValidEntityId(params.sponsor)))
+  );
+
   return useQuery({
     queryKey: ['sponsor-placements', params],
     queryFn: async () => {
+      if (hasInvalidFilter) return [];
       const searchParams = new URLSearchParams();
       if (params?.sponsor) searchParams.append('sponsor', params.sponsor);
       if (params?.league) searchParams.append('league', params.league);
@@ -37,6 +47,7 @@ export const useGetSponsorPlacements = (params?: GetSponsorPlacementsParams) => 
         : response?.results || [];
       return results;
     },
+    enabled: !hasInvalidFilter,
   });
 };
 

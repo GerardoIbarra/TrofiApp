@@ -21,8 +21,10 @@ export interface RatingCelebration {
   kind: 'rating';
   key: string;
   source: CelebrationSource;
-  playerId: string;
+  playerId?: string;
   cardId: string;
+  cardType?: 'player' | 'fan';
+  screen?: 'PlayerCard' | 'FanCard';
   previousOverall: number;
   overall: number;
   direction: 'up' | 'down';
