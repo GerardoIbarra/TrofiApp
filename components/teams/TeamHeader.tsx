@@ -33,7 +33,7 @@ export function TeamHeader({ team, onEditPress, canEdit: canEditProp }: TeamHead
   const secondPart = nameParts.slice(1).join(" ");
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { minHeight: 360 + insets.top }]}>
       {/* Dynamic Background or Fallback */}
       <Image
         source={
@@ -60,49 +60,52 @@ export function TeamHeader({ team, onEditPress, canEdit: canEditProp }: TeamHead
           <LayoutHeader showBackButton={true} />
         </View>
 
-        {/* Info Tag */}
-        <View style={styles.tagContainer}>
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryText}>{team.league_name?.toUpperCase() || t('team_detail.no_league', 'SIN LIGA')}</Text>
-          </View>
-          <Text style={styles.regionText}>
-            {team.city.toUpperCase()}
-          </Text>
-          {canEdit && (
-            <TouchableOpacity 
-              style={styles.editButton} 
-              onPress={onEditPress}
-              activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityRole="button"
-              accessibilityLabel="Configuración de Equipo"
-            >
-              <Settings size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.2} />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Monumental Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleGiant}>{firstPart.toUpperCase()}</Text>
-          {secondPart ? (
-            <Text style={[styles.titleGiant, { color: theme.primary }]}>
-              {secondPart.toUpperCase()}
+        {/* Content */}
+        <View style={styles.contentContainer}>
+          {/* Info Tag */}
+          <View style={styles.tagContainer}>
+            <View style={styles.categoryBadge}>
+              <Text style={styles.categoryText}>{team.league_name?.toUpperCase() || t('team_detail.no_league', 'SIN LIGA')}</Text>
+            </View>
+            <Text style={styles.regionText}>
+              {team.city.toUpperCase()}
             </Text>
-          ) : null}
-        </View>
-
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statLine}>
-            <Text style={styles.statLabel}>{t('team_detail.active_tournaments', 'TORNEOS ACTIVOS')}</Text>
-            <Text style={styles.statKpi}>{team.tournament_registrations?.length || "0"}</Text>
+            {canEdit && (
+              <TouchableOpacity 
+                style={styles.editButton} 
+                onPress={onEditPress}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Configuración de Equipo"
+              >
+                <Settings size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.2} />
+              </TouchableOpacity>
+            )}
           </View>
-          <View style={styles.statLine}>
-            <Text style={styles.statLabel}>{t('team_detail.manager', 'GESTOR')}</Text>
-            <Text style={styles.statKpi} numberOfLines={1}>
-              {team.owner_name?.split(" ")[0] || "---"}
-            </Text>
+
+          {/* Monumental Title */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.titleGiant}>{firstPart.toUpperCase()}</Text>
+            {secondPart ? (
+              <Text style={[styles.titleGiant, { color: theme.primary }]}>
+                {secondPart.toUpperCase()}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statLine}>
+              <Text style={styles.statLabel}>{t('team_detail.active_tournaments', 'TORNEOS ACTIVOS')}</Text>
+              <Text style={styles.statKpi}>{team.tournament_registrations?.length || "0"}</Text>
+            </View>
+            <View style={styles.statLine}>
+              <Text style={styles.statLabel}>{t('team_detail.manager', 'GESTOR')}</Text>
+              <Text style={styles.statKpi} numberOfLines={1}>
+                {team.owner_name?.split(" ")[0] || "---"}
+              </Text>
+            </View>
           </View>
         </View>
       </LinearGradient>
@@ -114,25 +117,25 @@ const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     container: {
       width: "100%",
-      height: 380,
       backgroundColor: isDark ? "#020610" : "#F8FAFC",
     },
     gradientOverlay: {
       flex: 1,
-      paddingHorizontal: 20,
-      justifyContent: "flex-end",
-      paddingBottom: 45,
+      justifyContent: "space-between",
+      paddingBottom: 25,
     },
     headerWrapper: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
+      width: "100%",
+      zIndex: 10,
+    },
+    contentContainer: {
+      paddingHorizontal: 20,
+      paddingTop: 16,
     },
     tagContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 5,
+      marginBottom: 10,
     },
     categoryBadge: {
       backgroundColor: theme.primary,

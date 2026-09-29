@@ -50,7 +50,7 @@ export function TournamentHeader({ tournament, onEditPress, onAddPress }: Tourna
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { minHeight: 360 + insets.top }]}>
       {/* Background Fallback for Tournaments */}
       <Image
         source={{ uri: "https://images.pexels.com/photos/46798/the-ball-stadion-football-the-pitch-46798.jpeg?auto=compress&cs=tinysrgb&w=1600" }}
@@ -74,82 +74,85 @@ export function TournamentHeader({ tournament, onEditPress, onAddPress }: Tourna
           <LayoutHeader showBackButton={true} />
         </View>
 
-        {/* Info Tag & Actions */}
-        <View style={styles.tagContainer}>
-          <View style={styles.badgeRow}>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(tournament.status) }]}>
-              <Text style={styles.statusText}>{tournament.status.toUpperCase()}</Text>
+        {/* Content */}
+        <View style={styles.contentContainer}>
+          {/* Info Tag & Actions */}
+          <View style={styles.tagContainer}>
+            <View style={styles.badgeRow}>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(tournament.status) }]}>
+                <Text style={styles.statusText}>{tournament.status.toUpperCase()}</Text>
+              </View>
+              <Text style={styles.seasonText}>
+                {tournament.season_label.toUpperCase()}
+              </Text>
+              
+              {daysRemaining > 0 && tournament.status === 'draft' && (
+                <View style={styles.countdownBadge}>
+                  <Text style={styles.countdownText}>
+                    {t("tournament.starts_in", { count: daysRemaining })}
+                  </Text>
+                </View>
+              )}
             </View>
-            <Text style={styles.seasonText}>
-              {tournament.season_label.toUpperCase()}
-            </Text>
-            
-            {daysRemaining > 0 && tournament.status === 'draft' && (
-              <View style={styles.countdownBadge}>
-                <Text style={styles.countdownText}>
-                  {t("tournament.starts_in", { count: daysRemaining })}
+
+            <View style={styles.actionBtnGroup}>
+              {onAddPress && (
+                <TouchableOpacity 
+                  style={styles.actionBtn} 
+                  onPress={onAddPress}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Agregar"
+                >
+                  <Plus size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.6} />
+                </TouchableOpacity>
+              )}
+
+              {onEditPress && (
+                <TouchableOpacity 
+                  style={styles.actionBtn} 
+                  onPress={onEditPress}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Configuración"
+                >
+                  <Settings size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.2} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* Monumental Title */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.titleGiant}>{firstPart.toUpperCase()}</Text>
+            {secondPart ? (
+              <Text style={[styles.titleGiant, { color: theme.primary }]}>
+                {secondPart.toUpperCase()}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Stats Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statLine}>
+              <Text style={styles.statLabel}>{t("tournament.label_teams")}</Text>
+              <View style={styles.kpiBox}>
+                 <Trophy size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
+                 <Text style={styles.statKpi}>{tournament.team_count || "0"}</Text>
+              </View>
+            </View>
+            <View style={styles.statLine}>
+              <Text style={styles.statLabel}>{t("tournament.label_duration")}</Text>
+              <View style={styles.kpiBox}>
+                <Calendar size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
+                <Text style={styles.statKpi}>
+                  {tournament.start_date && !isNaN(new Date(tournament.start_date).getTime()) 
+                    ? new Date(tournament.start_date).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
+                    : 'TBD'}
                 </Text>
               </View>
-            )}
-          </View>
-
-          <View style={styles.actionBtnGroup}>
-            {onAddPress && (
-              <TouchableOpacity 
-                style={styles.actionBtn} 
-                onPress={onAddPress}
-                activeOpacity={0.7}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityRole="button"
-                accessibilityLabel="Agregar"
-              >
-                <Plus size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.6} />
-              </TouchableOpacity>
-            )}
-
-            {onEditPress && (
-              <TouchableOpacity 
-                style={styles.actionBtn} 
-                onPress={onEditPress}
-                activeOpacity={0.7}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityRole="button"
-                accessibilityLabel="Configuración"
-              >
-                <Settings size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.2} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {/* Monumental Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleGiant}>{firstPart.toUpperCase()}</Text>
-          {secondPart ? (
-            <Text style={[styles.titleGiant, { color: theme.primary }]}>
-              {secondPart.toUpperCase()}
-            </Text>
-          ) : null}
-        </View>
-
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statLine}>
-            <Text style={styles.statLabel}>{t("tournament.label_teams")}</Text>
-            <View style={styles.kpiBox}>
-               <Trophy size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
-               <Text style={styles.statKpi}>{tournament.team_count || "0"}</Text>
-            </View>
-          </View>
-          <View style={styles.statLine}>
-            <Text style={styles.statLabel}>{t("tournament.label_duration")}</Text>
-            <View style={styles.kpiBox}>
-              <Calendar size={14} color={theme.textSecondary} style={{ marginRight: 6 }} />
-              <Text style={styles.statKpi}>
-                {tournament.start_date && !isNaN(new Date(tournament.start_date).getTime()) 
-                  ? new Date(tournament.start_date).toLocaleDateString(undefined, { month: 'short', year: 'numeric' })
-                  : 'TBD'}
-              </Text>
             </View>
           </View>
         </View>
@@ -162,26 +165,26 @@ const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     container: {
       width: "100%",
-      height: 380,
       backgroundColor: isDark ? "#020610" : "#F8FAFC",
     },
     gradientOverlay: {
       flex: 1,
-      paddingHorizontal: 20,
-      justifyContent: "flex-end",
-      paddingBottom: 45,
+      justifyContent: "space-between",
+      paddingBottom: 25,
     },
     headerWrapper: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
+      width: "100%",
+      zIndex: 10,
+    },
+    contentContainer: {
+      paddingHorizontal: 20,
+      paddingTop: 16,
     },
     tagContainer: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 10,
+      marginBottom: 12,
     },
     badgeRow: {
       flexDirection: "row",

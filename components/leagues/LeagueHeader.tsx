@@ -40,7 +40,7 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { minHeight: 360 + insets.top }]}>
       {/* Dynamic Background or Fallback */}
       <Image
         source={
@@ -67,57 +67,60 @@ export function LeagueHeader({ league, onEditPress }: LeagueHeaderProps) {
           <LayoutHeader showBackButton={true} />
         </View>
 
-        {/* Region / Status Tag */}
-        <View style={styles.seasonTagContainer}>
-          <View style={styles.liveTag}>
-            <Text style={styles.liveText}>{t('leagues.live_league', 'LIGA ACTIVA')}</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.regionBtn}
-            onPress={handleOpenMaps}
-            activeOpacity={0.7}
-          >
-            <MapPin size={11} color={theme.primary} />
-            <Text style={styles.leagueRegion} numberOfLines={1}>
-              {league.city?.toUpperCase() || ''}{league.country ? `, ${league.country.toUpperCase()}` : ''}
-            </Text>
-            <Navigation size={10} color={theme.primary} />
-          </TouchableOpacity>
-          {isOwner && (
-            <TouchableOpacity 
-              style={styles.editButton} 
-              onPress={onEditPress}
+        {/* Content */}
+        <View style={styles.contentContainer}>
+          {/* Region / Status Tag */}
+          <View style={styles.seasonTagContainer}>
+            <View style={styles.liveTag}>
+              <Text style={styles.liveText}>{t('leagues.live_league', 'LIGA ACTIVA')}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.regionBtn}
+              onPress={handleOpenMaps}
               activeOpacity={0.7}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              accessibilityRole="button"
-              accessibilityLabel="Configuración de Liga"
             >
-              <Settings size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.2} />
+              <MapPin size={11} color={theme.primary} />
+              <Text style={styles.leagueRegion} numberOfLines={1}>
+                {league.city?.toUpperCase() || ''}{league.country ? `, ${league.country.toUpperCase()}` : ''}
+              </Text>
+              <Navigation size={10} color={theme.primary} />
             </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Monumental Title */}
-        <View style={styles.titleContainer}>
-          <Text style={styles.titleGiant}>{firstPart.toUpperCase()}</Text>
-          {secondPart ? (
-            <Text style={[styles.titleGiant, { color: theme.primary }]}>
-              {secondPart.toUpperCase()}
-            </Text>
-          ) : null}
-        </View>
-
-        {/* Stats / KPI Row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statLine}>
-            <Text style={styles.statLabel}>{t('league_detail.total_tournaments', 'TORNEOS TOTALES')}</Text>
-            <Text style={styles.statKpi}>{league.tournament_count || "0"}</Text>
+            {isOwner && (
+              <TouchableOpacity 
+                style={styles.editButton} 
+                onPress={onEditPress}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityRole="button"
+                accessibilityLabel="Configuración de Liga"
+              >
+                <Settings size={18} color={isDark ? "#00F0FF" : theme.primary} strokeWidth={2.2} />
+              </TouchableOpacity>
+            )}
           </View>
-          <View style={styles.statLine}>
-            <Text style={styles.statLabel}>{t('league_detail.members_stat', 'MIEMBROS')}</Text>
-            <Text style={styles.statKpi}>
-              {league.memberships?.length || "0"}
-            </Text>
+
+          {/* Monumental Title */}
+          <View style={styles.titleContainer}>
+            <Text style={styles.titleGiant}>{firstPart.toUpperCase()}</Text>
+            {secondPart ? (
+              <Text style={[styles.titleGiant, { color: theme.primary }]}>
+                {secondPart.toUpperCase()}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Stats / KPI Row */}
+          <View style={styles.statsRow}>
+            <View style={styles.statLine}>
+              <Text style={styles.statLabel}>{t('league_detail.total_tournaments', 'TORNEOS TOTALES')}</Text>
+              <Text style={styles.statKpi}>{league.tournament_count || "0"}</Text>
+            </View>
+            <View style={styles.statLine}>
+              <Text style={styles.statLabel}>{t('league_detail.members_stat', 'MIEMBROS')}</Text>
+              <Text style={styles.statKpi}>
+                {league.memberships?.length || "0"}
+              </Text>
+            </View>
           </View>
         </View>
       </LinearGradient>
@@ -129,25 +132,25 @@ const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     container: {
       width: "100%",
-      height: 380,
       backgroundColor: isDark ? "#020610" : "#F8FAFC", // Fondo de seguridad
     },
     gradientOverlay: {
       flex: 1,
-      paddingHorizontal: 20,
-      justifyContent: "flex-end",
-      paddingBottom: 45, // Ajustado para que no choque con los widgets
+      justifyContent: "space-between",
+      paddingBottom: 25,
     },
     headerWrapper: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
+      width: "100%",
+      zIndex: 10,
+    },
+    contentContainer: {
+      paddingHorizontal: 20,
+      paddingTop: 16,
     },
     seasonTagContainer: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: 5,
+      marginBottom: 10,
     },
     liveTag: {
       backgroundColor: theme.primary,
