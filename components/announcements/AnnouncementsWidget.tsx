@@ -88,13 +88,29 @@ export function AnnouncementsWidget({
     );
   };
 
+  const announcementList = Array.isArray(announcements) ? announcements : [];
+
+  const formatAnnouncementDate = (dateStr?: string) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? '' : d.toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header bar */}
       <View style={styles.headerRow}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <BellRing size={18} color={theme.primary} />
-          <Text style={styles.title}>{t('announcements.title')}</Text>
+          <Text style={styles.title}>{t('announcements.title', 'Avisos Oficiales')}</Text>
         </View>
 
         {canManage && (
@@ -104,7 +120,7 @@ export function AnnouncementsWidget({
             activeOpacity={0.8}
           >
             <Plus size={14} color="#001A2C" />
-            <Text style={styles.addBtnText}>{t('announcements.new_announcement')}</Text>
+            <Text style={styles.addBtnText}>{t('announcements.new_announcement', 'Nuevo Aviso')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -114,18 +130,18 @@ export function AnnouncementsWidget({
         <View style={styles.centerBox}>
           <ActivityIndicator size="small" color={theme.primary} />
         </View>
-      ) : announcements.length === 0 ? (
+      ) : announcementList.length === 0 ? (
         <View style={styles.emptyBox}>
           <Megaphone size={32} color={theme.textSecondary} opacity={0.4} />
-          <Text style={styles.emptyTitle}>Sin avisos publicados</Text>
+          <Text style={styles.emptyTitle}>{t('announcements.empty_title', 'Sin avisos publicados')}</Text>
           <Text style={styles.emptySubtitle}>
-            Los comunicados oficiales e información importante de las fechas aparecerán aquí.
+            {t('announcements.empty_subtitle', 'Los comunicados oficiales e información importante de las fechas aparecerán aquí.')}
           </Text>
         </View>
       ) : (
         <View style={styles.list}>
-          {announcements.map((item) => (
-            <View key={item.id} style={styles.card}>
+          {announcementList.map((item, index) => (
+            <View key={item.id || `announcement-${index}`} style={styles.card}>
               <View style={styles.cardHeader}>
                 <View style={styles.cardTitleWrap}>
                   <Text style={styles.cardTitle}>{item.title}</Text>
@@ -133,11 +149,7 @@ export function AnnouncementsWidget({
                     <View style={styles.metaItem}>
                       <Calendar size={11} color={theme.textSecondary} />
                       <Text style={styles.metaText}>
-                        {new Date(item.created_at).toLocaleDateString(undefined, {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
+                        {formatAnnouncementDate(item.created_at)}
                       </Text>
                     </View>
                     {item.author_name && (

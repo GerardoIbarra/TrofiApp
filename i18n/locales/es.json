@@ -699,5 +699,15 @@
     "dismiss": "¡Genial!",
     "dismiss_neutral": "Entendido",
     "close_a11y": "Cerrar celebración"
+  },
+  "announcements": {
+    "title": "Avisos Oficiales",
+    "new_announcement": "Nuevo Aviso",
+    "delete_title": "Eliminar Aviso",
+    "delete_confirm": "¿Estás seguro de eliminar el aviso \"{{title}}\"?",
+    "deleted_success": "Aviso eliminado con éxito.",
+    "deleted_error": "No se pudo eliminar el aviso.",
+    "empty_title": "Sin avisos publicados",
+    "empty_subtitle": "Los comunicados oficiales e información importante de las fechas aparecerán aquí."
   }
 }

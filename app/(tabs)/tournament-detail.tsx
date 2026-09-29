@@ -19,7 +19,7 @@ import { CloneTournamentModal } from '@/components/leagues/CloneTournamentModal'
 import { TournamentAwardsModal } from '@/components/tournaments/TournamentAwardsModal';
 import { AnnouncementsWidget } from '@/components/announcements/AnnouncementsWidget';
 import { useOpenRegistration, useCloseRegistration } from '@/features/tournaments/services/tournamentApi';
-import { Trophy, Calendar, Clock, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight, Plus } from 'lucide-react-native';
+import { Trophy, Calendar, Clock, Info, ShieldCheck, CreditCard, MessageSquare, QrCode, Users, Layers, MapPin, CheckCircle2, XCircle, Copy, ToggleLeft, ToggleRight, Plus, ChevronRight, BookOpen, Settings2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 export default function TournamentDetailScreen() {
@@ -31,10 +31,23 @@ export default function TournamentDetailScreen() {
   const renderServiceItem = (Icon: any, label: string, active: boolean) => {
     return (
       <View key={label} style={[styles.featureBox, !active && styles.featureDisabled]}>
-        <Icon size={20} color={active ? theme.primary : theme.textSecondary} />
-        <Text style={[styles.featureLabel, !active && { color: theme.textSecondary }]}>
+        <View style={[
+          styles.featureIconWrap, 
+          { backgroundColor: active ? (theme.primary + '18') : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)') }
+        ]}>
+          <Icon size={20} color={active ? theme.primary : theme.textSecondary} />
+        </View>
+        <Text style={[styles.featureLabel, !active && { color: theme.textSecondary }]} numberOfLines={1}>
           {label}
         </Text>
+        <View style={[
+          styles.featureBadge, 
+          { backgroundColor: active ? 'rgba(74, 222, 128, 0.12)' : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)') }
+        ]}>
+          <Text style={[styles.featureBadgeText, { color: active ? '#4ADE80' : theme.textSecondary }]}>
+            {active ? 'ACTIVO' : 'INACTIVO'}
+          </Text>
+        </View>
       </View>
     );
   };
@@ -308,125 +321,198 @@ export default function TournamentDetailScreen() {
 
             {activeTab === 'INFO' && (
               <View style={styles.infoScrollContent}>
+                {/* Sobre el Torneo */}
                 <View style={styles.infoSection}>
                   <View style={styles.sectionHeader}>
                     <Info size={16} color={theme.primary} />
-                    <Text style={styles.sectionTitle}>{t("tournament.about")}</Text>
+                    <Text style={styles.sectionTitle}>{t("tournament.about", "SOBRE EL TORNEO")}</Text>
                   </View>
-                  <Text style={styles.description}>
-                    {tournament.description || t("tournament.no_description")}
-                  </Text>
+                  <View style={styles.aboutCard}>
+                    <Text style={styles.description}>
+                      {tournament.description || t("tournament.no_description", "Sin descripción detallada por el momento.")}
+                    </Text>
+                  </View>
                 </View>
 
-                {/* Technical Details */}
+                {/* Detalles Técnicos */}
                 <View style={styles.infoSection}>
                   <View style={styles.sectionHeader}>
                     <Layers size={16} color={theme.primary} />
-                    <Text style={styles.sectionTitle}>{t("tournament.technical_details")}</Text>
+                    <Text style={styles.sectionTitle}>{t("tournament.technical_details", "DETALLES TÉCNICOS")}</Text>
                   </View>
                   <View style={styles.detailsGrid}>
-                    <View style={styles.detailItem}>
-                      <Users size={14} color={theme.textSecondary} />
-                      <View>
-                        <Text style={styles.detailLabel}>{t("tournament.gender")}</Text>
-                        <Text style={styles.detailValue}>
-                          {tournament.gender ? t(`tournament.gender_${tournament.gender}`) : 'N/A'}
+                    <View style={styles.detailTile}>
+                      <View style={styles.detailIconCircle}>
+                        <Trophy size={15} color={theme.primary} />
+                      </View>
+                      <View style={styles.detailTextWrap}>
+                        <Text style={styles.detailLabel}>{t("tournament.format", "FORMATO")}</Text>
+                        <Text style={styles.detailValue} numberOfLines={1}>
+                          {tournament.format ? t(`tournament.format_${tournament.format}`, tournament.format) : 'N/A'}
                         </Text>
                       </View>
                     </View>
-                    <View style={styles.detailItem}>
-                      <Trophy size={14} color={theme.textSecondary} />
-                      <View>
-                        <Text style={styles.detailLabel}>{t("tournament.format")}</Text>
-                        <Text style={styles.detailValue}>
-                          {tournament.format ? t(`tournament.format_${tournament.format}`) : 'N/A'}
+
+                    <View style={styles.detailTile}>
+                      <View style={styles.detailIconCircle}>
+                        <Users size={15} color={theme.primary} />
+                      </View>
+                      <View style={styles.detailTextWrap}>
+                        <Text style={styles.detailLabel}>{t("tournament.gender", "GÉNERO")}</Text>
+                        <Text style={styles.detailValue} numberOfLines={1}>
+                          {tournament.gender ? t(`tournament.gender_${tournament.gender}`, tournament.gender) : 'N/A'}
                         </Text>
                       </View>
                     </View>
-                    <View style={styles.detailItem}>
-                      {tournament.registration_open ? (
-                        <CheckCircle2 size={14} color="#4ADE80" />
-                      ) : (
-                        <XCircle size={14} color="#FF4444" />
-                      )}
-                      <View>
-                        <Text style={styles.detailLabel}>{t("tournament.registration")}</Text>
-                        <Text style={[styles.detailValue, { color: tournament.registration_open ? "#4ADE80" : "#FF4444" }]}>
-                          {tournament.registration_open ? t("tournament.registration_open") : t("tournament.registration_closed")}
+
+                    <View style={styles.detailTile}>
+                      <View style={styles.detailIconCircle}>
+                        <Clock size={15} color={theme.primary} />
+                      </View>
+                      <View style={styles.detailTextWrap}>
+                        <Text style={styles.detailLabel}>ESTADO</Text>
+                        <Text style={styles.detailValue} numberOfLines={1}>
+                          {tournament.status ? t(`tournament.status_${tournament.status}`, tournament.status.toUpperCase()) : 'ACTIVO'}
                         </Text>
                       </View>
                     </View>
-                    <View style={styles.detailItem}>
-                      <ShieldCheck size={14} color={theme.textSecondary} />
-                      <View>
-                        <Text style={styles.detailLabel}>{t("tournament.max_teams_label")}</Text>
-                        <Text style={styles.detailValue}>{tournament.team_count || '0'} / {tournament.max_teams || '∞'}</Text>
+
+                    <View style={styles.detailTile}>
+                      <View style={styles.detailIconCircle}>
+                        <ShieldCheck size={15} color={theme.primary} />
+                      </View>
+                      <View style={styles.detailTextWrap}>
+                        <Text style={styles.detailLabel}>{t("tournament.max_teams_label", "CUPOS")}</Text>
+                        <Text style={styles.detailValue} numberOfLines={1}>
+                          {tournament.team_count || '0'} / {tournament.max_teams || '∞'}
+                        </Text>
                       </View>
                     </View>
-                    <View style={styles.detailItem}>
-                      <Calendar size={14} color={theme.textSecondary} />
-                      <View>
-                        <Text style={styles.detailLabel}>{t("tournament.dates")}</Text>
-                        <Text style={styles.detailValue}>
-                          {new Date(tournament.start_date).toLocaleDateString()}
+
+                    <View style={styles.detailTile}>
+                      <View style={[styles.detailIconCircle, { backgroundColor: tournament.registration_open ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255, 68, 68, 0.15)' }]}>
+                        {tournament.registration_open ? (
+                          <CheckCircle2 size={15} color="#4ADE80" />
+                        ) : (
+                          <XCircle size={15} color="#FF4444" />
+                        )}
+                      </View>
+                      <View style={styles.detailTextWrap}>
+                        <Text style={styles.detailLabel}>{t("tournament.registration", "REGISTRO")}</Text>
+                        <Text style={[styles.detailValue, { color: tournament.registration_open ? "#4ADE80" : "#FF4444" }]} numberOfLines={1}>
+                          {tournament.registration_open ? t("tournament.registration_open", "ABIERTAS") : t("tournament.registration_closed", "CERRADAS")}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.detailTile}>
+                      <View style={styles.detailIconCircle}>
+                        <Calendar size={15} color={theme.primary} />
+                      </View>
+                      <View style={styles.detailTextWrap}>
+                        <Text style={styles.detailLabel}>{t("tournament.dates", "INICIO")}</Text>
+                        <Text style={styles.detailValue} numberOfLines={1}>
+                          {tournament.start_date && !isNaN(new Date(tournament.start_date).getTime())
+                            ? new Date(tournament.start_date).toLocaleDateString()
+                            : 'Por definir'}
                         </Text>
                       </View>
                     </View>
                   </View>
                 </View>
 
+                {/* Servicios de la Liga */}
                 <View style={styles.infoSection}>
                   <View style={styles.sectionHeader}>
                     <ShieldCheck size={16} color={theme.primary} />
-                    <Text style={styles.sectionTitle}>{t("tournament.league_services")}</Text>
+                    <Text style={styles.sectionTitle}>{t("tournament.league_services", "SERVICIOS DE LA LIGA")}</Text>
                   </View>
                   <View style={styles.featuresGrid}>
-                    {renderServiceItem(CreditCard, t("tournament.service_payments"), !!tournament.features?.payments_enabled)}
-                    {renderServiceItem(QrCode, t("tournament.service_qr"), !!tournament.features?.qr_checkin_enabled)}
-                    {renderServiceItem(MessageSquare, t("tournament.service_comms"), !!tournament.features?.comms_enabled)}
-                    {renderServiceItem(ShieldCheck, t("tournament.service_discipline"), !!tournament.features?.discipline_enabled)}
+                    {renderServiceItem(CreditCard, t("tournament.service_payments", "Pagos"), !!tournament.features?.payments_enabled)}
+                    {renderServiceItem(QrCode, t("tournament.service_qr", "Check-in QR"), !!tournament.features?.qr_checkin_enabled)}
+                    {renderServiceItem(MessageSquare, t("tournament.service_comms", "Mensajería"), !!tournament.features?.comms_enabled)}
+                    {renderServiceItem(ShieldCheck, t("tournament.service_discipline", "Control Disciplinario"), !!tournament.features?.discipline_enabled)}
                   </View>
                 </View>
 
-                <TouchableOpacity 
-                  style={[styles.rulesButton, { borderColor: theme.primary + '40', borderWidth: 1 }]} 
-                  activeOpacity={0.7}
-                  onPress={() => setIsCreateModalVisible(true)}
-                >
-                  <Plus size={18} color={theme.primary} />
-                  <Text style={[styles.rulesText, { color: theme.primary, fontWeight: '800' }]}>
-                    Crear Nuevo Torneo en esta Liga
-                  </Text>
-                </TouchableOpacity>
+                {/* Acciones y Gestión */}
+                <View style={styles.infoSection}>
+                  <View style={styles.sectionHeader}>
+                    <Settings2 size={16} color={theme.primary} />
+                    <Text style={styles.sectionTitle}>ADMINISTRACIÓN DEL TORNEO</Text>
+                  </View>
 
-                <TouchableOpacity 
-                  style={styles.rulesButton} 
-                  activeOpacity={0.7}
-                  onPress={() => setIsCloneModalVisible(true)}
-                >
-                  <Copy size={18} color={theme.primary} />
-                  <Text style={styles.rulesText}>Clonar Temporada</Text>
-                </TouchableOpacity>
+                  {/* Toggle Inscripciones */}
+                  <TouchableOpacity 
+                    style={[
+                      styles.toggleRegistrationCard, 
+                      { borderColor: tournament.registration_open ? 'rgba(74, 222, 128, 0.3)' : 'rgba(255, 68, 68, 0.3)' }
+                    ]} 
+                    activeOpacity={0.8}
+                    onPress={handleToggleRegistration}
+                  >
+                    <View style={styles.toggleCardLeft}>
+                      <View style={[
+                        styles.toggleIconCircle,
+                        { backgroundColor: tournament.registration_open ? 'rgba(74, 222, 128, 0.15)' : 'rgba(255, 68, 68, 0.15)' }
+                      ]}>
+                        {tournament.registration_open ? (
+                          <CheckCircle2 size={18} color="#4ADE80" />
+                        ) : (
+                          <XCircle size={18} color="#FF4444" />
+                        )}
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.toggleCardTitle}>
+                          {tournament.registration_open ? "Inscripciones Abiertas" : "Inscripciones Cerradas"}
+                        </Text>
+                        <Text style={styles.toggleCardSubtitle}>
+                          {tournament.registration_open ? "Los equipos pueden inscribirse • Toca para cerrar" : "Bloqueo de registros activo • Toca para abrir"}
+                        </Text>
+                      </View>
+                    </View>
+                    {tournament.registration_open ? (
+                      <ToggleRight size={26} color="#4ADE80" />
+                    ) : (
+                      <ToggleLeft size={26} color="#FF4444" />
+                    )}
+                  </TouchableOpacity>
 
-                <TouchableOpacity 
-                  style={styles.rulesButton} 
-                  activeOpacity={0.7}
-                  onPress={handleToggleRegistration}
-                >
-                  {tournament.registration_open ? (
-                    <ToggleRight size={18} color="#FF4444" />
-                  ) : (
-                    <ToggleLeft size={18} color="#4ADE80" />
-                  )}
-                  <Text style={[styles.rulesText, { color: tournament.registration_open ? "#FF4444" : "#4ADE80" }]}>
-                    {tournament.registration_open ? "Cerrar Inscripciones" : "Abrir Inscripciones"}
-                  </Text>
-                </TouchableOpacity>
+                  {/* Botones de acción rápida: Crear Torneo y Clonar Temporada */}
+                  <View style={styles.adminActionButtonsRow}>
+                    <TouchableOpacity 
+                      style={styles.adminActionColBtn} 
+                      activeOpacity={0.8}
+                      onPress={() => setIsCreateModalVisible(true)}
+                    >
+                      <Plus size={16} color={theme.primary} />
+                      <Text style={styles.adminActionColBtnText}>Nuevo Torneo</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity style={styles.rulesButton} activeOpacity={0.7}>
-                  <Info size={18} color={theme.primary} />
-                  <Text style={styles.rulesText}>{t("tournament.view_rules")}</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.adminActionColBtn} 
+                      activeOpacity={0.8}
+                      onPress={() => setIsCloneModalVisible(true)}
+                    >
+                      <Copy size={16} color={theme.text} />
+                      <Text style={[styles.adminActionColBtnText, { color: theme.text }]}>Clonar Temporada</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Ver Reglamento */}
+                  <TouchableOpacity style={styles.rulesCard} activeOpacity={0.8}>
+                    <View style={styles.rulesCardLeft}>
+                      <View style={styles.rulesIconCircle}>
+                        <BookOpen size={16} color={theme.primary} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.rulesCardTitle}>{t("tournament.view_rules", "Reglamento Oficial")}</Text>
+                        <Text style={styles.rulesCardSub}>Normativa y bases de competencia</Text>
+                      </View>
+                    </View>
+                    <ChevronRight size={18} color={theme.textSecondary} />
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           </View>
@@ -527,63 +613,194 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     letterSpacing: 1,
   },
   description: {
-    fontSize: 14,
-    color: theme.textSecondary,
-    lineHeight: 22,
+    fontSize: 13,
+    color: theme.text,
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  aboutCard: {
+    backgroundColor: theme.surface,
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
   },
   detailsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 15,
-    backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
-    padding: 20,
-    borderRadius: 20,
+    gap: 10,
+    backgroundColor: theme.surface,
+    padding: 14,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
   },
-  detailItem: {
-    width: '45%',
+  detailTile: {
+    width: '48%',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+  },
+  detailIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: isDark ? 'rgba(0, 245, 255, 0.08)' : 'rgba(0, 245, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  detailTextWrap: {
+    flex: 1,
   },
   detailLabel: {
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 9,
+    fontWeight: '800',
     color: theme.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   detailValue: {
-    fontSize: 13,
-    fontWeight: '800',
+    fontSize: 12,
+    fontWeight: '900',
     color: theme.text,
     marginTop: 2,
   },
   featuresGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: 10,
   },
   featureBox: {
     width: '48%',
     backgroundColor: theme.surface,
-    padding: 15,
+    padding: 14,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
+    gap: 8,
     borderWidth: 1,
-    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
   },
   featureDisabled: {
     opacity: 0.5,
-    borderStyle: 'dashed',
+  },
+  featureIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   featureLabel: {
     fontSize: 11,
     fontWeight: '800',
     color: theme.text,
+    textAlign: 'center',
+  },
+  featureBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  featureBadgeText: {
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  toggleRegistrationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.surface,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  toggleCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    marginRight: 8,
+  },
+  toggleIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  toggleCardTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    color: theme.text,
+  },
+  toggleCardSubtitle: {
+    fontSize: 10,
+    color: theme.textSecondary,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  adminActionButtonsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  adminActionColBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+  },
+  adminActionColBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: theme.primary,
+  },
+  rulesCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.surface,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+  },
+  rulesCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  rulesIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: theme.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  rulesCardTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: theme.text,
+  },
+  rulesCardSub: {
+    fontSize: 10,
+    color: theme.textSecondary,
+    fontWeight: '600',
+    marginTop: 2,
   },
   tabScrollView: {
     flexGrow: 0,

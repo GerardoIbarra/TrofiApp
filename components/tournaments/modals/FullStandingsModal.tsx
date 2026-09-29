@@ -115,11 +115,13 @@ export function FullStandingsModal({
                 const rawName = item.team_name || (item as any)?.team?.name || (item as any)?.name || 'Equipo';
                 const teamName = typeof rawName === 'string' ? rawName.toUpperCase() : 'EQUIPO';
                 const position = item.position ?? index + 1;
-                const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `full-left-${index}`;
+                const safeId = typeof item.tournament_team === 'string' 
+                  ? item.tournament_team 
+                  : (item as any)?.tournament_team?.id || (item as any)?.id || (item as any)?.team_id || (item as any)?.team?.id || index;
 
                 return (
                   <View
-                    key={key}
+                    key={`f-l-${safeId}-${index}`}
                     style={[
                       styles.tableRow,
                       styles.rowLeft,
@@ -176,11 +178,13 @@ export function FullStandingsModal({
                 {standings.map((item, index) => {
                   if (!item) return null;
                   const position = item.position ?? index + 1;
-                  const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `full-mid-${index}`;
+                  const safeId = typeof item.tournament_team === 'string' 
+                    ? item.tournament_team 
+                    : (item as any)?.tournament_team?.id || (item as any)?.id || (item as any)?.team_id || (item as any)?.team?.id || index;
 
                   return (
                     <View
-                      key={key}
+                      key={`f-m-${safeId}-${index}`}
                       style={[
                         styles.tableRow,
                         styles.rowMiddle,
@@ -240,11 +244,13 @@ export function FullStandingsModal({
               {standings.map((item, index) => {
                 if (!item) return null;
                 const position = item.position ?? index + 1;
-                const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `full-pts-${index}`;
+                const safeId = typeof item.tournament_team === 'string' 
+                  ? item.tournament_team 
+                  : (item as any)?.tournament_team?.id || (item as any)?.id || (item as any)?.team_id || (item as any)?.team?.id || index;
 
                 return (
                   <View
-                    key={key}
+                    key={`f-r-${safeId}-${index}`}
                     style={[
                       styles.tableRow,
                       styles.rowRight,
@@ -253,7 +259,7 @@ export function FullStandingsModal({
                     ]}
                   >
                     <Text style={[styles.pointsCell, styles.cellPoints]}>
-                      {item.points ?? '-'}
+                      {item.points != null ? item.points : '-'}
                     </Text>
                   </View>
                 );

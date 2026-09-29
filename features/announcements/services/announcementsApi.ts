@@ -16,20 +16,25 @@ export const useGetAnnouncements = ({ leagueId, tournamentId }: GetAnnouncements
   return useQuery({
     queryKey: ['announcements', { leagueId, tournamentId }],
     queryFn: async (): Promise<Announcement[]> => {
-      let endpoint = '';
-      if (leagueId) {
-        endpoint = `/v1/announcements/?league=${leagueId}`;
-      } else if (tournamentId) {
-        endpoint = `/v1/announcements/?tournament=${tournamentId}`;
-      } else {
+      try {
+        let endpoint = '';
+        if (leagueId) {
+          endpoint = `/v1/announcements/?league=${leagueId}`;
+        } else if (tournamentId) {
+          endpoint = `/v1/announcements/?tournament=${tournamentId}`;
+        } else {
+          return [];
+        }
+
+        const response = await api.get<AnnouncementListResponse | Announcement[]>(endpoint);
+        if (Array.isArray(response)) {
+          return response;
+        }
+        return response?.results || [];
+      } catch (err) {
+        console.warn('Error fetching announcements:', err);
         return [];
       }
-
-      const response = await api.get<AnnouncementListResponse | Announcement[]>(endpoint);
-      if (Array.isArray(response)) {
-        return response;
-      }
-      return response?.results || [];
     },
     enabled: Boolean(leagueId || tournamentId),
   });

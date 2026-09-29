@@ -699,5 +699,15 @@
     "dismiss": "Awesome!",
     "dismiss_neutral": "Got it",
     "close_a11y": "Close celebration"
+  },
+  "announcements": {
+    "title": "Official Announcements",
+    "new_announcement": "New Announcement",
+    "delete_title": "Delete Announcement",
+    "delete_confirm": "Are you sure you want to delete the announcement \"{{title}}\"?",
+    "deleted_success": "Announcement deleted successfully.",
+    "deleted_error": "Could not delete announcement.",
+    "empty_title": "No announcements posted",
+    "empty_subtitle": "Official updates and important schedule notices will appear here."
   }
 }

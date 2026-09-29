@@ -209,11 +209,13 @@ export function TournamentStandingsWidget({
                   const rawName = item.team_name || (item as any)?.team?.name || (item as any)?.name || 'Equipo';
                   const teamName = typeof rawName === 'string' ? rawName.toUpperCase() : 'EQUIPO';
                   const position = item.position ?? index + 1;
-                  const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `standing-left-${index}`;
+                  const safeId = typeof item.tournament_team === 'string' 
+                    ? item.tournament_team 
+                    : (item as any)?.tournament_team?.id || (item as any)?.id || (item as any)?.team_id || (item as any)?.team?.id || index;
 
                   return (
                     <View
-                      key={key}
+                      key={`st-l-${safeId}-${index}`}
                       style={[
                         styles.tableRow,
                         styles.rowLeft,
@@ -270,11 +272,13 @@ export function TournamentStandingsWidget({
                   {standings.map((item, index) => {
                     if (!item) return null;
                     const position = item.position ?? index + 1;
-                    const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `standing-mid-${index}`;
+                    const safeId = typeof item.tournament_team === 'string' 
+                      ? item.tournament_team 
+                      : (item as any)?.tournament_team?.id || (item as any)?.id || (item as any)?.team_id || (item as any)?.team?.id || index;
 
                     return (
                       <View
-                        key={key}
+                        key={`st-m-${safeId}-${index}`}
                         style={[
                           styles.tableRow,
                           styles.rowMiddle,
@@ -334,11 +338,13 @@ export function TournamentStandingsWidget({
                 {standings.map((item, index) => {
                   if (!item) return null;
                   const position = item.position ?? index + 1;
-                  const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `standing-pts-${index}`;
+                  const safeId = typeof item.tournament_team === 'string' 
+                    ? item.tournament_team 
+                    : (item as any)?.tournament_team?.id || (item as any)?.id || (item as any)?.team_id || (item as any)?.team?.id || index;
 
                   return (
                     <View
-                      key={key}
+                      key={`st-r-${safeId}-${index}`}
                       style={[
                         styles.tableRow,
                         styles.rowRight,
@@ -347,7 +353,7 @@ export function TournamentStandingsWidget({
                       ]}
                     >
                       <Text style={[styles.pointsCell, styles.cellPoints]}>
-                        {item.points ?? "-"}
+                        {item.points != null ? item.points : "-"}
                       </Text>
                     </View>
                   );
