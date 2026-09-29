@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import { useTranslation } from 'react-i18next';
 import {
   FlatList,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -211,7 +212,12 @@ export function TournamentMatchesWidget({
   return (
     <View style={styles.container}>
       {isAdmin && (
-        <View style={styles.adminActionRow}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.adminActionRow}
+          style={styles.adminActionScroll}
+        >
           <TouchableOpacity 
             style={[styles.adminBtn, { backgroundColor: theme.primary }]} 
             onPress={() => {
@@ -239,7 +245,7 @@ export function TournamentMatchesWidget({
             <CalendarPlus size={14} color={theme.primary} />
             <Text style={styles.adminBtnText}>{t('tournament.generate_fixture')}</Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       )}
 
       <FlatList
@@ -338,12 +344,13 @@ const createStyles = (theme: any, isDark: boolean) =>
     container: {
       marginTop: 10,
     },
+    adminActionScroll: {
+      marginBottom: 15,
+    },
     adminActionRow: {
       flexDirection: "row",
-      justifyContent: "flex-end",
-      gap: 10,
-      marginBottom: 15,
-      paddingHorizontal: 5,
+      alignItems: "center",
+      gap: 8,
     },
     adminBtn: {
       flexDirection: "row",

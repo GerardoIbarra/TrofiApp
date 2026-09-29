@@ -129,7 +129,8 @@ export default function TournamentDetailScreen() {
               borderRadius: 10,
               marginBottom: 10,
               borderWidth: 1,
-              borderColor: 'rgba(245, 158, 11, 0.3)'
+              borderColor: 'rgba(245, 158, 11, 0.3)',
+              marginHorizontal: 20,
             }}>
               <Clock size={16} color="#F59E0B" />
               <Text style={{ fontSize: 12, color: '#F59E0B', fontWeight: '700', flex: 1 }}>
@@ -150,6 +151,7 @@ export default function TournamentDetailScreen() {
               borderWidth: 1,
               borderColor: 'rgba(245, 158, 11, 0.3)',
               gap: 10,
+              marginHorizontal: 20,
             }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                 <Clock size={18} color="#F59E0B" />
@@ -189,6 +191,7 @@ export default function TournamentDetailScreen() {
             alignItems: 'center',
             gap: 8,
             marginBottom: 10,
+            paddingHorizontal: 20,
           }}>
             <TouchableOpacity
               style={{
