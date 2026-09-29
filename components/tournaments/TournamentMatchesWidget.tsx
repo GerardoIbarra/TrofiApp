@@ -293,7 +293,7 @@ export function TournamentMatchesWidget({
               onPress={() => router.push({ pathname: '/match-detail', params: { id: 'demo' } })}
               activeOpacity={0.7}
             >
-              <Sparkles size={14} color="#00F0FF" />
+              <Sparkles size={14} color={theme.primary} />
               <Text style={styles.demoMatchText}>Probar con Partido Demo (WhatsApp / Historias)</Text>
             </TouchableOpacity>
           </View>
@@ -577,16 +577,16 @@ const createStyles = (theme: any, isDark: boolean) =>
       alignItems: "center",
       gap: 6,
       marginTop: 14,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: 8,
-      backgroundColor: "rgba(0, 240, 255, 0.08)",
+      paddingVertical: 10,
+      paddingHorizontal: 14,
+      borderRadius: 10,
+      backgroundColor: isDark ? "rgba(0, 240, 255, 0.08)" : theme.primary + "12",
       borderWidth: 1,
-      borderColor: "rgba(0, 240, 255, 0.2)",
+      borderColor: isDark ? "rgba(0, 240, 255, 0.2)" : theme.primary + "35",
     },
     demoMatchText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: "800",
-      color: "#00F0FF",
+      color: theme.primary,
     },
   });
