@@ -428,6 +428,9 @@
     "header_goal_diff": "GD",
     "header_points": "PTS",
     "view_full": "View Full Table",
+    "btn_view_full": "Full Table",
+    "btn_share": "Share",
+    "btn_tiebreaker": "Tiebreaker",
     "footer_scroll": "Swipe horizontally to see detailed statistics."
   },
   "match_detail": {

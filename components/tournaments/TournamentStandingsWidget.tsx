@@ -149,15 +149,20 @@ export function TournamentStandingsWidget({
           </View>
         ) : (
           <>
-            <View style={styles.actionRow}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.actionRow}
+              style={styles.actionScroll}
+            >
               <TouchableOpacity 
                 style={styles.fullViewBtn} 
                 onPress={() => setIsFullStandingsVisible(true)}
                 activeOpacity={0.8}
               >
                 <Maximize2 size={14} color={theme.primary} />
-                <Text style={styles.fullViewBtnText} numberOfLines={1}>
-                  {t('standings.view_full', 'Ver Completa')}
+                <Text style={styles.fullViewBtnText}>
+                  {t('standings.btn_view_full', 'Ver Completa')}
                 </Text>
               </TouchableOpacity>
 
@@ -167,8 +172,8 @@ export function TournamentStandingsWidget({
                 activeOpacity={0.8}
               >
                 <Share2 size={14} color="#001A2C" />
-                <Text style={styles.shareBtnText} numberOfLines={1}>
-                  {t('tournament.share_standings', 'Compartir')}
+                <Text style={styles.shareBtnText}>
+                  {t('standings.btn_share', 'Compartir')}
                 </Text>
               </TouchableOpacity>
 
@@ -179,12 +184,12 @@ export function TournamentStandingsWidget({
                   activeOpacity={0.8}
                 >
                   <Settings2 size={14} color={theme.textSecondary} />
-                  <Text style={styles.adminBtnText} numberOfLines={1}>
-                    {t('tournament.config_tiebreaker_short', 'Desempate')}
+                  <Text style={styles.adminBtnText}>
+                    {t('standings.btn_tiebreaker', 'Desempate')}
                   </Text>
                 </TouchableOpacity>
               )}
-            </View>
+            </ScrollView>
 
             {!hasPlayedMatches && (
               <View style={styles.infoBanner}>
@@ -493,66 +498,71 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: "#001A2C",
       fontWeight: "900",
     },
+    actionScroll: {
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+    },
     actionRow: {
       flexDirection: "row",
       alignItems: "center",
-      padding: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
+      paddingHorizontal: 12,
+      paddingVertical: 10,
       gap: 8,
     },
     fullViewBtn: {
-      flex: 1.1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       gap: 6,
-      backgroundColor: isDark ? "rgba(0, 245, 255, 0.12)" : "rgba(0, 245, 255, 0.1)",
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.12)" : "rgba(0, 245, 255, 0.08)",
       borderWidth: 1.5,
       borderColor: isDark ? "rgba(0, 245, 255, 0.4)" : "rgba(0, 245, 255, 0.35)",
-      paddingVertical: 9,
-      paddingHorizontal: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
       borderRadius: 10,
+      flexShrink: 0,
     },
     fullViewBtnText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: "800",
       color: theme.primary,
-      letterSpacing: 0.3,
+      letterSpacing: 0.2,
     },
     shareBtn: {
-      flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       gap: 6,
       backgroundColor: theme.primary,
-      paddingVertical: 9,
-      paddingHorizontal: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
       borderRadius: 10,
+      flexShrink: 0,
     },
     shareBtnText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: "900",
       color: "#001A2C",
+      letterSpacing: 0.2,
     },
     adminBtn: {
-      flex: 0.9,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: 5,
+      gap: 6,
       backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
       borderWidth: 1,
-      borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
-      paddingVertical: 9,
-      paddingHorizontal: 8,
+      borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)",
+      paddingVertical: 8,
+      paddingHorizontal: 14,
       borderRadius: 10,
+      flexShrink: 0,
     },
     adminBtnText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: "800",
       color: theme.textSecondary,
+      letterSpacing: 0.2,
     },
     loadingBox: {
       padding: 60,
