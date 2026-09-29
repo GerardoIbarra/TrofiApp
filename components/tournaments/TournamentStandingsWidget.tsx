@@ -178,118 +178,165 @@ export function TournamentStandingsWidget({
               </View>
             )}
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              bounces={false}
-            >
-              <View>
-                {/* Table Header */}
-          <View style={styles.tableHeader}>
-            <Text style={[styles.headerCell, styles.cellPos]}>#</Text>
-            <Text style={[styles.headerCell, styles.cellTeam]}>
-              {t("standings.header_team")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellGroup]}>
-              {t("standings.header_group")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>
-              {t("standings.header_played")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>
-              {t("standings.header_wins")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>
-              {t("standings.header_draws")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>
-              {t("standings.header_losses")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>
-              {t("standings.header_goals_for")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>
-              {t("standings.header_goals_against")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellStat]}>
-              {t("standings.header_goal_diff")}
-            </Text>
-            <Text style={[styles.headerCell, styles.cellPoints]}>
-              {t("standings.header_points")}
-            </Text>
-          </View>
-
-          {standings.map((item, index) => {
-            if (!item) return null;
-            const rawName = item.team_name || (item as any)?.team?.name || (item as any)?.name || 'Equipo';
-            const teamName = typeof rawName === 'string' ? rawName.toUpperCase() : 'EQUIPO';
-            const position = item.position ?? index + 1;
-            const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `standing-${index}`;
-
-            return (
-              <View
-                key={key}
-                style={[
-                  styles.tableRow,
-                  index % 2 !== 0 && styles.rowAlternate,
-                  position <= 3 && styles.rowElite,
-                ]}
-              >
-                <View style={[styles.posBadge, getPositionStyle(position)]}>
-                  <Text style={styles.posText}>{position}</Text>
+            <View style={styles.tableCard}>
+              {/* Columna Fija Izquierda: Posición (#) y Nombre del Equipo */}
+              <View style={styles.fixedLeftColumn}>
+                <View style={[styles.tableHeader, styles.headerLeft]}>
+                  <Text style={[styles.headerCell, styles.cellPos]}>#</Text>
+                  <Text style={[styles.headerCell, styles.cellTeam]}>
+                    {t("standings.header_team")}
+                  </Text>
                 </View>
+                {standings.map((item, index) => {
+                  if (!item) return null;
+                  const rawName = item.team_name || (item as any)?.team?.name || (item as any)?.name || 'Equipo';
+                  const teamName = typeof rawName === 'string' ? rawName.toUpperCase() : 'EQUIPO';
+                  const position = item.position ?? index + 1;
+                  const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `standing-left-${index}`;
 
-                <Text style={styles.teamName} numberOfLines={1}>
-                  {teamName}
-                </Text>
-
-                <Text style={[styles.statCell, styles.cellGroup]}>
-                  {item.group || "-"}
-                </Text>
-
-                <Text style={[styles.statCell, styles.cellStat]}>
-                  {item.played ?? "-"}
-                </Text>
-                <Text style={[styles.statCell, styles.cellStat]}>
-                  {item.wins ?? "-"}
-                </Text>
-                <Text style={[styles.statCell, styles.cellStat]}>
-                  {item.draws ?? "-"}
-                </Text>
-                <Text style={[styles.statCell, styles.cellStat]}>
-                  {item.losses ?? "-"}
-                </Text>
-                <Text style={[styles.statCell, styles.cellStat]}>
-                  {item.goals_for ?? "-"}
-                </Text>
-                <Text style={[styles.statCell, styles.cellStat]}>
-                  {item.goals_against ?? "-"}
-                </Text>
-
-                <Text
-                  style={[
-                    styles.statCell,
-                    styles.cellStat,
-                    styles.dgText,
-                    item.goal_difference != null && item.goal_difference > 0 && { color: "#4ADE80" },
-                    item.goal_difference != null && item.goal_difference < 0 && { color: "#FF4444" },
-                  ]}
-                >
-                  {item.goal_difference != null
-                    ? (item.goal_difference > 0
-                        ? `+${item.goal_difference}`
-                        : item.goal_difference)
-                    : "-"}
-                </Text>
-
-                <Text style={[styles.pointsCell, styles.cellPoints]}>
-                  {item.points ?? "-"}
-                </Text>
+                  return (
+                    <View
+                      key={key}
+                      style={[
+                        styles.tableRow,
+                        styles.rowLeft,
+                        index % 2 !== 0 && styles.rowAlternate,
+                        position <= 3 && styles.rowElite,
+                      ]}
+                    >
+                      <View style={[styles.posBadge, getPositionStyle(position)]}>
+                        <Text style={styles.posText}>{position}</Text>
+                      </View>
+                      <Text style={styles.teamName} numberOfLines={1}>
+                        {teamName}
+                      </Text>
+                    </View>
+                  );
+                })}
               </View>
-            );
-          })}
-        </View>
-      </ScrollView>
+
+              {/* Columnas Intermedias con Scroll Horizontal: GR, PJ, PG, PE, PP, GF, GC, DG */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                bounces={false}
+                style={styles.scrollableMiddle}
+              >
+                <View>
+                  <View style={[styles.tableHeader, styles.headerMiddle]}>
+                    <Text style={[styles.headerCell, styles.cellGroup]}>
+                      {t("standings.header_group")}
+                    </Text>
+                    <Text style={[styles.headerCell, styles.cellStat]}>
+                      {t("standings.header_played")}
+                    </Text>
+                    <Text style={[styles.headerCell, styles.cellStat]}>
+                      {t("standings.header_wins")}
+                    </Text>
+                    <Text style={[styles.headerCell, styles.cellStat]}>
+                      {t("standings.header_draws")}
+                    </Text>
+                    <Text style={[styles.headerCell, styles.cellStat]}>
+                      {t("standings.header_losses")}
+                    </Text>
+                    <Text style={[styles.headerCell, styles.cellStat]}>
+                      {t("standings.header_goals_for")}
+                    </Text>
+                    <Text style={[styles.headerCell, styles.cellStat]}>
+                      {t("standings.header_goals_against")}
+                    </Text>
+                    <Text style={[styles.headerCell, styles.cellStatDG]}>
+                      {t("standings.header_goal_diff")}
+                    </Text>
+                  </View>
+
+                  {standings.map((item, index) => {
+                    if (!item) return null;
+                    const position = item.position ?? index + 1;
+                    const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `standing-mid-${index}`;
+
+                    return (
+                      <View
+                        key={key}
+                        style={[
+                          styles.tableRow,
+                          styles.rowMiddle,
+                          index % 2 !== 0 && styles.rowAlternate,
+                          position <= 3 && styles.rowElite,
+                        ]}
+                      >
+                        <Text style={[styles.statCell, styles.cellGroup]}>
+                          {item.group || "-"}
+                        </Text>
+                        <Text style={[styles.statCell, styles.cellStat]}>
+                          {item.played ?? "-"}
+                        </Text>
+                        <Text style={[styles.statCell, styles.cellStat]}>
+                          {item.wins ?? "-"}
+                        </Text>
+                        <Text style={[styles.statCell, styles.cellStat]}>
+                          {item.draws ?? "-"}
+                        </Text>
+                        <Text style={[styles.statCell, styles.cellStat]}>
+                          {item.losses ?? "-"}
+                        </Text>
+                        <Text style={[styles.statCell, styles.cellStat]}>
+                          {item.goals_for ?? "-"}
+                        </Text>
+                        <Text style={[styles.statCell, styles.cellStat]}>
+                          {item.goals_against ?? "-"}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.statCell,
+                            styles.cellStatDG,
+                            styles.dgText,
+                            item.goal_difference != null && item.goal_difference > 0 && { color: "#4ADE80" },
+                            item.goal_difference != null && item.goal_difference < 0 && { color: "#FF4444" },
+                          ]}
+                        >
+                          {item.goal_difference != null
+                            ? (item.goal_difference > 0
+                                ? `+${item.goal_difference}`
+                                : item.goal_difference)
+                            : "-"}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+
+              {/* Columna Fija Derecha: Puntos (PTS) */}
+              <View style={styles.fixedRightColumn}>
+                <View style={[styles.tableHeader, styles.headerRight]}>
+                  <Text style={[styles.headerCell, styles.cellPoints]}>
+                    {t("standings.header_points")}
+                  </Text>
+                </View>
+                {standings.map((item, index) => {
+                  if (!item) return null;
+                  const position = item.position ?? index + 1;
+                  const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `standing-pts-${index}`;
+
+                  return (
+                    <View
+                      key={key}
+                      style={[
+                        styles.tableRow,
+                        styles.rowRight,
+                        index % 2 !== 0 && styles.rowAlternate,
+                        position <= 3 && styles.rowElite,
+                      ]}
+                    >
+                      <Text style={[styles.pointsCell, styles.cellPoints]}>
+                        {item.points ?? "-"}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
 
       <View style={styles.footerInfo}>
         <AlertCircle size={12} color={theme.textSecondary} />
@@ -527,10 +574,56 @@ const createStyles = (theme: any, isDark: boolean) =>
       fontWeight: "600",
       lineHeight: 16,
     },
+    tableCard: {
+      flexDirection: "row",
+      backgroundColor: isDark ? "rgba(255,255,255,0.015)" : "#FFFFFF",
+      borderRadius: 16,
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+      marginTop: 12,
+    },
+    fixedLeftColumn: {
+      width: 156,
+      borderRightWidth: 1,
+      borderRightColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+      backgroundColor: isDark ? "rgba(255,255,255,0.01)" : "#FFFFFF",
+      zIndex: 2,
+    },
+    scrollableMiddle: {
+      flex: 1,
+    },
+    fixedRightColumn: {
+      width: 52,
+      borderLeftWidth: 1,
+      borderLeftColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.03)" : "rgba(0, 245, 255, 0.04)",
+      zIndex: 2,
+    },
+    headerLeft: {
+      justifyContent: "flex-start",
+    },
+    headerMiddle: {
+      justifyContent: "flex-start",
+    },
+    headerRight: {
+      justifyContent: "center",
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.08)" : "rgba(0, 245, 255, 0.08)",
+    },
+    rowLeft: {
+      justifyContent: "flex-start",
+    },
+    rowMiddle: {
+      justifyContent: "flex-start",
+    },
+    rowRight: {
+      justifyContent: "center",
+    },
     tableHeader: {
       flexDirection: "row",
+      alignItems: "center",
+      height: 40,
       backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-      paddingVertical: 12,
       borderBottomWidth: 1,
       borderBottomColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
     },
@@ -544,7 +637,7 @@ const createStyles = (theme: any, isDark: boolean) =>
     tableRow: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: 14,
+      height: 48,
       borderBottomWidth: 1,
       borderBottomColor: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
     },
@@ -554,11 +647,12 @@ const createStyles = (theme: any, isDark: boolean) =>
     rowElite: {
       // Sutil indicación para el top 3
     },
-    cellPos: { width: 40 },
-    cellTeam: { width: 140, textAlign: "left", paddingLeft: 10 },
-    cellGroup: { width: 35 },
-    cellStat: { width: 40 },
-    cellPoints: { width: 50 },
+    cellPos: { width: 36, textAlign: "center" },
+    cellTeam: { width: 120, textAlign: "left", paddingLeft: 8 },
+    cellGroup: { width: 34, textAlign: "center" },
+    cellStat: { width: 36, textAlign: "center" },
+    cellStatDG: { width: 42, textAlign: "center" },
+    cellPoints: { width: 52, textAlign: "center" },
 
     cellScorerPlayer: {
       flex: 1.2,
@@ -611,7 +705,7 @@ const createStyles = (theme: any, isDark: boolean) =>
       backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
       justifyContent: "center",
       alignItems: "center",
-      marginLeft: 8,
+      marginLeft: 6,
     },
     posFirst: { backgroundColor: "#FFD700" }, // Gold
     posSecond: { backgroundColor: "#C0C0C0" }, // Silver
@@ -622,11 +716,11 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: isDark ? "#FFF" : "#000",
     },
     teamName: {
-      width: 140,
+      width: 120,
       fontSize: 12,
       fontWeight: "800",
       color: theme.text,
-      paddingLeft: 10,
+      paddingLeft: 8,
     },
     statCell: {
       fontSize: 12,
