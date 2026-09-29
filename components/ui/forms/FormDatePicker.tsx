@@ -8,7 +8,7 @@ import {
   Modal,
 } from 'react-native';
 import { Controller, Control, FieldValues, Path } from 'react-hook-form';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerChangeEvent } from '@react-native-community/datetimepicker';
 import { Calendar as CalendarIcon } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -54,18 +54,19 @@ export function FormDatePicker<T extends FieldValues>({
       render={({ field: { onChange, value }, fieldState: { error } }) => {
         const currentDate = value ? new Date(value) : new Date();
 
-        const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-          // En Android, el picker se cierra al seleccionar
+        const handleValueChange = (_event: DateTimePickerChangeEvent, selectedDate?: Date) => {
           if (Platform.OS === 'android') {
             setShow(false);
           }
           
-          if (event.type === 'set' && selectedDate) {
+          if (selectedDate) {
             const dateString = selectedDate.toISOString().split('T')[0];
             onChange(dateString);
-          } else if (event.type === 'dismissed') {
-            setShow(false);
           }
+        };
+
+        const handleDismiss = () => {
+          setShow(false);
         };
 
         return (
@@ -112,7 +113,8 @@ export function FormDatePicker<T extends FieldValues>({
                       value={currentDate}
                       mode="date"
                       display="spinner"
-                      onChange={handleDateChange}
+                      onValueChange={handleValueChange}
+                      onDismiss={handleDismiss}
                       textColor={isDark ? '#FFFFFF' : '#000000'}
                     />
                   </TouchableOpacity>
@@ -124,7 +126,8 @@ export function FormDatePicker<T extends FieldValues>({
                   value={currentDate}
                   mode="date"
                   display="default"
-                  onChange={handleDateChange}
+                  onValueChange={handleValueChange}
+                  onDismiss={handleDismiss}
                 />
               )
             )}
