@@ -197,10 +197,11 @@ export function TournamentAwardsModal({
       <View style={styles.overlay}>
         <View style={styles.modalCard}>
           {/* Header */}
+          {/* Header */}
           <View style={styles.header}>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, marginRight: 12 }}>
               <Text style={styles.overline}>ADMINISTRACIÓN DE PREMIOS</Text>
-              <Text style={styles.title} numberOfLines={1}>
+              <Text style={styles.title} numberOfLines={2}>
                 {tournamentName || 'Premios & Campeones'}
               </Text>
             </View>
@@ -209,19 +210,19 @@ export function TournamentAwardsModal({
             </TouchableOpacity>
           </View>
 
-          {/* Navigation Tabs */}
+          {/* Navigation Tabs (Responsive Horizontal Scroll) */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.tabsRow}
-            style={{ flexGrow: 0, marginBottom: 16 }}
+            style={styles.tabsScrollView}
           >
             <TouchableOpacity
               style={[styles.tabBtn, activeTab === 'CHAMPION' && styles.tabBtnActive]}
               onPress={() => setActiveTab('CHAMPION')}
             >
               <Trophy size={14} color={activeTab === 'CHAMPION' ? '#001A2C' : theme.textSecondary} />
-              <Text style={[styles.tabBtnText, activeTab === 'CHAMPION' && styles.tabBtnTextActive]}>
+              <Text numberOfLines={1} style={[styles.tabBtnText, activeTab === 'CHAMPION' && styles.tabBtnTextActive]}>
                 Campeón
               </Text>
             </TouchableOpacity>
@@ -231,7 +232,7 @@ export function TournamentAwardsModal({
               onPress={() => setActiveTab('SEASON_AWARDS')}
             >
               <Award size={14} color={activeTab === 'SEASON_AWARDS' ? '#001A2C' : theme.textSecondary} />
-              <Text style={[styles.tabBtnText, activeTab === 'SEASON_AWARDS' && styles.tabBtnTextActive]}>
+              <Text numberOfLines={1} style={[styles.tabBtnText, activeTab === 'SEASON_AWARDS' && styles.tabBtnTextActive]}>
                 Temporada
               </Text>
             </TouchableOpacity>
@@ -241,7 +242,7 @@ export function TournamentAwardsModal({
               onPress={() => setActiveTab('WEEKLY_MVP')}
             >
               <Star size={14} color={activeTab === 'WEEKLY_MVP' ? '#001A2C' : theme.textSecondary} />
-              <Text style={[styles.tabBtnText, activeTab === 'WEEKLY_MVP' && styles.tabBtnTextActive]}>
+              <Text numberOfLines={1} style={[styles.tabBtnText, activeTab === 'WEEKLY_MVP' && styles.tabBtnTextActive]}>
                 MVP
               </Text>
             </TouchableOpacity>
@@ -251,7 +252,7 @@ export function TournamentAwardsModal({
               onPress={() => setActiveTab('WEEKLY_TOTW')}
             >
               <Users size={14} color={activeTab === 'WEEKLY_TOTW' ? '#001A2C' : theme.textSecondary} />
-              <Text style={[styles.tabBtnText, activeTab === 'WEEKLY_TOTW' && styles.tabBtnTextActive]}>
+              <Text numberOfLines={1} style={[styles.tabBtnText, activeTab === 'WEEKLY_TOTW' && styles.tabBtnTextActive]}>
                 Once (TOTW)
               </Text>
             </TouchableOpacity>
@@ -264,7 +265,7 @@ export function TournamentAwardsModal({
               }}
             >
               <ShieldCheck size={14} color={activeTab === 'TEAM_ACHIEVEMENTS' ? '#001A2C' : theme.textSecondary} />
-              <Text style={[styles.tabBtnText, activeTab === 'TEAM_ACHIEVEMENTS' && styles.tabBtnTextActive]}>
+              <Text numberOfLines={1} style={[styles.tabBtnText, activeTab === 'TEAM_ACHIEVEMENTS' && styles.tabBtnTextActive]}>
                 Equipos
               </Text>
             </TouchableOpacity>
@@ -516,8 +517,10 @@ export function TournamentAwardsModal({
                             </View>
                             <View style={{ flex: 1, marginLeft: 8 }}>
                               <Text style={styles.bestXIName}>{player.name}</Text>
-                              {player.team_name ? (
-                                <Text style={styles.totwTeamName}>{player.team_name}</Text>
+                              {(player.team_name || player.metadata?.team_name) ? (
+                                <Text style={styles.totwTeamName}>
+                                  {player.team_name || player.metadata?.team_name}
+                                </Text>
                               ) : null}
                             </View>
                             <Text style={styles.bestXIRating}>
@@ -687,18 +690,18 @@ const createStyles = (theme: any, isDark: boolean) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.7)',
+      backgroundColor: 'rgba(0,0,0,0.75)',
       justifyContent: 'center',
       alignItems: 'center',
-      padding: 20,
+      padding: 16,
     },
     modalCard: {
       width: '100%',
       maxWidth: 480,
-      maxHeight: '85%',
+      maxHeight: '88%',
       backgroundColor: theme.surface,
       borderRadius: 24,
-      padding: 20,
+      padding: 18,
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
       elevation: 10,
@@ -730,28 +733,33 @@ const createStyles = (theme: any, isDark: boolean) =>
       borderRadius: 16,
       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
     },
+    tabsScrollView: {
+      flexGrow: 0,
+      marginBottom: 14,
+    },
     tabsRow: {
       flexDirection: 'row',
+      alignItems: 'center',
       backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)',
       padding: 4,
-      borderRadius: 12,
-      marginBottom: 16,
+      borderRadius: 14,
       gap: 6,
     },
     tabBtn: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: 9,
+      paddingVertical: 9,
+      paddingHorizontal: 14,
+      borderRadius: 10,
       gap: 6,
+      flexShrink: 0,
     },
     tabBtnActive: {
       backgroundColor: theme.primary,
     },
     tabBtnText: {
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: '700',
       color: theme.textSecondary,
     },

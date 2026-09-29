@@ -51,9 +51,13 @@ export interface TOTWPlayer {
   name: string;
   position?: string;
   avg_rating?: string | number;
+  rating?: string | number;
+  team_name?: string;
+  team?: string;
   metadata?: {
     position?: string;
-    avg_rating?: string;
+    avg_rating?: string | number;
+    team_name?: string;
   };
 }
 
