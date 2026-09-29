@@ -30,11 +30,11 @@ interface MatchPeriodTrackerProps {
 }
 
 const PERIOD_STEPS: { key: MatchPeriod; label: string; defaultMinute: number }[] = [
-  { key: "not_started", label: "Por iniciar", defaultMinute: 0 },
+  { key: "not_started", label: "Inicio", defaultMinute: 0 },
   { key: "1T", label: "1T", defaultMinute: 1 },
   { key: "halftime", label: "Descanso", defaultMinute: 45 },
   { key: "2T", label: "2T", defaultMinute: 46 },
-  { key: "finished", label: "Terminado", defaultMinute: 90 },
+  { key: "finished", label: "Final", defaultMinute: 90 },
 ];
 
 export function MatchPeriodTracker({
@@ -212,13 +212,13 @@ export function MatchPeriodTracker({
       {/* State Selector: Por iniciar ➔ 1T ➔ Descanso ➔ 2T ➔ Terminado */}
       <View style={styles.stepperContainer}>
         <View style={styles.stepperHeader}>
-          <Text style={styles.stepperTitle}>
+          <Text style={styles.stepperTitle} numberOfLines={1}>
             {isAdmin
               ? "CONTROL DEL ÁRBITRO • PROGRESIÓN"
               : "ESTADO DEL ENCUENTRO"}
           </Text>
           {isAdmin && (
-            <Text style={styles.stepperHint}>Toca para avanzar período</Text>
+            <Text style={styles.stepperHint} numberOfLines={1}>Toca para cambiar</Text>
           )}
         </View>
 
@@ -364,18 +364,21 @@ const createStyles = (theme: any, isDark: boolean) =>
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: 8,
-      paddingHorizontal: 4,
+      paddingHorizontal: 2,
+      gap: 6,
     },
     stepperTitle: {
       fontSize: 10,
       fontWeight: "900",
       color: theme.textSecondary,
-      letterSpacing: 1,
+      letterSpacing: 0.5,
+      flexShrink: 1,
     },
     stepperHint: {
       fontSize: 9,
       fontWeight: "700",
       color: theme.primary,
+      flexShrink: 0,
     },
     stepsRow: {
       flexDirection: "row",

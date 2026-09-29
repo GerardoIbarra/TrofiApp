@@ -845,14 +845,23 @@ export default function MatchDetailScreen() {
       )}
 
       {/* Tabs */}
-      <View style={styles.tabsWrapper}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsContainer}
+        style={styles.tabsScrollView}
+      >
         {(['RESUMEN', 'TIMELINE', 'ALINEACION', 'ESTADISTICAS'] as const).map((tab) => (
           <TouchableOpacity 
             key={tab} 
             onPress={() => setActiveTab(tab)}
-            style={[styles.tabItem, activeTab === tab && styles.tabItemActive]}
+            style={[styles.tabButton, activeTab === tab && styles.tabActive]}
+            activeOpacity={0.7}
           >
-            <Text style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]}>
+            <Text 
+              style={[styles.tabText, activeTab === tab && styles.tabTextActive]}
+              numberOfLines={1}
+            >
               {tab === 'RESUMEN' ? t("match_detail.tab_summary") : 
                tab === 'TIMELINE' ? t("match_detail.tab_timeline") :
                tab === 'ALINEACION' ? t("match_detail.tab_lineup") : 
@@ -860,7 +869,7 @@ export default function MatchDetailScreen() {
             </Text>
           </TouchableOpacity>
         ))}
-      </View>
+      </ScrollView>
 
       {/* Tab Content */}
       <View style={styles.tabContentWrapper}>
@@ -1090,35 +1099,37 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontSize: 10,
     fontWeight: '900',
   },
-  tabsWrapper: {
-    flexDirection: 'row',
-    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-    marginHorizontal: 20,
-    borderRadius: 15,
-    padding: 5,
+  tabsScrollView: {
     marginBottom: 20,
   },
-  tabItem: {
-    flex: 1,
-    paddingVertical: 10,
+  tabsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 8,
     alignItems: 'center',
+  },
+  tabButton: {
+    paddingVertical: 9,
+    paddingHorizontal: 16,
     borderRadius: 12,
+    backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+    flexShrink: 0,
   },
-  tabItemActive: {
-    backgroundColor: theme.surface,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  tabActive: {
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
-  tabLabel: {
-    fontSize: 11,
+  tabText: {
+    fontSize: 12,
     fontWeight: '800',
     color: theme.textSecondary,
+    letterSpacing: 0.5,
   },
-  tabLabelActive: {
-    color: theme.primary,
+  tabTextActive: {
+    color: '#001A2C',
+    fontWeight: '900',
   },
   mainScrollView: {
     flex: 1,
