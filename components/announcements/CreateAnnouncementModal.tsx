@@ -39,6 +39,11 @@ export function CreateAnnouncementModal({
   const styles = createStyles(theme, isDark);
   const { showToast } = useToast();
 
+  const isEditing = Boolean(initialData?.id);
+  const createMutation = useCreateAnnouncement();
+  const updateMutation = useUpdateAnnouncement();
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   const [title, setTitle] = useState(initialData?.title || '');
   const [body, setBody] = useState(initialData?.body || '');
 
