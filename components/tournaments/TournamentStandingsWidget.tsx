@@ -1,7 +1,7 @@
 import { useTheme } from "@/context/ThemeContext";
 import { StandingItem } from "@/features/leagues/types/standings";
 import api from "@/services/api";
-import { AlertCircle, Trophy, Settings2, Share2, Flame, Info } from "lucide-react-native";
+import { AlertCircle, Trophy, Settings2, Share2, Flame, Info, Maximize2 } from "lucide-react-native";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -15,6 +15,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Tournament } from "@/features/tournaments/types/tournament";
 import { TiebreakerConfigModal } from "./modals/TiebreakerConfigModal";
+import { FullStandingsModal } from "./modals/FullStandingsModal";
 import { SponsorBanner } from "@/components/sponsors/SponsorBanner";
 import { shareStandings } from "@/features/share/services/shareService";
 
@@ -42,6 +43,7 @@ export function TournamentStandingsWidget({
 
   const [subTab, setSubTab] = useState<'STANDINGS' | 'SCORERS'>('STANDINGS');
   const [isConfigVisible, setIsConfigVisible] = useState(false);
+  const [isFullStandingsVisible, setIsFullStandingsVisible] = useState(false);
 
   const {
     data: standings = [],
@@ -149,12 +151,25 @@ export function TournamentStandingsWidget({
           <>
             <View style={styles.actionRow}>
               <TouchableOpacity 
+                style={styles.fullViewBtn} 
+                onPress={() => setIsFullStandingsVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Maximize2 size={14} color={theme.primary} />
+                <Text style={styles.fullViewBtnText} numberOfLines={1}>
+                  {t('standings.view_full', 'Ver Completa')}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
                 style={styles.shareBtn} 
                 onPress={() => shareStandings(tournamentId)}
                 activeOpacity={0.8}
               >
                 <Share2 size={14} color="#001A2C" />
-                <Text style={styles.shareBtnText}>{t('tournament.share_standings')}</Text>
+                <Text style={styles.shareBtnText} numberOfLines={1}>
+                  {t('tournament.share_standings', 'Compartir')}
+                </Text>
               </TouchableOpacity>
 
               {isAdmin && tournament && (
@@ -163,8 +178,10 @@ export function TournamentStandingsWidget({
                   onPress={() => setIsConfigVisible(true)}
                   activeOpacity={0.8}
                 >
-                  <Settings2 size={14} color={theme.primary} />
-                  <Text style={styles.adminBtnText}>{t('tournament.config_tiebreaker')}</Text>
+                  <Settings2 size={14} color={theme.textSecondary} />
+                  <Text style={styles.adminBtnText} numberOfLines={1}>
+                    {t('tournament.config_tiebreaker_short', 'Desempate')}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -338,10 +355,16 @@ export function TournamentStandingsWidget({
               </View>
             </View>
 
-      <View style={styles.footerInfo}>
-        <AlertCircle size={12} color={theme.textSecondary} />
-        <Text style={styles.footerText}>{t("standings.footer_scroll")}</Text>
-      </View>
+      <TouchableOpacity 
+        style={styles.footerInfo} 
+        onPress={() => setIsFullStandingsVisible(true)}
+        activeOpacity={0.8}
+      >
+        <Maximize2 size={13} color={theme.primary} />
+        <Text style={styles.footerText}>
+          {t('standings.view_full', 'Ver Tabla Completa')} • {t("standings.footer_scroll")}
+        </Text>
+      </TouchableOpacity>
           </>
         )
       ) : (
@@ -410,6 +433,15 @@ export function TournamentStandingsWidget({
           tournament={tournament} 
         />
       )}
+
+      <FullStandingsModal
+        visible={isFullStandingsVisible}
+        onClose={() => setIsFullStandingsVisible(false)}
+        standings={standings}
+        tournament={tournament}
+        tournamentId={tournamentId}
+        onShare={() => shareStandings(tournamentId)}
+      />
     </View>
   );
 }
@@ -457,21 +489,41 @@ const createStyles = (theme: any, isDark: boolean) =>
     },
     actionRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
       alignItems: "center",
       padding: 12,
       borderBottomWidth: 1,
       borderBottomColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)",
-      gap: 10,
+      gap: 8,
     },
-    shareBtn: {
+    fullViewBtn: {
+      flex: 1.1,
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      backgroundColor: isDark ? "rgba(0, 245, 255, 0.12)" : "rgba(0, 245, 255, 0.1)",
+      borderWidth: 1.5,
+      borderColor: isDark ? "rgba(0, 245, 255, 0.4)" : "rgba(0, 245, 255, 0.35)",
+      paddingVertical: 9,
+      paddingHorizontal: 8,
+      borderRadius: 10,
+    },
+    fullViewBtnText: {
+      fontSize: 11,
+      fontWeight: "800",
+      color: theme.primary,
+      letterSpacing: 0.3,
+    },
+    shareBtn: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
       gap: 6,
       backgroundColor: theme.primary,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
+      paddingVertical: 9,
+      paddingHorizontal: 8,
+      borderRadius: 10,
     },
     shareBtnText: {
       fontSize: 11,
@@ -479,18 +531,22 @@ const createStyles = (theme: any, isDark: boolean) =>
       color: "#001A2C",
     },
     adminBtn: {
+      flex: 0.9,
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      backgroundColor: theme.primary + "15",
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
+      justifyContent: "center",
+      gap: 5,
+      backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)",
+      paddingVertical: 9,
+      paddingHorizontal: 8,
+      borderRadius: 10,
     },
     adminBtnText: {
       fontSize: 11,
       fontWeight: "800",
-      color: theme.primary,
+      color: theme.textSecondary,
     },
     loadingBox: {
       padding: 60,

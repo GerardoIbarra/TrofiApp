@@ -304,6 +304,7 @@
     "awards": "Awards",
     "share_standings": "Share Standings",
     "config_tiebreaker": "Configure Tiebreaker",
+    "config_tiebreaker_short": "Tiebreaker",
     "config_schedule": "Configure",
     "generate_fixture": "Generate Fixture",
     "enroll_team": "+ Enroll Team",
@@ -426,6 +427,7 @@
     "header_goals_against": "GA",
     "header_goal_diff": "GD",
     "header_points": "PTS",
+    "view_full": "View Full Table",
     "footer_scroll": "Swipe horizontally to see detailed statistics."
   },
   "match_detail": {

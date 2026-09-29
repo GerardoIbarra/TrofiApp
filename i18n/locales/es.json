@@ -304,6 +304,7 @@
     "awards": "Premios",
     "share_standings": "Compartir Tabla",
     "config_tiebreaker": "Configurar Desempate",
+    "config_tiebreaker_short": "Desempate",
     "config_schedule": "Configurar",
     "generate_fixture": "Generar Fixture",
     "enroll_team": "+ Inscribir Equipo",
@@ -426,6 +427,7 @@
     "header_goals_against": "GC",
     "header_goal_diff": "DG",
     "header_points": "PTS",
+    "view_full": "Ver Tabla Completa",
     "footer_scroll": "Desliza lateralmente para ver estadísticas detalladas."
   },
   "match_detail": {
