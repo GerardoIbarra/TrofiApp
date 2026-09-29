@@ -302,7 +302,7 @@ export default function MatchDetailScreen() {
   };
 
   const renderSummaryTab = () => (
-    <ScrollView style={styles.tabContent}>
+    <View style={styles.tabContent}>
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Info size={18} color={theme.primary} />
@@ -442,7 +442,7 @@ export default function MatchDetailScreen() {
           awayTeamRoster={lineup?.away?.starting_xi || []}
         />
       )}
-    </ScrollView>
+    </View>
   );
 
   const renderTimelineTab = () => {
@@ -455,7 +455,7 @@ export default function MatchDetailScreen() {
     );
 
     return (
-      <ScrollView style={styles.tabContent}>
+      <View style={styles.tabContent}>
         <View style={styles.timelineContainer}>
           <View style={styles.timelineLine} />
           {events.map((event, index) => {
@@ -495,7 +495,7 @@ export default function MatchDetailScreen() {
             );
           })}
         </View>
-      </ScrollView>
+      </View>
     );
   };
 
@@ -510,7 +510,7 @@ export default function MatchDetailScreen() {
     const currentTeamLineup = selectedLineupSide === 'home' ? lineup.home : lineup.away;
 
     return (
-      <ScrollView style={styles.tabContent}>
+      <View style={styles.tabContent}>
         {/* Selector de Equipo (Local / Visitante) para revisión de árbitro y capitán */}
         <View style={styles.lineupTeamToggle}>
           <TouchableOpacity
@@ -636,7 +636,7 @@ export default function MatchDetailScreen() {
             ))}
           </View>
         )}
-      </ScrollView>
+      </View>
     );
   };
 
@@ -664,7 +664,7 @@ export default function MatchDetailScreen() {
     };
 
     return (
-      <ScrollView style={styles.tabContent}>
+      <View style={styles.tabContent}>
         <View style={styles.h2hSummary}>
            <Text style={styles.subTitle}>{t("match_detail.h2h_history")}</Text>
            <View style={styles.h2hBar}>
@@ -687,7 +687,7 @@ export default function MatchDetailScreen() {
           {renderStatRow(t("match_detail.stat_clean_sheets"), h2h.home_season_stats.clean_sheets, h2h.away_season_stats.clean_sheets)}
           {renderStatRow(t("match_detail.stat_wins"), h2h.home_season_stats.wins, h2h.away_season_stats.wins)}
         </View>
-      </ScrollView>
+      </View>
     );
   };
 
@@ -734,8 +734,13 @@ export default function MatchDetailScreen() {
         )}
       </SafeAreaView>
 
-      {/* Match Score Area */}
-      <View style={styles.scoreArea}>
+      <ScrollView
+        style={styles.mainScrollView}
+        contentContainerStyle={styles.mainScrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Match Score Area */}
+        <View style={styles.scoreArea}>
         <View style={styles.teamBox}>
           <View style={styles.badgeContainer}>
             {match?.home_team_logo ? (
@@ -858,12 +863,13 @@ export default function MatchDetailScreen() {
       </View>
 
       {/* Tab Content */}
-      <View style={{ flex: 1 }}>
+      <View style={styles.tabContentWrapper}>
         {activeTab === 'RESUMEN' && renderSummaryTab()}
         {activeTab === 'TIMELINE' && renderTimelineTab()}
         {activeTab === 'ALINEACION' && renderLineupTab()}
         {activeTab === 'ESTADISTICAS' && renderStatsTab()}
       </View>
+    </ScrollView>
 
       {match && isValidMatchId(match.id) && (
         <RateRefereeModal
@@ -1114,10 +1120,17 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
   tabLabelActive: {
     color: theme.primary,
   },
-  tabContent: {
+  mainScrollView: {
     flex: 1,
+  },
+  mainScrollContent: {
+    paddingBottom: 140,
+  },
+  tabContentWrapper: {
+    flex: 1,
+  },
+  tabContent: {
     paddingHorizontal: 20,
-    paddingBottom: 100,
   },
   section: {
     marginBottom: 25,

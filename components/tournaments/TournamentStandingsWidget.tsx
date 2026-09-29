@@ -49,10 +49,16 @@ export function TournamentStandingsWidget({
   } = useQuery({
     queryKey: ["standings", tournamentId],
     queryFn: async () => {
-      const response = await api.get<StandingItem[]>(
-        `/v1/standings/by_tournament/?tournament_id=${tournamentId}`,
-      );
-      return [...response].sort((a, b) => a.position - b.position);
+      try {
+        const response = await api.get<StandingItem[] | { results: StandingItem[] }>(
+          `/v1/standings/by_tournament/?tournament_id=${tournamentId}`,
+        );
+        const list = Array.isArray(response) ? response : (response as any)?.results || [];
+        return [...list].sort((a, b) => (a?.position ?? 0) - (b?.position ?? 0));
+      } catch (err) {
+        console.error("Error fetching standings:", err);
+        return [];
+      }
     },
     enabled: Boolean(tournamentId),
   });
@@ -83,7 +89,7 @@ export function TournamentStandingsWidget({
     return null;
   };
 
-  const hasPlayedMatches = standings.some((item) => (item.played || 0) > 0);
+  const hasPlayedMatches = standings.some((item) => ((item?.played ?? 0) > 0));
 
   if (isLoadingStandings && isLoadingScorers) {
     return (
@@ -213,68 +219,75 @@ export function TournamentStandingsWidget({
             </Text>
           </View>
 
-          {/* Table Body */}
-          {standings.map((item, index) => (
-            <View
-              key={item.tournament_team}
-              style={[
-                styles.tableRow,
-                index % 2 !== 0 && styles.rowAlternate,
-                item.position <= 3 && styles.rowElite,
-              ]}
-            >
-              <View style={[styles.posBadge, getPositionStyle(item.position)]}>
-                <Text style={styles.posText}>{item.position}</Text>
-              </View>
+          {standings.map((item, index) => {
+            if (!item) return null;
+            const rawName = item.team_name || (item as any)?.team?.name || (item as any)?.name || 'Equipo';
+            const teamName = typeof rawName === 'string' ? rawName.toUpperCase() : 'EQUIPO';
+            const position = item.position ?? index + 1;
+            const key = item.tournament_team || (item as any)?.id || (item as any)?.team_id || `standing-${index}`;
 
-              <Text style={styles.teamName} numberOfLines={1}>
-                {item.team_name.toUpperCase()}
-              </Text>
-
-              <Text style={[styles.statCell, styles.cellGroup]}>
-                {item.group || "-"}
-              </Text>
-
-              <Text style={[styles.statCell, styles.cellStat]}>
-                {item.played ?? "-"}
-              </Text>
-              <Text style={[styles.statCell, styles.cellStat]}>
-                {item.wins ?? "-"}
-              </Text>
-              <Text style={[styles.statCell, styles.cellStat]}>
-                {item.draws ?? "-"}
-              </Text>
-              <Text style={[styles.statCell, styles.cellStat]}>
-                {item.losses ?? "-"}
-              </Text>
-              <Text style={[styles.statCell, styles.cellStat]}>
-                {item.goals_for ?? "-"}
-              </Text>
-              <Text style={[styles.statCell, styles.cellStat]}>
-                {item.goals_against ?? "-"}
-              </Text>
-
-              <Text
+            return (
+              <View
+                key={key}
                 style={[
-                  styles.statCell,
-                  styles.cellStat,
-                  styles.dgText,
-                  item.goal_difference != null && item.goal_difference > 0 && { color: "#4ADE80" },
-                  item.goal_difference != null && item.goal_difference < 0 && { color: "#FF4444" },
+                  styles.tableRow,
+                  index % 2 !== 0 && styles.rowAlternate,
+                  position <= 3 && styles.rowElite,
                 ]}
               >
-                {item.goal_difference != null
-                  ? (item.goal_difference > 0
-                      ? `+${item.goal_difference}`
-                      : item.goal_difference)
-                  : "-"}
-              </Text>
+                <View style={[styles.posBadge, getPositionStyle(position)]}>
+                  <Text style={styles.posText}>{position}</Text>
+                </View>
 
-              <Text style={[styles.pointsCell, styles.cellPoints]}>
-                {item.points ?? "-"}
-              </Text>
-            </View>
-          ))}
+                <Text style={styles.teamName} numberOfLines={1}>
+                  {teamName}
+                </Text>
+
+                <Text style={[styles.statCell, styles.cellGroup]}>
+                  {item.group || "-"}
+                </Text>
+
+                <Text style={[styles.statCell, styles.cellStat]}>
+                  {item.played ?? "-"}
+                </Text>
+                <Text style={[styles.statCell, styles.cellStat]}>
+                  {item.wins ?? "-"}
+                </Text>
+                <Text style={[styles.statCell, styles.cellStat]}>
+                  {item.draws ?? "-"}
+                </Text>
+                <Text style={[styles.statCell, styles.cellStat]}>
+                  {item.losses ?? "-"}
+                </Text>
+                <Text style={[styles.statCell, styles.cellStat]}>
+                  {item.goals_for ?? "-"}
+                </Text>
+                <Text style={[styles.statCell, styles.cellStat]}>
+                  {item.goals_against ?? "-"}
+                </Text>
+
+                <Text
+                  style={[
+                    styles.statCell,
+                    styles.cellStat,
+                    styles.dgText,
+                    item.goal_difference != null && item.goal_difference > 0 && { color: "#4ADE80" },
+                    item.goal_difference != null && item.goal_difference < 0 && { color: "#FF4444" },
+                  ]}
+                >
+                  {item.goal_difference != null
+                    ? (item.goal_difference > 0
+                        ? `+${item.goal_difference}`
+                        : item.goal_difference)
+                    : "-"}
+                </Text>
+
+                <Text style={[styles.pointsCell, styles.cellPoints]}>
+                  {item.points ?? "-"}
+                </Text>
+              </View>
+            );
+          })}
         </View>
       </ScrollView>
 
@@ -307,30 +320,38 @@ export function TournamentStandingsWidget({
               <Text style={[styles.headerCell, styles.cellScorerGoals]}>GOLES</Text>
             </View>
 
-            {scorers.map((item: TopScorerItem, index: number) => (
-              <View
-                key={item.id || `${item.player_name}-${index}`}
-                style={[
-                  styles.tableRow,
-                  index % 2 !== 0 && styles.rowAlternate,
-                  index < 3 && styles.rowElite,
-                ]}
-              >
-                <View style={[styles.posBadge, getPositionStyle(index + 1)]}>
-                  <Text style={styles.posText}>{index + 1}</Text>
+            {scorers.map((item: TopScorerItem, index: number) => {
+              if (!item) return null;
+              const playerName = item.player_name || (item as any)?.name || 'Jugador';
+              const teamName = item.team_name || (item as any)?.team || '-';
+              const goals = item.goals ?? 0;
+              const key = item.id || `${playerName}-${index}`;
+
+              return (
+                <View
+                  key={key}
+                  style={[
+                    styles.tableRow,
+                    index % 2 !== 0 && styles.rowAlternate,
+                    index < 3 && styles.rowElite,
+                  ]}
+                >
+                  <View style={[styles.posBadge, getPositionStyle(index + 1)]}>
+                    <Text style={styles.posText}>{index + 1}</Text>
+                  </View>
+                  <Text style={styles.scorerPlayerName} numberOfLines={1}>
+                    {playerName}
+                  </Text>
+                  <Text style={styles.scorerTeamName} numberOfLines={1}>
+                    {teamName}
+                  </Text>
+                  <View style={styles.scorerGoalsBox}>
+                    <Flame size={12} color="#FF5722" />
+                    <Text style={styles.scorerGoalsText}>{goals}</Text>
+                  </View>
                 </View>
-                <Text style={styles.scorerPlayerName} numberOfLines={1}>
-                  {item.player_name}
-                </Text>
-                <Text style={styles.scorerTeamName} numberOfLines={1}>
-                  {item.team_name}
-                </Text>
-                <View style={styles.scorerGoalsBox}>
-                  <Flame size={12} color="#FF5722" />
-                  <Text style={styles.scorerGoalsText}>{item.goals}</Text>
-                </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )
       )}
