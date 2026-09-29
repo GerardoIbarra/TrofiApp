@@ -258,19 +258,25 @@ export default function TournamentDetailScreen() {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.tabContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabContainer}
+            style={styles.tabScrollView}
+          >
             {['STANDINGS', 'MATCHES', 'PLAYOFFS', 'TEAMS', 'DISCIPLINE', 'AVISOS', 'INFO'].map((tab) => (
               <TouchableOpacity
                 key={tab}
                 onPress={() => setActiveTab(tab)}
                 style={[styles.tabButton, activeTab === tab && styles.tabActive]}
+                activeOpacity={0.7}
               >
-                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+                <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]} numberOfLines={1}>
                   {tab === 'AVISOS' ? t('tournament.tab_announcements') : t(`tournament.tab_${tab.toLowerCase()}`)}
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
 
           <View style={styles.tabContentArea}>
             {activeTab === 'STANDINGS' && (
@@ -576,17 +582,22 @@ const createStyles = (theme: any, isDark: boolean) => StyleSheet.create({
     fontWeight: '800',
     color: theme.text,
   },
+  tabScrollView: {
+    flexGrow: 0,
+    marginTop: 15,
+  },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    marginTop: 20,
     gap: 10,
+    alignItems: 'center',
   },
   tabButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+    flexShrink: 0,
   },
   tabActive: {
     backgroundColor: theme.primary + '20',
